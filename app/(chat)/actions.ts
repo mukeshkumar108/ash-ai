@@ -14,9 +14,7 @@ import {
 } from '@/lib/db/queries';
 import type { VisibilityType } from '@/components/visibility-selector';
 import { myProvider } from '@/lib/ai/providers';
-import { refreshChatContinuityState } from '@/lib/ai/chat-continuity';
 import { ChatSDKError } from '@/lib/errors';
-import { logAIError } from '@/lib/ai/error-log';
 
 export async function saveChatModelAsCookie(model: string) {
   const cookieStore = await cookies();
@@ -104,13 +102,6 @@ export async function deleteTrailingMessages({ id }: { id: string }) {
     activeState: null,
     relationshipDynamics: null,
     continuityEvents: null,
-  });
-
-  await refreshChatContinuityState({
-    chatId: message.chatId,
-    userId: session.user.id,
-  }).catch((error) => {
-    logAIError('rebuild-after-delete', error);
   });
 
   return {

@@ -48,6 +48,9 @@ export const maxDuration = 300;
 const CHAT_MAX_OUTPUT_TOKENS = Number(
   process.env.CHAT_MAX_OUTPUT_TOKENS ?? 1200,
 );
+const FIRST_BYTE_TIMEOUT_MS = Number(
+  process.env.FIRST_BYTE_TIMEOUT_MS ?? 60000,
+);
 
 type RuntimeModelId =
   | ChatModel['id']
@@ -330,7 +333,8 @@ export async function POST(request: Request) {
             candidate === 'chat-model';
           let sawAnyChunk = false;
           const controller = new AbortController();
-          const firstByteTimeoutMs = index === 0 ? 20000 : 15000;
+          const firstByteTimeoutMs =
+            index === 0 ? FIRST_BYTE_TIMEOUT_MS : FIRST_BYTE_TIMEOUT_MS - 15000;
 
           const timeoutId = setTimeout(() => {
             controller.abort(
