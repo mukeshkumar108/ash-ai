@@ -1,0 +1,1 @@
+ALTER TABLE "Chat" ADD COLUMN "characterId" varchar(50) DEFAULT 'lila-harper' NOT NULL;

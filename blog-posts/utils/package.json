@@ -1,0 +1,19 @@
+{
+  "name": "blog-post-generator",
+  "version": "1.0.0",
+  "description": "Automated blog post generation from development work",
+  "main": "generate-post.js",
+  "scripts": {
+    "generate": "node generate-post.js",
+    "deep-dive": "node generate-post.js technical-deep-dive",
+    "learning": "node generate-post.js learning-journey",
+    "analyze": "node analyze-work.js"
+  },
+  "dependencies": {},
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "keywords": ["blog", "automation", "content", "development", "ai"],
+  "author": "Your Name",
+  "license": "MIT"
+}
