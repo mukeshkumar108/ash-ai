@@ -47,30 +47,26 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    if (!['light', 'dark', 'system'].includes(themePreference)) {
-      return NextResponse.json(
-        { error: 'Invalid theme preference' },
-        { status: 400 },
-      );
+    const updates: Record<string, string | null> = {
+      displayName: displayName.trim() || null,
+    };
+
+    if (themePreference != null) {
+      if (!['light', 'dark', 'system'].includes(themePreference)) {
+        return NextResponse.json(
+          { error: 'Invalid theme preference' },
+          { status: 400 },
+        );
+      }
+      updates.themePreference = themePreference;
     }
 
-    const normalizedDisplayName = displayName.trim() || null;
-
     try {
-      await db
-        .update(user)
-        .set({
-          displayName: normalizedDisplayName,
-          themePreference,
-        })
-        .where(eq(user.id, session.user.id));
+      await db.update(user).set(updates).where(eq(user.id, session.user.id));
     } catch (error) {
       await db
         .update(user)
-        .set({
-          displayName: normalizedDisplayName,
-          themePreference,
-        })
+        .set({ displayName: updates.displayName })
         .where(eq(user.id, session.user.id));
     }
 

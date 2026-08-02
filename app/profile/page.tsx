@@ -6,19 +6,11 @@ import { useEffect, useState } from 'react';
 import { SubmitButton } from '@/components/submit-button';
 import { MobileBottomNav } from '@/components/mobile-bottom-nav';
 import { toast } from '@/components/toast';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 
 interface UserProfile {
   id: string;
   email: string;
   displayName: string | null;
-  themePreference: string;
 }
 
 interface UserStats {
@@ -35,7 +27,6 @@ export default function ProfilePage() {
   const [stats, setStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [themePreference, setThemePreference] = useState('system');
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -55,7 +46,6 @@ export default function ProfilePage() {
       if (response.ok) {
         const data = await response.json();
         setProfile(data);
-        setThemePreference(data.themePreference || 'system');
       }
     } catch (error) {
       console.error('Failed to load profile:', error);
@@ -86,7 +76,6 @@ export default function ProfilePage() {
       const formData = new FormData(e.currentTarget);
       const updates = {
         displayName: formData.get('displayName') as string,
-        themePreference,
       };
 
       const response = await fetch('/api/profile', {
@@ -186,28 +175,6 @@ export default function ProfilePage() {
                 <p className="text-xs text-muted-foreground mt-1">
                   Contact support if you need to change your email
                 </p>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="themePreference"
-                  className="block text-sm font-medium mb-2"
-                >
-                  Theme Preference
-                </label>
-                <Select
-                  value={themePreference}
-                  onValueChange={setThemePreference}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select theme" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="light">Light ☀️</SelectItem>
-                    <SelectItem value="dark">Dark 🌙</SelectItem>
-                    <SelectItem value="system">System (Auto) ⚙️</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
 
               <SubmitButton isSuccessful={!saving}>
