@@ -10,8 +10,10 @@ coverage
 
 # next.js
 .next/
+.next-build/
 out/
 build
+*.tsbuildinfo
 
 # misc
 .DS_Store
