@@ -1,4 +1,4 @@
-import { get } from '@vercel/blob';
+import { del, get } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 
 import { auth } from '@/app/(auth)/auth';
@@ -38,5 +38,31 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch file' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  const session = await auth();
+
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const pathname = searchParams.get('pathname');
+
+  if (!pathname) {
+    return NextResponse.json({ error: 'Missing pathname' }, { status: 400 });
+  }
+
+  if (pathname.includes('..') || pathname.startsWith('/')) {
+    return NextResponse.json({ error: 'Invalid pathname' }, { status: 400 });
+  }
+
+  try {
+    await del(pathname, { token: process.env.BLOB_READ_WRITE_TOKEN });
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to delete file' }, { status: 500 });
   }
 }

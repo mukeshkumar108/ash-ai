@@ -20,6 +20,13 @@ import { ArrowUpIcon, PaperclipIcon, StopIcon } from './icons';
 import { PreviewAttachment } from './preview-attachment';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
+import { getBlobPathname } from '@/lib/blob';
+import {
+  FILE_ACCEPT_ATTR,
+  ImageProcessingError,
+  processImageFile,
+  type ProcessedImage,
+} from '@/lib/image-processing';
 import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -116,7 +123,177 @@ function PureMultimodalInput({
   };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
+  const replaceTargetRef = useRef<string | null>(null);
+
+  type PendingAttachment = {
+    id: string;
+    name: string;
+    state: 'processing' | 'uploading' | 'failed';
+    error?: string;
+  };
+
+  const [pending, setPending] = useState<Array<PendingAttachment>>([]);
+  const abortRefs = useRef(new Map<string, AbortController>());
+  const cancelledRef = useRef(new Set<string>());
+
+  const createId = () =>
+    typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `att-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+  const updatePending = useCallback(
+    (id: string, patch: Partial<PendingAttachment>) => {
+      setPending((current) =>
+        current.map((item) => (item.id === id ? { ...item, ...patch } : item)),
+      );
+    },
+    [],
+  );
+
+  const removePending = useCallback((id: string) => {
+    setPending((current) => current.filter((item) => item.id !== id));
+  }, []);
+
+  const deleteBlob = useCallback(async (pathname: string) => {
+    try {
+      await fetch(`/api/files?pathname=${encodeURIComponent(pathname)}`, {
+        method: 'DELETE',
+      });
+    } catch {
+      // Best-effort cleanup of abandoned uploads.
+    }
+  }, []);
+
+  const processAndUpload = useCallback(
+    async (file: File, id: string) => {
+      const controller = new AbortController();
+      abortRefs.current.set(id, controller);
+
+      try {
+        let processed: ProcessedImage;
+        try {
+          processed = await processImageFile(file, controller.signal);
+        } catch (error) {
+          if (cancelledRef.current.has(id)) return;
+          const message =
+            error instanceof ImageProcessingError
+              ? error.message
+              : 'This image could not be processed.';
+          updatePending(id, { state: 'failed', error: message });
+          toast.error(message);
+          return;
+        }
+
+        if (cancelledRef.current.has(id)) return;
+
+        updatePending(id, { state: 'uploading' });
+
+        const formData = new FormData();
+        formData.append('file', processed.file, processed.file.name);
+
+        const response = await fetch('/api/files/upload', {
+          method: 'POST',
+          body: formData,
+          signal: controller.signal,
+        });
+
+        if (cancelledRef.current.has(id)) {
+          if (response.ok) {
+            const data = await response.json().catch(() => null);
+            if (data?.pathname) void deleteBlob(data.pathname);
+          }
+          return;
+        }
+
+        if (!response.ok) {
+          const { error } = await response
+            .json()
+            .catch(() => ({ error: 'Upload failed' }));
+          throw new Error(error || 'Upload failed');
+        }
+
+        const data = await response.json();
+
+        if (cancelledRef.current.has(id)) {
+          void deleteBlob(data.pathname);
+          return;
+        }
+
+        removePending(id);
+        setAttachments((currentAttachments) => [
+          ...currentAttachments,
+          {
+            url: data.url,
+            name: data.pathname,
+            contentType: data.contentType,
+            id,
+          },
+        ]);
+      } catch (error) {
+        if (cancelledRef.current.has(id)) return;
+        const message =
+          error instanceof Error ? error.message : 'Failed to upload image.';
+        updatePending(id, { state: 'failed', error: message });
+        toast.error(message);
+      } finally {
+        abortRefs.current.delete(id);
+        cancelledRef.current.delete(id);
+      }
+    },
+    [deleteBlob, removePending, setAttachments, updatePending],
+  );
+
+  const removeAttachment = useCallback(
+    (id: string) => {
+      cancelledRef.current.add(id);
+      abortRefs.current.get(id)?.abort();
+
+      setAttachments((currentAttachments) => {
+        const target = currentAttachments.find(
+          (attachment) => attachment.id === id,
+        );
+        if (target?.url) void deleteBlob(getBlobPathname(target.url));
+        return currentAttachments.filter((attachment) => attachment.id !== id);
+      });
+
+      setPending((current) => current.filter((item) => item.id !== id));
+    },
+    [deleteBlob],
+  );
+
+  const replaceAttachment = useCallback((id: string) => {
+    replaceTargetRef.current = id;
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleFileChange = useCallback(
+    async (event: ChangeEvent<HTMLInputElement>) => {
+      const files = Array.from(event.target.files || []);
+      event.target.value = '';
+
+      if (files.length === 0) return;
+
+      const replaceTargetId = replaceTargetRef.current;
+      if (replaceTargetId !== null) {
+        replaceTargetRef.current = null;
+        removeAttachment(replaceTargetId);
+      }
+
+      for (const file of files) {
+        const id = createId();
+        setPending((current) => [
+          ...current,
+          { id, name: file.name, state: 'processing' },
+        ]);
+        void processAndUpload(file, id);
+      }
+    },
+    [processAndUpload, removeAttachment],
+  );
+
+  const uploadQueue = pending
+    .filter((item) => item.state !== 'failed')
+    .map((item) => item.name);
 
   const submitForm = useCallback(() => {
     window.history.replaceState({}, '', `/chat/${chatId}`);
@@ -180,59 +357,6 @@ function PureMultimodalInput({
     });
   }, [continueSceneDirective, sendMessage]);
 
-  const uploadFile = async (file: File) => {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      const response = await fetch('/api/files/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const { url, pathname, contentType } = data;
-
-        return {
-          url,
-          name: pathname,
-          contentType: contentType,
-        };
-      }
-      const { error } = await response.json();
-      toast.error(error);
-    } catch (error) {
-      toast.error('Failed to upload file, please try again!');
-    }
-  };
-
-  const handleFileChange = useCallback(
-    async (event: ChangeEvent<HTMLInputElement>) => {
-      const files = Array.from(event.target.files || []);
-
-      setUploadQueue(files.map((file) => file.name));
-
-      try {
-        const uploadPromises = files.map((file) => uploadFile(file));
-        const uploadedAttachments = await Promise.all(uploadPromises);
-        const successfullyUploadedAttachments = uploadedAttachments.filter(
-          (attachment) => attachment !== undefined,
-        );
-
-        setAttachments((currentAttachments) => [
-          ...currentAttachments,
-          ...successfullyUploadedAttachments,
-        ]);
-      } catch (error) {
-        console.error('Error uploading files!', error);
-      } finally {
-        setUploadQueue([]);
-      }
-    },
-    [setAttachments],
-  );
-
   const { isAtBottom, scrollToBottom } = useScrollToBottom();
 
   useEffect(() => {
@@ -270,7 +394,7 @@ function PureMultimodalInput({
 
       <input
         type="file"
-        accept="image/jpeg,image/png"
+        accept={FILE_ACCEPT_ATTR}
         className="fixed -top-4 -left-4 size-0.5 opacity-0 pointer-events-none"
         ref={fileInputRef}
         multiple
@@ -278,24 +402,29 @@ function PureMultimodalInput({
         tabIndex={-1}
       />
 
-      {(attachments.length > 0 || uploadQueue.length > 0) && (
+      {(attachments.length > 0 || pending.length > 0) && (
         <div
           data-testid="attachments-preview"
           className="flex flex-row gap-2 overflow-x-scroll items-end"
         >
           {attachments.map((attachment) => (
-            <PreviewAttachment key={attachment.url} attachment={attachment} />
+            <PreviewAttachment
+              key={attachment.url}
+              attachment={attachment}
+              onRemove={
+                attachment.id ? () => removeAttachment(attachment.id as string) : undefined
+              }
+              onReplace={
+                attachment.id ? () => replaceAttachment(attachment.id as string) : undefined
+              }
+            />
           ))}
 
-          {uploadQueue.map((filename) => (
+          {pending.map((item) => (
             <PreviewAttachment
-              key={filename}
-              attachment={{
-                url: '',
-                name: filename,
-                contentType: '',
-              }}
-              isUploading={true}
+              key={item.id}
+              pending={{ name: item.name, state: item.state, error: item.error }}
+              onRemove={() => removeAttachment(item.id)}
             />
           ))}
         </div>

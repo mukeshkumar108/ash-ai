@@ -84,8 +84,7 @@ test.describe('Chat activity', () => {
     await chatPage.addImageAttachment();
 
     await chatPage.isElementVisible('attachments-preview');
-    await chatPage.isElementVisible('input-attachment-loader');
-    await chatPage.isElementNotVisible('input-attachment-loader');
+    await chatPage.isElementVisible('input-attachment-preview');
 
     await chatPage.sendUserMessage('Who painted this?');
 

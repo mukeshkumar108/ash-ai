@@ -39,10 +39,11 @@ export async function presignFilePartUrls<T extends { parts: unknown[] }>(
   const cache = new Map<string, Promise<string>>();
 
   const resolvePresigned = (pathname: string) => {
-    if (!cache.has(pathname)) {
-      cache.set(pathname, presignBlobUrl(pathname));
-    }
-    return cache.get(pathname)!;
+    const existing = cache.get(pathname);
+    if (existing) return existing;
+    const promise = presignBlobUrl(pathname);
+    cache.set(pathname, promise);
+    return promise;
   };
 
   return Promise.all(

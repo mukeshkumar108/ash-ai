@@ -4,16 +4,23 @@ import { z } from 'zod';
 
 import { auth } from '@/app/(auth)/auth';
 
+const ACCEPTED_IMAGE_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/heic',
+  'image/heif',
+];
+
 // Use Blob instead of File since File is not available in Node.js environment
 const FileSchema = z.object({
   file: z
     .instanceof(Blob)
-    .refine((file) => file.size <= 5 * 1024 * 1024, {
-      message: 'File size should be less than 5MB',
+    .refine((file) => file.size <= 20 * 1024 * 1024, {
+      message: 'File size should be less than 20MB',
     })
-    // Update the file type based on the kind of files you want to accept
-    .refine((file) => ['image/jpeg', 'image/png'].includes(file.type), {
-      message: 'File type should be JPEG or PNG',
+    .refine((file) => ACCEPTED_IMAGE_TYPES.includes(file.type), {
+      message: 'File type should be JPEG, PNG, WebP or HEIC/HEIF',
     }),
 });
 
@@ -55,6 +62,7 @@ export async function POST(request: Request) {
         access: 'private',
         token: process.env.BLOB_READ_WRITE_TOKEN,
         addRandomSuffix: true,
+        contentType: file.type,
       });
 
       return NextResponse.json(data);
