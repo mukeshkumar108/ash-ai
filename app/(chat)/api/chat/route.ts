@@ -8,7 +8,7 @@ import {
   streamText,
 } from 'ai';
 import { auth } from '@/app/(auth)/auth';
-import { assistantSystemPrompt } from '@/lib/ai/prompts';
+import { sophieSystemPrompt } from '@/lib/ai/prompts';
 import {
   createStreamId,
   deleteChatById,
@@ -219,7 +219,7 @@ export async function POST(request: Request) {
     const contextWindowSize = Number(process.env.CONTEXT_WINDOW_SIZE ?? 40);
     const messagesToSend = uiMessages.slice(-Math.max(3, contextWindowSize));
 
-    const system = assistantSystemPrompt();
+    const system = sophieSystemPrompt();
 
     await db
       .insert(messageTable)
