@@ -30,17 +30,10 @@ import {
 import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowDown, FastForward, Play } from 'lucide-react';
+import { ArrowDown } from 'lucide-react';
 import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom';
 import type { VisibilityType } from './visibility-selector';
 import type { Attachment, ChatMessage } from '@/lib/types';
-
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from './ui/tooltip';
 
 function PureMultimodalInput({
   chatId,
@@ -55,8 +48,6 @@ function PureMultimodalInput({
   sendMessage,
   className,
   selectedVisibilityType,
-  nextSceneDirective = '*System Directive: Advance to the next natural scene or time jump that logically follows from what just happened. Keep it brief and chat-like, not sprawling. Default to normal life, emotional fallout, daily routine, or story consequences rather than more sex. Respect existing plans, locations, people, promises, and unresolved tension. Use at most a short italicized setup, then continue naturally in-character with concise replies.*',
-  continueSceneDirective = '*System Directive: Continue the current scene without skipping away. Keep the response tighter and more immediate than a story scene. If the scene is already intimate, continue it with strong emotional continuity and physical specificity, but avoid bloated narration. If it is not intimate yet, stay in the immediate moment and respond naturally in a concise, chat-like rhythm.*',
 }: {
   chatId: string;
   input: string;
@@ -70,8 +61,6 @@ function PureMultimodalInput({
   sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
   className?: string;
   selectedVisibilityType: VisibilityType;
-  nextSceneDirective?: string;
-  continueSceneDirective?: string;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
@@ -333,30 +322,6 @@ function PureMultimodalInput({
     chatId,
   ]);
 
-  const handleNextScene = useCallback(() => {
-    sendMessage({
-      role: 'user',
-      parts: [
-        {
-          type: 'text',
-          text: nextSceneDirective,
-        },
-      ],
-    });
-  }, [nextSceneDirective, sendMessage]);
-
-  const handleContinueScene = useCallback(() => {
-    sendMessage({
-      role: 'user',
-      parts: [
-        {
-          type: 'text',
-          text: continueSceneDirective,
-        },
-      ],
-    });
-  }, [continueSceneDirective, sendMessage]);
-
   const { isAtBottom, scrollToBottom } = useScrollToBottom();
 
   useEffect(() => {
@@ -464,40 +429,6 @@ function PureMultimodalInput({
       </div>
 
       <div className="absolute bottom-0 right-0 p-2 w-fit flex flex-row justify-end gap-2">
-        <TooltipProvider delayDuration={400}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="rounded-full h-fit p-1.5 border dark:border-zinc-600 text-muted-foreground hover:text-foreground"
-                onClick={handleNextScene}
-                disabled={status !== 'ready'}
-              >
-                <FastForward size={14} />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="top">Next Scene (Story Progression)</TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="rounded-full h-fit p-1.5 border dark:border-zinc-600 text-muted-foreground hover:text-foreground"
-                onClick={handleContinueScene}
-                disabled={status !== 'ready'}
-              >
-                <Play size={14} />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="top">Continue Scene (Explicit Escalation)</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
         {status === 'submitted' ? (
           <StopButton stop={stop} setMessages={setMessages} />
         ) : (

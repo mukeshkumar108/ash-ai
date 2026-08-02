@@ -8,10 +8,6 @@ import {
   getMessagePageByChatId,
   withQueryContext,
 } from '@/lib/db/queries';
-import {
-  getContinueSceneDirectivePrompt,
-  getNextSceneDirectivePrompt,
-} from '@/lib/ai/character-prompts';
 import { DEFAULT_CHAT_MODEL } from '@/lib/ai/models';
 import { convertToUIMessages } from '@/lib/utils';
 
@@ -52,8 +48,6 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
 
     const cookieStore = await cookies();
     const chatModelFromCookie = cookieStore.get('chat-model');
-    const nextSceneDirective = getNextSceneDirectivePrompt();
-    const continueSceneDirective = getContinueSceneDirectivePrompt();
 
     const initialChatModel =
       chat.chatModel || chatModelFromCookie?.value || DEFAULT_CHAT_MODEL;
@@ -69,9 +63,6 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
         userType={session.user.type}
         autoResume={false}
         initialHasOlderMessages={initialMessagePage.hasMore}
-        characterId={chat.characterId}
-        nextSceneDirective={nextSceneDirective}
-        continueSceneDirective={continueSceneDirective}
       />
     );
   });

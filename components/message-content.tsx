@@ -2,12 +2,12 @@ import React, { memo } from 'react';
 import { Markdown } from './markdown';
 import { cn } from '@/lib/utils';
 
-interface RoleplayContentProps {
+interface MessageContentProps {
   text: string;
   role: 'user' | 'assistant';
 }
 
-const NonMemoizedRoleplayContent = ({ text, role }: RoleplayContentProps) => {
+const NonMemoizedMessageContent = ({ text, role }: MessageContentProps) => {
   const isUser = role === 'user';
 
   return (
@@ -34,4 +34,4 @@ const NonMemoizedRoleplayContent = ({ text, role }: RoleplayContentProps) => {
   );
 };
 
-export const RoleplayContent = memo(NonMemoizedRoleplayContent);
+export const MessageContent = memo(NonMemoizedMessageContent);

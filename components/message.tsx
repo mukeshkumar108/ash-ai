@@ -17,7 +17,7 @@ import {
   type ThinkingStage,
 } from '@/lib/constants/thinking-messages';
 import { AnimatedText } from './animated-text';
-import { RoleplayContent } from './roleplay-content';
+import { MessageContent } from './message-content';
 import { MessageActions } from './message-actions';
 
 const PurePreviewMessage = ({
@@ -29,8 +29,6 @@ const PurePreviewMessage = ({
   regenerate,
   isReadonly,
   requiresScrollPadding,
-  nextSceneDirective,
-  continueSceneDirective,
 }: {
   chatId: string;
   message: ChatMessage;
@@ -40,34 +38,12 @@ const PurePreviewMessage = ({
   regenerate: UseChatHelpers<ChatMessage>['regenerate'];
   isReadonly: boolean;
   requiresScrollPadding: boolean;
-  nextSceneDirective?: string;
-  continueSceneDirective?: string;
 }) => {
   const [mode, setMode] = useState<'view' | 'edit'>('view');
 
   const attachmentsFromMessage = message.parts.filter(
     (part) => part.type === 'file',
   );
-
-  const getSystemDirectiveLabel = (text: string) => {
-    const normalizedText = sanitizeText(text).trim();
-
-    if (
-      nextSceneDirective &&
-      normalizedText === sanitizeText(nextSceneDirective).trim()
-    ) {
-      return 'Next Scene';
-    }
-
-    if (
-      continueSceneDirective &&
-      normalizedText === sanitizeText(continueSceneDirective).trim()
-    ) {
-      return 'Continue Scene';
-    }
-
-    return null;
-  };
 
   return (
     <AnimatePresence>
@@ -129,19 +105,7 @@ const PurePreviewMessage = ({
               }
 
               if (type === 'text') {
-                const systemDirectiveLabel = getSystemDirectiveLabel(part.text);
-
                 if (mode === 'view') {
-                  if (systemDirectiveLabel) {
-                    return (
-                      <div key={key} className="flex justify-center w-full">
-                        <div className="inline-flex items-center rounded-full border border-border/60 bg-muted/50 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
-                          {systemDirectiveLabel}
-                        </div>
-                      </div>
-                    );
-                  }
-
                   return (
                     <div key={key} className="flex flex-row gap-2 items-start text-message-part">
                       {message.role === 'user' && !isReadonly && (
@@ -183,7 +147,7 @@ const PurePreviewMessage = ({
                         data-testid="message-content"
                         className="flex flex-col gap-4 w-full"
                       >
-                        <RoleplayContent
+                        <MessageContent
                           text={sanitizeText(part.text)}
                           role={message.role as 'user' | 'assistant'}
                         />
@@ -244,10 +208,6 @@ export const PreviewMessage = memo(
     if (!equal(prevProps.vote, nextProps.vote)) return false;
     if (prevProps.message.role !== nextProps.message.role) return false;
     if (prevProps.isReadonly !== nextProps.isReadonly) return false;
-    if (prevProps.nextSceneDirective !== nextProps.nextSceneDirective)
-      return false;
-    if (prevProps.continueSceneDirective !== nextProps.continueSceneDirective)
-      return false;
 
     return true;
   },

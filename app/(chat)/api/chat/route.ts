@@ -8,14 +8,7 @@ import {
   streamText,
 } from 'ai';
 import { auth } from '@/app/(auth)/auth';
-import {
-  getContinueSceneDirectivePrompt,
-  getCharacterPosture,
-  getNextSceneDirectivePrompt,
-} from '@/lib/ai/character-prompts';
-import { getCharacterById } from '@/lib/ai/characters';
-import { compileSystemPrompt } from '@/lib/ai/compiler';
-import { systemPrompt } from '@/lib/ai/prompts';
+import { assistantSystemPrompt } from '@/lib/ai/prompts';
 import {
   createStreamId,
   deleteChatById,
@@ -23,7 +16,6 @@ import {
   getChatById,
   getMessagesByChatId,
   saveChat,
-  saveChatState,
   saveMessages,
   getUserById,
   withQueryContext,
@@ -31,30 +23,17 @@ import {
 } from '@/lib/db/queries';
 import { message as messageTable, user as userTable } from '@/lib/db/schema';
 import { convertToUIMessages, generateUUID } from '@/lib/utils';
-import { presignFilePartUrls } from '@/lib/blob-server';
 import { generateTitleFromUserMessage } from '../../actions';
-import { measureConversation } from '@/lib/ai/salience';
-import { resolveHotState } from '@/lib/ai/hot-resolver';
-import {
-  derivePromptDomainState,
-} from '@/lib/ai/prompt-domains';
-import {
-  defaultRelationshipDynamics,
-  extractOntologyFromColumn,
-  type ContinuityEvent,
-  type RelationshipDynamics,
-} from '@/lib/ai/continuity';
-import { refreshChatContinuityState } from '@/lib/ai/chat-continuity';
 import { isProductionEnvironment } from '@/lib/constants';
-import { myProvider, getLanguageModel } from '@/lib/ai/providers';
+import { getLanguageModel } from '@/lib/ai/providers';
 import { postRequestBodySchema, type PostRequestBody } from './schema';
 import { sanitizeText } from '@/lib/ai/sanitize';
 import {
   shouldPreferFallbackFirst,
   shouldRejectAssistantOutput,
 } from '@/lib/ai/output-judge';
-import { detectStall, formatStallDirective } from '@/lib/ai/stall-detector';
 import { logAIError } from '@/lib/ai/error-log';
+import { presignFilePartUrls } from '@/lib/blob-server';
 import {
   createResumableStreamContext,
   type ResumableStreamContext,
@@ -64,8 +43,6 @@ import { ChatSDKError } from '@/lib/errors';
 import type { ChatMessage } from '@/lib/types';
 import type { ChatModel } from '@/lib/ai/models';
 import type { VisibilityType } from '@/components/visibility-selector';
-import type { StructuredMemory } from '@/lib/ai/summarizer';
-import type { ActiveState } from '@/lib/ai/active-state';
 
 export const maxDuration = 300;
 const CHAT_MAX_OUTPUT_TOKENS = Number(
@@ -74,9 +51,7 @@ const CHAT_MAX_OUTPUT_TOKENS = Number(
 
 type RuntimeModelId =
   | ChatModel['id']
-  | 'chat-model-fallback'
-  | 'scene-model'
-  | 'scene-model-fallback';
+  | 'chat-model-fallback';
 
 const MODEL_FALLBACKS: Record<RuntimeModelId, RuntimeModelId[]> = {
   'chat-model': ['chat-model', 'chat-model-fallback'],
@@ -86,12 +61,6 @@ const MODEL_FALLBACKS: Record<RuntimeModelId, RuntimeModelId[]> = {
     'chat-model',
   ],
   'chat-model-fallback': ['chat-model-fallback', 'chat-model'],
-  'scene-model': ['scene-model', 'scene-model-fallback', 'chat-model-fallback'],
-  'scene-model-fallback': [
-    'scene-model-fallback',
-    'scene-model',
-    'chat-model-fallback',
-  ],
 };
 
 function getFallbackModelIds(modelId: RuntimeModelId) {
@@ -117,8 +86,6 @@ function getOrderedModelCandidates({
 }
 
 let globalStreamContext: ResumableStreamContext | null = null;
-const nextSceneDirectivePrompt = getNextSceneDirectivePrompt();
-const continueSceneDirectivePrompt = getContinueSceneDirectivePrompt();
 
 function flattenMessageText(
   message?: {
@@ -179,8 +146,6 @@ export async function POST(request: Request) {
       selectedVisibilityType: VisibilityType;
     } = requestBody;
 
-    const characterId = (requestBody as any).characterId || 'lila-harper';
-
     const session = await auth();
 
     if (!session?.user) {
@@ -188,33 +153,6 @@ export async function POST(request: Request) {
     }
 
     const chat = await getChatById({ id });
-    let userProfile = await getUserById(session.user.id);
-
-    if (!userProfile) {
-      if (!isProductionEnvironment) {
-        await db.insert(userTable).values({
-          id: session.user.id,
-          email: `dev-${session.user.id.slice(0, 8)}@localhost.test`,
-        }).onConflictDoNothing();
-        userProfile = {
-          id: session.user.id,
-          email: `dev-${session.user.id.slice(0, 8)}@localhost.test`,
-          displayName: null,
-          rpDisplayName: 'User',
-          rpAge: '31',
-          rpLocation: 'Cambridge, England',
-          rpOccupation: 'VP of Product (Tech)',
-          rpVibe: "Male, 5'11\", toned and muscular",
-          languagePreference: 'en',
-          themePreference: 'system',
-        };
-      } else {
-        return new ChatSDKError(
-          'unauthorized:chat',
-          'Session user no longer exists',
-        ).toResponse();
-      }
-    }
 
     if (!chat) {
       const title = await generateTitleFromUserMessage({
@@ -225,13 +163,31 @@ export async function POST(request: Request) {
         id,
         userId: session.user.id,
         title,
-        characterId,
+        characterId: 'neutral',
         visibility: selectedVisibilityType,
         chatModel: selectedChatModel,
       });
     } else {
       if (chat.userId !== session.user.id) {
         return new ChatSDKError('forbidden:chat').toResponse();
+      }
+    }
+
+    // Ensure the session user has a row so chat/message foreign keys hold.
+    if (!(await getUserById(session.user.id))) {
+      if (!isProductionEnvironment) {
+        await db
+          .insert(userTable)
+          .values({
+            id: session.user.id,
+            email: `dev-${session.user.id.slice(0, 8)}@localhost.test`,
+          })
+          .onConflictDoNothing();
+      } else {
+        return new ChatSDKError(
+          'unauthorized:chat',
+          'Session user no longer exists',
+        ).toResponse();
       }
     }
 
@@ -255,176 +211,11 @@ export async function POST(request: Request) {
       (msg, index, self) => self.findIndex((m) => m.id === msg.id) === index,
     );
 
-    const enableMemorySlice = process.env.MEMORY_SLICE !== '0';
-    const MIN_TURNS_FOR_SUMMARY = Number(process.env.MEMORY_MIN_TURNS ?? 5);
-    const CHAT_MEMORY_REFRESH_TURNS = Number(
-      process.env.CHAT_MEMORY_REFRESH_TURNS ?? 8,
-    );
-    const ACTIVE_STATE_REFRESH_TURNS = Number(
-      process.env.ACTIVE_STATE_REFRESH_TURNS ?? 3,
-    );
-    const ACTIVE_STATE_WINDOW_MESSAGES = Number(
-      process.env.ACTIVE_STATE_WINDOW_MESSAGES ?? 8,
-    );
-    let memoryBrief = '';
-    // Will be set later based on whether memory is used
-    let systemWithMemory = '';
-    let messagesToSend = uiMessages;
+    // Keep the most recent context window for the model.
+    const contextWindowSize = Number(process.env.CONTEXT_WINDOW_SIZE ?? 40);
+    const messagesToSend = uiMessages.slice(-Math.max(3, contextWindowSize));
 
-    // Declare variables outside the if block so they're accessible later
-    const convo = uiMessages
-      .filter((m) => m.role === 'user' || m.role === 'assistant')
-      .map((m) => ({
-        role: m.role as 'user' | 'assistant',
-        content: (m.parts?.map?.((p: any) => p.text || '').join(' ') || '')
-          .replace(
-            /^(Reasoned .*|We need to respond .*|User says .*|Assistant .*):?/i,
-            '',
-          )
-          .trim(),
-      }))
-      .filter((m) => m.content.length > 0);
-
-    const { tokensApprox, salience, language } = measureConversation(convo);
-    const minTokens = Number(process.env.MEMORY_MIN_TOKENS ?? 400);
-    const minSal = Number(process.env.MEMORY_MIN_SALIENCE ?? 3);
-    const shouldSummarize = tokensApprox >= minTokens || salience >= minSal;
-    const persistedMemory = (chat?.memoryState as StructuredMemory | null) ?? null;
-    const rawPersistedActiveState = (chat?.activeState as ActiveState | null) ?? null;
-
-    const baseSystemPrompt = systemPrompt({
-      characterId,
-      language,
-      userCanon: userProfile,
-      thirdPartyMode: rawPersistedActiveState?.third_party_mode ?? 'closed',
-    });
-
-    systemWithMemory = baseSystemPrompt;
-
-    const selectedCharacter = getCharacterById(chat?.characterId ?? characterId);
-
-    const userMessageText = sanitizedMessage.parts
-      ?.filter((p: any) => p.type === 'text')
-      .map((p: any) => p.text || '')
-      .join(' ') || '';
-    const isRoleplayTermination =
-      /\b(terminate|system override|stop roleplay|end roleplay)\b/i.test(
-        userMessageText,
-      );
-
-    const baseActiveState = rawPersistedActiveState ?? {
-          scene_mode: 'texting',
-          location: 'Unknown',
-          time_of_day: 'Unknown',
-          current_activity: 'Conversation',
-          primary_mood: 'Interested',
-          visible_emotion: 'Attentive',
-          hidden_emotion: 'Undisclosed',
-          emotional_direction: 'stable',
-          relationship_temperature: 5,
-          trust_level: 5,
-          affection_level: 5,
-          conflict_level: 0,
-          attraction_level: 5,
-          need_for_reassurance: 3,
-          what_they_want: 'Escalate connection through action and intimacy.',
-          what_they_are_avoiding: 'Stagnation and repetitive exchanges.',
-          likely_next_move: 'Drive the scene forward — escalate intimacy, advance the action, or shift emotional tone.',
-          current_boundary: 'No explicit boundary shift detected.',
-          tone: 'Conversational',
-          message_length: 'short',
-          directness_level: 5,
-          playfulness_level: 5,
-          warmth_level: 6,
-          scene_locks: [],
-          third_party_mode: 'closed',
-          third_party_posture: getCharacterPosture(selectedCharacter.id) as ActiveState['third_party_posture'],
-          pace: 'natural',
-          actors: [],
-          user_proxy: {},
-          domain_guard: { mode: 'allow' },
-        } as ActiveState;
-    const persistedActiveState = resolveHotState(
-      userMessageText,
-      baseActiveState,
-      selectedCharacter.name,
-    );
-
-    // Eagerly persist hot-resolved third_party_mode so it survives to the next turn
-    if (rawPersistedActiveState || persistedActiveState.third_party_mode !== 'closed') {
-      void saveChatState({
-        chatId: id,
-        activeState: persistedActiveState,
-      });
-    }
-
-    const persistedRelationshipDynamics =
-      (chat?.relationshipDynamics as RelationshipDynamics | null) ??
-      defaultRelationshipDynamics;
-    const persistedOntology = extractOntologyFromColumn(chat?.continuityEvents);
-    const persistedContinuityEvents = Array.isArray(chat?.continuityEvents)
-      ? (chat.continuityEvents as ContinuityEvent[])
-      : persistedOntology?.events ?? [];
-
-    // ── Compute domain levels for expression tuning ────────────────────
-    const effectivePromptDomains =
-      persistedMemory?.prompt_domains ??
-      derivePromptDomainState({
-        character: selectedCharacter,
-        memory: persistedMemory,
-        activeState: persistedActiveState,
-        relationshipDynamics: persistedRelationshipDynamics,
-      });
-
-    // ── Compile the system prompt from all available state ──────────────
-    const compilerResult = compileSystemPrompt({
-      characterId: selectedCharacter.id,
-      thirdPartyMode: persistedActiveState.third_party_mode,
-      userName: userProfile?.rpDisplayName || 'User',
-      language,
-      userCanon: userProfile,
-      ontologyItems: persistedOntology?.items || [],
-      relationshipDimensions: persistedOntology?.relationship || {},
-      activeState: persistedActiveState,
-      memory: persistedMemory,
-      domainLevels: effectivePromptDomains?.current,
-      domainBaselines: effectivePromptDomains?.baseline,
-      userMessageText,
-      personModels: persistedOntology?.personModels || [],
-    });
-    systemWithMemory = compilerResult.systemPrompt;
-    memoryBrief = compilerResult.memoryBrief;
-
-    // ── Message truncation ──────────────────────────────────────────────
-    const lastKMax = Number(process.env.MEMORY_LAST_K_MAX ?? 10);
-    const dynamicLastK = Math.max(3, Math.min(lastKMax, Math.round(tokensApprox / 800) + 2));
-    messagesToSend = uiMessages.slice(-dynamicLastK);
-
-    // ── User directives (meta-commands wrapped in *) ────────────────────
-    const directivePattern = /^\*\s*(escalate|continue|next scene|develop|explore|intensify|advance|shift|focus on)\b/i;
-    const userDirectives: string[] = [];
-    messagesToSend = messagesToSend.filter((msg) => {
-      if (msg.role !== 'user') return true;
-      const text = msg.parts?.map((p: any) => p.text || '').join(' ').trim() || '';
-      if (!text.startsWith('*') || !text.endsWith('*')) return true;
-      if (directivePattern.test(text)) {
-        userDirectives.push(text.replace(/^\*|\*$/g, '').trim());
-        return false;
-      }
-      return true;
-    });
-    if (userDirectives.length > 0) {
-      systemWithMemory = `${systemWithMemory}\n\n[USER DIRECTIVE]\n${userDirectives.join('\n')}`;
-    }
-
-    const presignedMessages = await presignFilePartUrls(messagesToSend);
-
-    // ── Stall detection ─────────────────────────────────────────────────
-    const stallReport = detectStall(convo);
-    const stallDirective = formatStallDirective(stallReport);
-    if (stallDirective) {
-      systemWithMemory = `${systemWithMemory}${stallDirective}`;
-    }
+    const system = assistantSystemPrompt();
 
     await db
       .insert(messageTable)
@@ -441,20 +232,17 @@ export async function POST(request: Request) {
     const streamId = generateUUID();
     await createStreamId({ streamId, chatId: id });
 
-    const isDirective = sanitizedMessage.parts.some(
-      (part) =>
-        part.type === 'text' &&
-        (part.text.trim() === nextSceneDirectivePrompt ||
-          part.text.trim() === continueSceneDirectivePrompt),
-    );
+    const presignedMessages = await presignFilePartUrls(messagesToSend);
 
-    const modelToUse: RuntimeModelId = isDirective
-      ? 'scene-model'
-      : selectedChatModel;
-    const recentAssistantTexts = convo
+    const modelToUse: RuntimeModelId = selectedChatModel;
+    const recentAssistantTexts = uiMessages
       .filter((entry) => entry.role === 'assistant')
       .slice(-4)
-      .map((entry) => entry.content);
+      .map((entry) =>
+        (entry.parts?.map?.((p: any) => p.text || '').join(' ') || '')
+          .trim(),
+      )
+      .filter((text) => text.length > 0);
     const preferFallbackFirst = shouldPreferFallbackFirst({
       modelId: modelToUse,
       recentAssistantTexts,
@@ -462,19 +250,10 @@ export async function POST(request: Request) {
 
     const stream = createUIMessageStream({
       execute: async ({ writer: dataStream }) => {
-        const systemPromptWithMemory = enableMemorySlice || isRoleplayTermination
-          ? `${systemWithMemory}\n\n[MEMORY BRIEF FOR TOOLS]\n${memoryBrief}`
-          : systemPrompt({
-              characterId,
-              language,
-              userCanon: userProfile,
-              thirdPartyMode: persistedActiveState.third_party_mode,
-            });
-
         // Safety tweak B: Dev logs for token estimation and tool usage
         if (process.env.NODE_ENV !== 'production') {
           const tokenEst =
-            messagesToSend.length * 20 + systemPromptWithMemory.length / 4;
+            messagesToSend.length * 20 + system.length / 4;
           console.log(`[CHAT] tokenEst.in: ~${Math.round(tokenEst)} tokens`);
         }
 
@@ -518,7 +297,7 @@ export async function POST(request: Request) {
           index: number,
         ) => {
           const shouldJudgeOutput =
-            candidate === 'chat-model' || candidate === 'scene-model-fallback';
+            candidate === 'chat-model';
           let sawAnyChunk = false;
           const controller = new AbortController();
           const firstByteTimeoutMs = index === 0 ? 20000 : 15000;
@@ -535,7 +314,7 @@ export async function POST(request: Request) {
             if (shouldJudgeOutput) {
               const result = await generateText({
                 model: getLanguageModel(candidate),
-                system: systemPromptWithMemory,
+                system: system,
                 messages: convertToModelMessages(presignedMessages),
                 maxOutputTokens: CHAT_MAX_OUTPUT_TOKENS,
                 maxRetries: 1,
@@ -572,7 +351,7 @@ export async function POST(request: Request) {
 
             const result = streamText({
               model: getLanguageModel(candidate),
-              system: systemPromptWithMemory,
+              system: system,
               messages: convertToModelMessages(presignedMessages),
               maxOutputTokens: CHAT_MAX_OUTPUT_TOKENS,
               maxRetries: 1,
@@ -666,15 +445,6 @@ export async function POST(request: Request) {
             chatId: id,
           })),
         });
-
-        if (!isRoleplayTermination) {
-          void refreshChatContinuityState({
-            chatId: id,
-            userId: session.user.id,
-          }).catch((error) => {
-            logAIError('post-finish-continuity', error);
-          });
-        }
       },
       onError: () => {
         return 'No configured model completed the reply. Please retry or choose another model.';

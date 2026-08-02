@@ -18,11 +18,6 @@ interface UserProfile {
   id: string;
   email: string;
   displayName: string | null;
-  rpDisplayName: string | null;
-  rpAge: string | null;
-  rpLocation: string | null;
-  rpOccupation: string | null;
-  rpVibe: string | null;
   themePreference: string;
 }
 
@@ -91,11 +86,6 @@ export default function ProfilePage() {
       const formData = new FormData(e.currentTarget);
       const updates = {
         displayName: formData.get('displayName') as string,
-        rpDisplayName: formData.get('rpDisplayName') as string,
-        rpAge: formData.get('rpAge') as string,
-        rpLocation: formData.get('rpLocation') as string,
-        rpOccupation: formData.get('rpOccupation') as string,
-        rpVibe: formData.get('rpVibe') as string,
         themePreference,
       };
 
@@ -218,106 +208,6 @@ export default function ProfilePage() {
                     <SelectItem value="system">System (Auto) ⚙️</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-
-              <div className="space-y-4 rounded-xl border border-border/70 bg-muted/30 p-4">
-                <div>
-                  <h3 className="text-base font-semibold">Roleplay Identity</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Shared user canon across chats. This should describe you, not a specific scene.
-                  </p>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <label
-                      htmlFor="rpDisplayName"
-                      className="block text-sm font-medium mb-2"
-                    >
-                      RP Display Name
-                    </label>
-                    <input
-                      type="text"
-                      id="rpDisplayName"
-                      name="rpDisplayName"
-                      defaultValue={profile.rpDisplayName || ''}
-                      placeholder="What characters call you"
-                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none"
-                      maxLength={100}
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="rpAge"
-                      className="block text-sm font-medium mb-2"
-                    >
-                      RP Age
-                    </label>
-                    <input
-                      type="text"
-                      id="rpAge"
-                      name="rpAge"
-                      defaultValue={profile.rpAge || ''}
-                      placeholder="e.g. 24"
-                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none"
-                      maxLength={32}
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="rpLocation"
-                      className="block text-sm font-medium mb-2"
-                    >
-                      RP Location
-                    </label>
-                    <input
-                      type="text"
-                      id="rpLocation"
-                      name="rpLocation"
-                      defaultValue={profile.rpLocation || ''}
-                      placeholder="e.g. London"
-                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none"
-                      maxLength={120}
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="rpOccupation"
-                      className="block text-sm font-medium mb-2"
-                    >
-                      RP Occupation
-                    </label>
-                    <input
-                      type="text"
-                      id="rpOccupation"
-                      name="rpOccupation"
-                      defaultValue={profile.rpOccupation || ''}
-                      placeholder="e.g. designer, student"
-                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none"
-                      maxLength={120}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="rpVibe"
-                    className="block text-sm font-medium mb-2"
-                  >
-                    RP Vibe
-                  </label>
-                  <textarea
-                    id="rpVibe"
-                    name="rpVibe"
-                    defaultValue={profile.rpVibe || ''}
-                    placeholder="A few words that capture your energy, style, or presence"
-                    className="min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none"
-                    maxLength={160}
-                  />
-                </div>
               </div>
 
               <SubmitButton isSuccessful={!saving}>

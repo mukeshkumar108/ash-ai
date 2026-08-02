@@ -7,13 +7,13 @@ import './globals.css';
 import { SessionProvider } from 'next-auth/react';
 
 export const metadata: Metadata = {
-  title: 'RPD2',
-  description: 'A relationship-focused AI companion experience.',
+  title: 'Ash',
+  description: 'A multimodal AI chat assistant.',
   manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'RPD2',
+    title: 'Ash',
   },
 };
 

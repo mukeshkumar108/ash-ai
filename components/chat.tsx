@@ -37,9 +37,6 @@ export function Chat({
   userType,
   autoResume,
   initialHasOlderMessages = false,
-  characterId = 'lila-harper',
-  nextSceneDirective,
-  continueSceneDirective,
 }: {
   id: string;
   initialMessages: ChatMessage[];
@@ -49,9 +46,6 @@ export function Chat({
   userType: UserType;
   autoResume: boolean;
   initialHasOlderMessages?: boolean;
-  characterId?: string;
-  nextSceneDirective?: string;
-  continueSceneDirective?: string;
 }) {
   const { visibilityType } = useChatVisibility({
     chatId: id,
@@ -93,7 +87,6 @@ export function Chat({
             message: messages.at(-1),
             selectedChatModel: chatModel,
             selectedVisibilityType: visibilityType,
-            characterId,
             ...body,
           },
         };
@@ -307,7 +300,6 @@ export function Chat({
           selectedVisibilityType={initialVisibilityType}
           isReadonly={isReadonly}
           userType={userType}
-          characterId={characterId}
           onModelChange={handleModelChange}
         />
 
@@ -322,8 +314,6 @@ export function Chat({
           hasOlderMessages={hasOlderMessages}
           isLoadingOlderMessages={isLoadingOlderMessages}
           onLoadOlderMessages={loadOlderMessages}
-          nextSceneDirective={nextSceneDirective}
-          continueSceneDirective={continueSceneDirective}
         />
 
         {chatError ? (
@@ -359,8 +349,6 @@ export function Chat({
               setMessages={setMessages}
               sendMessage={sendMessage}
               selectedVisibilityType={visibilityType}
-              nextSceneDirective={nextSceneDirective}
-              continueSceneDirective={continueSceneDirective}
             />
           )}
         </form>

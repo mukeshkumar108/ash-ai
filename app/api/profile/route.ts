@@ -37,15 +37,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const {
-      displayName,
-      rpDisplayName,
-      rpAge,
-      rpLocation,
-      rpOccupation,
-      rpVibe,
-      themePreference,
-    } = body;
+    const { displayName, themePreference } = body;
 
     // Validate input
     if (typeof displayName !== 'string' || displayName.length > 100) {
@@ -62,56 +54,13 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const normalizeOptionalString = (
-      value: unknown,
-      maxLength: number,
-      field: string,
-    ) => {
-      if (value == null) {
-        return null;
-      }
-
-      if (typeof value !== 'string' || value.length > maxLength) {
-        throw new Error(`Invalid ${field}`);
-      }
-
-      const trimmed = value.trim();
-      return trimmed || null;
-    };
-
     const normalizedDisplayName = displayName.trim() || null;
-    const normalizedRpDisplayName = normalizeOptionalString(
-      rpDisplayName,
-      100,
-      'roleplay display name',
-    );
-    const normalizedRpAge = normalizeOptionalString(rpAge, 32, 'roleplay age');
-    const normalizedRpLocation = normalizeOptionalString(
-      rpLocation,
-      120,
-      'roleplay location',
-    );
-    const normalizedRpOccupation = normalizeOptionalString(
-      rpOccupation,
-      120,
-      'roleplay occupation',
-    );
-    const normalizedRpVibe = normalizeOptionalString(
-      rpVibe,
-      160,
-      'roleplay vibe',
-    );
 
     try {
       await db
         .update(user)
         .set({
           displayName: normalizedDisplayName,
-          rpDisplayName: normalizedRpDisplayName,
-          rpAge: normalizedRpAge,
-          rpLocation: normalizedRpLocation,
-          rpOccupation: normalizedRpOccupation,
-          rpVibe: normalizedRpVibe,
           themePreference,
         })
         .where(eq(user.id, session.user.id));
