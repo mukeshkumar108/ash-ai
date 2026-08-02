@@ -1,4 +1,5 @@
 import type { Attachment } from '@/lib/types';
+import { getBlobDisplayUrl } from '@/lib/blob';
 import { LoaderIcon } from './icons';
 
 export const PreviewAttachment = ({
@@ -19,7 +20,7 @@ export const PreviewAttachment = ({
             // eslint-disable-next-line @next/next/no-img-element
             <img
               key={url}
-              src={url}
+              src={getBlobDisplayUrl(url)}
               alt={name ?? 'An image attachment'}
               className="rounded-md size-full object-cover"
             />

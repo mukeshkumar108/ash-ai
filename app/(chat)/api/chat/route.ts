@@ -31,6 +31,7 @@ import {
 } from '@/lib/db/queries';
 import { message as messageTable, user as userTable } from '@/lib/db/schema';
 import { convertToUIMessages, generateUUID } from '@/lib/utils';
+import { presignFilePartUrls } from '@/lib/blob-server';
 import { generateTitleFromUserMessage } from '../../actions';
 import { measureConversation } from '@/lib/ai/salience';
 import { resolveHotState } from '@/lib/ai/hot-resolver';
@@ -416,6 +417,8 @@ export async function POST(request: Request) {
       systemWithMemory = `${systemWithMemory}\n\n[USER DIRECTIVE]\n${userDirectives.join('\n')}`;
     }
 
+    const presignedMessages = await presignFilePartUrls(messagesToSend);
+
     // ── Stall detection ─────────────────────────────────────────────────
     const stallReport = detectStall(convo);
     const stallDirective = formatStallDirective(stallReport);
@@ -533,7 +536,7 @@ export async function POST(request: Request) {
               const result = await generateText({
                 model: getLanguageModel(candidate),
                 system: systemPromptWithMemory,
-                messages: convertToModelMessages(messagesToSend),
+                messages: convertToModelMessages(presignedMessages),
                 maxOutputTokens: CHAT_MAX_OUTPUT_TOKENS,
                 maxRetries: 1,
                 temperature: 0.85,
@@ -570,7 +573,7 @@ export async function POST(request: Request) {
             const result = streamText({
               model: getLanguageModel(candidate),
               system: systemPromptWithMemory,
-              messages: convertToModelMessages(messagesToSend),
+              messages: convertToModelMessages(presignedMessages),
               maxOutputTokens: CHAT_MAX_OUTPUT_TOKENS,
               maxRetries: 1,
               temperature: 0.85,
