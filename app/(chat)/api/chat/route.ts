@@ -41,7 +41,7 @@ import {
 import { after } from 'next/server';
 import { ChatSDKError } from '@/lib/errors';
 import type { ChatMessage } from '@/lib/types';
-import type { ChatModel } from '@/lib/ai/models';
+import { type ChatModel, chatModels } from '@/lib/ai/models';
 import type { VisibilityType } from '@/components/visibility-selector';
 
 export const maxDuration = 300;
@@ -52,6 +52,10 @@ const CHAT_MAX_OUTPUT_TOKENS = Number(
 type RuntimeModelId =
   | ChatModel['id']
   | 'chat-model-fallback';
+
+// Internal aliases whose underlying model accepts image input. Used to keep
+// image requests from falling back to text-only models.
+const VISION_CAPABLE_ALIASES = new Set<RuntimeModelId>(['chat-model']);
 
 const MODEL_FALLBACKS: Record<RuntimeModelId, RuntimeModelId[]> = {
   'chat-model': ['chat-model', 'chat-model-fallback'],
@@ -234,7 +238,22 @@ export async function POST(request: Request) {
 
     const presignedMessages = await presignFilePartUrls(messagesToSend);
 
-    const modelToUse: RuntimeModelId = selectedChatModel;
+    let modelToUse: RuntimeModelId = selectedChatModel;
+
+    const hasImageParts = sanitizedMessage.parts.some(
+      (part) => part.type === 'file',
+    );
+    const selectedModelDef = chatModels.find(
+      (chatModel) => chatModel.id === selectedChatModel,
+    );
+
+    if (hasImageParts && selectedModelDef?.vision === false) {
+      console.warn(
+        `[chat] ${selectedChatModel} does not support image input; falling back to chat-model`,
+      );
+      modelToUse = 'chat-model';
+    }
+
     const recentAssistantTexts = uiMessages
       .filter((entry) => entry.role === 'assistant')
       .slice(-4)
@@ -257,10 +276,21 @@ export async function POST(request: Request) {
           console.log(`[CHAT] tokenEst.in: ~${Math.round(tokenEst)} tokens`);
         }
 
-        const modelCandidates = getOrderedModelCandidates({
+        const isVisionCapableCandidate = (candidate: RuntimeModelId) => {
+          if (VISION_CAPABLE_ALIASES.has(candidate)) return true;
+          const chatModelDef = chatModels.find(
+            (chatModel) => chatModel.id === candidate,
+          );
+          return chatModelDef ? chatModelDef.vision !== false : false;
+        };
+
+        const orderedCandidates = getOrderedModelCandidates({
           modelId: modelToUse,
           preferFallbackFirst,
         });
+        const modelCandidates = hasImageParts
+          ? orderedCandidates.filter(isVisionCapableCandidate)
+          : orderedCandidates;
         const responseMessageId = generateUUID();
         const textPartId = generateUUID();
         let hasWrittenResponse = false;

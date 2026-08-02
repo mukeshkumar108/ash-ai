@@ -88,7 +88,19 @@ export function ModelSelector({
                 className="gap-4 group/item flex flex-row justify-between items-center w-full"
               >
                 <div className="flex flex-col gap-1 items-start">
-                  <div>{chatModel.name}</div>
+                  <div className="flex items-center gap-2">
+                    {chatModel.name}
+                    {chatModel.vision === true && (
+                      <span className="rounded border border-border/70 bg-muted/60 px-1 py-px text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                        vision
+                      </span>
+                    )}
+                    {chatModel.vision === false && (
+                      <span className="rounded border border-border/70 bg-muted/60 px-1 py-px text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                        text only
+                      </span>
+                    )}
+                  </div>
                   <div className="text-xs text-muted-foreground">
                     {chatModel.description}
                   </div>
