@@ -1,7 +1,7 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
-import { ImagePlus, Loader2, X } from 'lucide-react';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { Download, ImagePlus, Loader2, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { imageModels, type ImageModel } from '@/lib/ai/image-models';
@@ -38,6 +38,12 @@ function fileToDataUri(file: File): Promise<string> {
     reader.onerror = () => reject(new Error('Failed to read image'));
     reader.readAsDataURL(file);
   });
+}
+
+function downloadNameFor(pathname: string) {
+  const base = pathname.split('/').pop() ?? 'image';
+  const clean = base.replace(/\.[^.]+$/, '');
+  return `${clean}.${base.includes('.') ? base.split('.').pop() : 'png'}`;
 }
 
 export default function ImageStudioPage() {
@@ -83,7 +89,7 @@ export default function ImageStudioPage() {
     [],
   );
 
-  const removeImage = useCallback(async (pathname: string) => {
+  const deleteImage = useCallback(async (pathname: string) => {
     setGenerations((current) =>
       current.map((gen) => ({
         ...gen,
@@ -98,6 +104,29 @@ export default function ImageStudioPage() {
       // best-effort cleanup
     }
   }, []);
+
+  const downloadImage = useCallback(
+    async (img: GeneratedImage) => {
+      try {
+        const response = await fetch(
+          `/api/files?pathname=${encodeURIComponent(img.pathname)}`,
+        );
+        if (!response.ok) {
+          throw new Error('Download failed');
+        }
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = downloadNameFor(img.pathname);
+        anchor.click();
+        URL.revokeObjectURL(url);
+      } catch {
+        toast.error('Could not download image');
+      }
+    },
+    [],
+  );
 
   const generate = useCallback(async () => {
     if (!prompt.trim()) {
@@ -160,214 +189,253 @@ export default function ImageStudioPage() {
 
   const isGenerating = generations.some((gen) => gen.status === 'loading');
 
+  // Flat, newest-first list of completed images for the masonry grid.
+  const images = useMemo(() => {
+    const flat: Array<{ gen: Generation; img: GeneratedImage }> = [];
+    for (const gen of generations) {
+      if (gen.status === 'done') {
+        for (const img of gen.images) flat.push({ gen, img });
+      }
+    }
+    return flat;
+  }, [generations]);
+
   return (
-    <div className="flex flex-col min-h-dvh gap-6 p-4 md:p-6 max-w-4xl mx-auto w-full">
+    <div className="flex min-h-dvh w-full flex-col gap-6 p-4 md:p-6">
       <div>
         <h1 className="text-2xl font-semibold">Image Studio</h1>
         <p className="text-sm text-muted-foreground">
-          Generate images with Replicate models. Different models accept
-          different inputs — the form adapts to the selected model.
+          Generate images with Replicate models. The form adapts to the
+          capabilities of the selected model.
         </p>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          Model
-        </span>
-        <div className="grid gap-2 sm:grid-cols-2">
-          {imageModels.map((m) => (
-            <button
-              key={m.id}
-              type="button"
-              onClick={() => selectModel(m)}
-              className={cn(
-                'rounded-xl border p-3 text-left transition-colors',
-                m.id === selectedModelId
-                  ? 'border-primary bg-muted/60'
-                  : 'border-border hover:bg-muted/40',
-              )}
-            >
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-medium text-sm">{m.name}</span>
-                <span className="text-[10px] text-muted-foreground">
-                  {m.capabilities.textToImage ? 'text→image' : ''}
-                  {m.capabilities.imageToImage ? ' · image→image' : ''}
-                </span>
-              </div>
-              <div className="mt-1 text-xs text-muted-foreground">
-                {m.description}
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-3 rounded-xl border bg-muted/30 p-4">
-        <Textarea
-          value={prompt}
-          onChange={(event) => setPrompt(event.target.value)}
-          placeholder="Describe the image you want to generate…"
-          className="min-h-24 bg-background"
-        />
-
-        {model.capabilities.aspectRatios.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-xs text-muted-foreground mr-1">Ratio</span>
-            {model.capabilities.aspectRatios.map((ratio) => (
-              <button
-                key={ratio}
-                type="button"
-                onClick={() => setAspectRatio(ratio)}
-                className={cn(
-                  'rounded-md border px-2 py-1 text-xs transition-colors',
-                  ratio === aspectRatio
-                    ? 'border-primary bg-muted'
-                    : 'border-border hover:bg-muted/50',
-                )}
-              >
-                {ratio}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {model.capabilities.outputFormats.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-xs text-muted-foreground mr-1">Format</span>
-            {model.capabilities.outputFormats.map((format) => (
-              <button
-                key={format}
-                type="button"
-                onClick={() => setOutputFormat(format)}
-                className={cn(
-                  'rounded-md border px-2 py-1 text-xs transition-colors',
-                  format === outputFormat
-                    ? 'border-primary bg-muted'
-                    : 'border-border hover:bg-muted/50',
-                )}
-              >
-                {format}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {model.capabilities.imageToImage && model.capabilities.maxRefImages > 0 && (
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="text-xs text-muted-foreground">
-              Reference image ({model.capabilities.maxRefImages})
+      <div className="flex flex-col gap-6 md:flex-row md:items-start md:gap-8">
+        {/* Controls column */}
+        <div className="flex w-full shrink-0 flex-col gap-4 md:sticky md:top-6 md:w-80">
+          <div className="flex flex-col gap-2">
+            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Model
             </span>
-            {refImage ? (
-              <div className="relative">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={refImage}
-                  alt="Reference"
-                  className="h-16 w-16 rounded-lg border object-cover"
-                />
+            <div className="flex flex-col gap-2">
+              {imageModels.map((m) => (
                 <button
+                  key={m.id}
                   type="button"
-                  aria-label="Remove reference image"
-                  onClick={() => setRefImage(null)}
-                  className="absolute -top-1.5 -right-1.5 rounded-full bg-zinc-900/80 p-0.5 text-white"
+                  onClick={() => selectModel(m)}
+                  className={cn(
+                    'rounded-xl border p-3 text-left transition-colors',
+                    m.id === selectedModelId
+                      ? 'border-primary bg-muted/60'
+                      : 'border-border hover:bg-muted/40',
+                  )}
                 >
-                  <X size={11} />
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-medium text-sm">{m.name}</span>
+                    <span className="text-[10px] text-muted-foreground">
+                      {m.capabilities.textToImage ? 'text→image' : ''}
+                      {m.capabilities.imageToImage ? ' · image→image' : ''}
+                    </span>
+                  </div>
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    {m.description}
+                  </div>
                 </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => refInputRef.current?.click()}
-                className="flex items-center gap-2 rounded-lg border border-dashed px-3 py-2 text-xs text-muted-foreground hover:bg-muted/50"
-              >
-                <ImagePlus size={14} />
-                {refProcessing ? 'Processing…' : 'Upload reference image'}
-              </button>
-            )}
-            <input
-              ref={refInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(event) => handleRefFile(event.target.files?.[0])}
-            />
+              ))}
+            </div>
           </div>
-        )}
 
-        <div className="flex justify-end">
-          <Button
-            type="button"
-            onClick={generate}
-            disabled={isGenerating || !prompt.trim()}
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 size={14} className="animate-spin mr-1" />
-                Generating…
-              </>
-            ) : (
-              'Generate'
-            )}
-          </Button>
-        </div>
-      </div>
+          <div className="flex flex-col gap-3 rounded-xl border bg-muted/30 p-4">
+            <Textarea
+              value={prompt}
+              onChange={(event) => setPrompt(event.target.value)}
+              placeholder="Describe the image you want to generate…"
+              className="min-h-24 bg-background"
+            />
 
-      {generations.length > 0 && (
-        <div className="flex flex-col gap-6">
-          {generations.map((gen) => (
-            <div key={gen.id} className="flex flex-col gap-2">
-              <div className="flex items-baseline gap-2">
-                <span className="text-xs text-muted-foreground">
-                  {imageModels.find((m) => m.id === gen.modelId)?.name ??
-                    gen.modelId}
-                </span>
-                <span className="text-xs text-muted-foreground line-clamp-2">
-                  {gen.prompt}
-                </span>
+            {model.capabilities.aspectRatios.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="mr-1 text-xs text-muted-foreground">Ratio</span>
+                {model.capabilities.aspectRatios.map((ratio) => (
+                  <button
+                    key={ratio}
+                    type="button"
+                    onClick={() => setAspectRatio(ratio)}
+                    className={cn(
+                      'rounded-md border px-2 py-1 text-xs transition-colors',
+                      ratio === aspectRatio
+                        ? 'border-primary bg-muted'
+                        : 'border-border hover:bg-muted/50',
+                    )}
+                  >
+                    {ratio}
+                  </button>
+                ))}
               </div>
+            )}
 
-              {gen.status === 'loading' && (
-                <div className="flex h-48 items-center justify-center rounded-xl border bg-muted/30 text-sm text-muted-foreground">
-                  <Loader2 size={16} className="animate-spin mr-2" />
-                  Generating…
-                </div>
-              )}
+            {model.capabilities.outputFormats.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="mr-1 text-xs text-muted-foreground">Format</span>
+                {model.capabilities.outputFormats.map((format) => (
+                  <button
+                    key={format}
+                    type="button"
+                    onClick={() => setOutputFormat(format)}
+                    className={cn(
+                      'rounded-md border px-2 py-1 text-xs transition-colors',
+                      format === outputFormat
+                        ? 'border-primary bg-muted'
+                        : 'border-border hover:bg-muted/50',
+                    )}
+                  >
+                    {format}
+                  </button>
+                ))}
+              </div>
+            )}
 
-              {gen.status === 'failed' && (
-                <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-600">
-                  {gen.error ?? 'Generation failed'}
-                </div>
-              )}
-
-              {gen.status === 'done' && (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {gen.images.map((img) => (
-                    <div
-                      key={img.pathname}
-                      className="group relative overflow-hidden rounded-xl border"
+            {model.capabilities.imageToImage &&
+              model.capabilities.maxRefImages > 0 && (
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-xs text-muted-foreground">
+                    Reference ({model.capabilities.maxRefImages})
+                  </span>
+                  {refImage ? (
+                    <div className="relative">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={refImage}
+                        alt="Reference"
+                        className="h-16 w-16 rounded-lg border object-cover"
+                      />
+                      <button
+                        type="button"
+                        aria-label="Remove reference image"
+                        onClick={() => setRefImage(null)}
+                        className="absolute -right-1.5 -top-1.5 rounded-full bg-zinc-900/80 p-0.5 text-white"
+                      >
+                        <X size={11} />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => refInputRef.current?.click()}
+                      className="flex items-center gap-2 rounded-lg border border-dashed px-3 py-2 text-xs text-muted-foreground hover:bg-muted/50"
                     >
+                      <ImagePlus size={14} />
+                      {refProcessing ? 'Processing…' : 'Upload reference image'}
+                    </button>
+                  )}
+                  <input
+                    ref={refInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(event) => handleRefFile(event.target.files?.[0])}
+                  />
+                </div>
+              )}
+
+            <Button
+              type="button"
+              onClick={generate}
+              disabled={isGenerating || !prompt.trim()}
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 size={14} className="mr-1 animate-spin" />
+                  Generating…
+                </>
+              ) : (
+                'Generate'
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {/* Results column */}
+        <div className="min-w-0 flex-1">
+          {generations.length === 0 ? (
+            <div className="flex h-48 items-center justify-center rounded-xl border border-dashed text-sm text-muted-foreground">
+              Generated images will appear here
+            </div>
+          ) : (
+            <>
+              {generations.some((gen) => gen.status !== 'done') && (
+                <div className="mb-4 flex flex-col gap-2">
+                  {generations
+                    .filter((gen) => gen.status !== 'done')
+                    .map((gen) => (
+                      <div
+                        key={gen.id}
+                        className={cn(
+                          'rounded-xl border p-3 text-sm',
+                          gen.status === 'failed'
+                            ? 'border-red-500/30 bg-red-500/10 text-red-600'
+                            : 'border-border bg-muted/30 text-muted-foreground',
+                        )}
+                      >
+                        {gen.status === 'loading' ? (
+                          <span className="flex items-center gap-2">
+                            <Loader2 size={14} className="animate-spin" />
+                            Generating “{gen.prompt}”…
+                          </span>
+                        ) : (
+                          gen.error ?? 'Generation failed'
+                        )}
+                      </div>
+                    ))}
+                </div>
+              )}
+
+              <div className="columns-1 gap-4 sm:columns-2 lg:columns-3">
+                {images.map(({ gen, img }) => (
+                  <div
+                    key={img.pathname}
+                    className="group mb-4 break-inside-avoid overflow-hidden rounded-xl border"
+                  >
+                    <div className="relative">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={getBlobDisplayUrl(img.url)}
                         alt={gen.prompt}
                         className="w-full object-cover"
                       />
-                      <button
-                        type="button"
-                        aria-label="Delete image"
-                        onClick={() => removeImage(img.pathname)}
-                        className="absolute right-2 top-2 rounded-full bg-zinc-900/70 p-1.5 text-white opacity-0 transition-opacity hover:bg-zinc-900 group-hover:opacity-100"
-                      >
-                        <X size={13} />
-                      </button>
+                      <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                        <button
+                          type="button"
+                          aria-label="Download image"
+                          onClick={() => downloadImage(img)}
+                          className="rounded-md bg-zinc-900/70 p-1.5 text-white hover:bg-zinc-900"
+                        >
+                          <Download size={13} />
+                        </button>
+                        <button
+                          type="button"
+                          aria-label="Delete image"
+                          onClick={() => deleteImage(img.pathname)}
+                          className="rounded-md bg-zinc-900/70 p-1.5 text-white hover:bg-zinc-900"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+                    <div className="p-2">
+                      <div className="truncate text-xs text-muted-foreground">
+                        {imageModels.find((m) => m.id === gen.modelId)?.name ??
+                          gen.modelId}
+                      </div>
+                      <div className="line-clamp-2 text-xs">{gen.prompt}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
