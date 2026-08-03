@@ -49,31 +49,41 @@ const CHAT_MAX_OUTPUT_TOKENS = Number(
   process.env.CHAT_MAX_OUTPUT_TOKENS ?? 1200,
 );
 const FIRST_BYTE_TIMEOUT_MS = Number(
-  process.env.FIRST_BYTE_TIMEOUT_MS ?? 60000,
+  process.env.FIRST_BYTE_TIMEOUT_MS ?? 45000,
 );
 
 type RuntimeModelId =
   | ChatModel['id']
-  | 'chat-model-fallback';
+  | 'chat-model-fallback'
+  | 'deepseek/deepseek-chat-v3-0324';
+
+// Fallback tier served by OpenRouter (independent of the primary NanoGPT
+// provider) so a slow/errored NanoGPT window fails through to a stable model.
+const OPENROUTER_FALLBACK: RuntimeModelId = 'deepseek/deepseek-chat-v3-0324';
 
 // Internal aliases whose underlying model accepts image input. Used to keep
 // image requests from falling back to text-only models.
 const VISION_CAPABLE_ALIASES = new Set<RuntimeModelId>(['chat-model']);
 
 const MODEL_FALLBACKS: Record<RuntimeModelId, RuntimeModelId[]> = {
-  'chat-model': ['chat-model', 'chat-model-fallback'],
+  'chat-model': ['chat-model', 'chat-model-fallback', OPENROUTER_FALLBACK],
   'chat-model-reasoning': [
     'chat-model-reasoning',
     'chat-model-fallback',
     'chat-model',
+    OPENROUTER_FALLBACK,
   ],
-  'chat-model-fallback': ['chat-model-fallback', 'chat-model'],
+  'chat-model-fallback': [
+    'chat-model-fallback',
+    'chat-model',
+    OPENROUTER_FALLBACK,
+  ],
 };
 
 function getFallbackModelIds(modelId: RuntimeModelId) {
   const known = MODEL_FALLBACKS[modelId];
   if (known) return known;
-  return [modelId, 'chat-model-fallback'];
+  return [modelId, 'chat-model-fallback', OPENROUTER_FALLBACK];
 }
 
 function getOrderedModelCandidates({
