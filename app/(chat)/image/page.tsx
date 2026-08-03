@@ -1,7 +1,7 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useState } from 'react';
-import { Download, ImagePlus, Loader2, Trash2, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Copy, Download, Heart, ImagePlus, Loader2, Trash2, Wand2, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { imageModels, type ImageModel } from '@/lib/ai/image-models';
@@ -10,6 +10,17 @@ import { getBlobDisplayUrl } from '@/lib/blob';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+
+const FAVS_STORAGE_KEY = 'image-studio-favs';
+
+type FavEntry = {
+  pathname: string;
+  url: string;
+  mediaType: string;
+  prompt: string;
+  modelId: string;
+  likedAt: number;
+};
 
 type GeneratedImage = {
   url: string;
@@ -56,7 +67,25 @@ export default function ImageStudioPage() {
   const [refImage, setRefImage] = useState<string | null>(null);
   const [generations, setGenerations] = useState<Generation[]>([]);
   const [refProcessing, setRefProcessing] = useState(false);
+  const [enhancing, setEnhancing] = useState(false);
+  const [lastOriginalPrompt, setLastOriginalPrompt] = useState<string | null>(null);
+  const [favs, setFavs] = useState<Record<string, FavEntry>>({});
+  const [showFavsOnly, setShowFavsOnly] = useState(false);
   const refInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(FAVS_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as FavEntry[];
+        const map: Record<string, FavEntry> = {};
+        for (const entry of parsed) map[entry.pathname] = entry;
+        setFavs(map);
+      }
+    } catch {
+      // ignore corrupt storage
+    }
+  }, []);
 
   const model =
     imageModels.find((m) => m.id === selectedModelId) ?? imageModels[0];
@@ -132,6 +161,77 @@ export default function ImageStudioPage() {
       } catch {
         toast.error('Could not download image');
       }
+    },
+    [],
+  );
+
+  const copyPrompt = useCallback(async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast('Prompt copied');
+    } catch {
+      toast.error('Could not copy prompt');
+    }
+  }, []);
+
+  const enhancePrompt = useCallback(async () => {
+    if (!prompt.trim()) {
+      toast.error('Enter a prompt first');
+      return;
+    }
+    setEnhancing(true);
+    try {
+      const response = await fetch('/api/image/enhance-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: prompt.trim(), modelId: model.id }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error || 'Enhancer failed');
+      }
+      setLastOriginalPrompt((current) => current ?? prompt.trim());
+      setPrompt(payload.enhancedPrompt);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Enhancer failed');
+    } finally {
+      setEnhancing(false);
+    }
+  }, [prompt, model]);
+
+  const revertPrompt = useCallback(() => {
+    if (lastOriginalPrompt != null) {
+      setPrompt(lastOriginalPrompt);
+      setLastOriginalPrompt(null);
+    }
+  }, [lastOriginalPrompt]);
+
+  const toggleFav = useCallback(
+    (img: GeneratedImage, gen: Generation) => {
+      setFavs((current) => {
+        const next = { ...current };
+        if (next[img.pathname]) {
+          delete next[img.pathname];
+        } else {
+          next[img.pathname] = {
+            pathname: img.pathname,
+            url: img.url,
+            mediaType: img.mediaType,
+            prompt: gen.prompt,
+            modelId: gen.modelId,
+            likedAt: Date.now(),
+          };
+        }
+        const entries = Object.values(next).sort(
+          (a, b) => b.likedAt - a.likedAt,
+        );
+        try {
+          localStorage.setItem(FAVS_STORAGE_KEY, JSON.stringify(entries));
+        } catch {
+          // storage unavailable
+        }
+        return next;
+      });
     },
     [],
   );
@@ -262,6 +362,38 @@ export default function ImageStudioPage() {
               placeholder="Describe the image you want to generate…"
               className="min-h-24 bg-background"
             />
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={enhancePrompt}
+                disabled={enhancing || !prompt.trim() || isGenerating}
+                title="Rewrite the prompt for the selected model"
+              >
+                {enhancing ? (
+                  <Loader2 size={14} className="mr-1 animate-spin" />
+                ) : (
+                  <Wand2 size={14} className="mr-1" />
+                )}
+                Rewrite
+              </Button>
+              {lastOriginalPrompt != null && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={revertPrompt}
+                  title="Revert to the original prompt"
+                >
+                  Revert
+                </Button>
+              )}
+              <span className="text-[10px] text-muted-foreground">
+                Rewrites via a model-aware prompt enhancer for {model.name}
+              </span>
+            </div>
 
             {model.capabilities.aspectRatios.length > 0 && (
               <div className="flex flex-wrap items-center gap-1.5">
@@ -418,6 +550,30 @@ export default function ImageStudioPage() {
             </div>
           ) : (
             <>
+              <div className="mb-4 flex items-center justify-between gap-2">
+                <span className="text-xs text-muted-foreground">
+                  {images.length} image{images.length === 1 ? '' : 's'}
+                </span>
+                {Object.keys(favs).length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowFavsOnly((current) => !current)}
+                    className={cn(
+                      'flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs transition-colors',
+                      showFavsOnly
+                        ? 'border-pink-500/50 bg-pink-500/10 text-pink-600'
+                        : 'border-border text-muted-foreground hover:bg-muted/40',
+                    )}
+                  >
+                    <Heart
+                      size={12}
+                      className={showFavsOnly ? 'fill-current' : ''}
+                    />
+                    Favorites ({Object.keys(favs).length})
+                  </button>
+                )}
+              </div>
+
               {generations.some((gen) => gen.status !== 'done') && (
                 <div className="mb-4 flex flex-col gap-2">
                   {generations
@@ -446,7 +602,9 @@ export default function ImageStudioPage() {
               )}
 
               <div className="columns-1 gap-4 sm:columns-2 lg:columns-3">
-                {images.map(({ gen, img }) => (
+                {images
+                  .filter(({ img }) => !showFavsOnly || favs[img.pathname])
+                  .map(({ gen, img }) => (
                   <div
                     key={img.pathname}
                     className="group mb-4 break-inside-avoid overflow-hidden rounded-xl border"
@@ -459,6 +617,28 @@ export default function ImageStudioPage() {
                         className="w-full object-cover"
                       />
                       <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                        <button
+                          type="button"
+                          aria-label={favs[img.pathname] ? 'Unfavorite' : 'Favorite'}
+                          onClick={() => toggleFav(img, gen)}
+                          className={cn(
+                            'rounded-md bg-zinc-900/70 p-1.5 text-white hover:bg-zinc-900',
+                            favs[img.pathname] && 'text-pink-400',
+                          )}
+                        >
+                          <Heart
+                            size={13}
+                            className={favs[img.pathname] ? 'fill-current' : ''}
+                          />
+                        </button>
+                        <button
+                          type="button"
+                          aria-label="Copy prompt"
+                          onClick={() => copyPrompt(gen.prompt)}
+                          className="rounded-md bg-zinc-900/70 p-1.5 text-white hover:bg-zinc-900"
+                        >
+                          <Copy size={13} />
+                        </button>
                         <button
                           type="button"
                           aria-label="Download image"
