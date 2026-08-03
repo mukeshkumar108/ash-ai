@@ -30,7 +30,7 @@ import {
 import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowDown } from 'lucide-react';
+import { ArrowDown, FileText, X } from 'lucide-react';
 import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom';
 import type { VisibilityType } from './visibility-selector';
 import type { Attachment, ChatMessage } from '@/lib/types';
@@ -121,9 +121,52 @@ function PureMultimodalInput({
     error?: string;
   };
 
+  type TextAttachment = {
+    id: string;
+    name: string;
+    content: string;
+  };
+
+  // Pasted text longer than this becomes an attached document instead of going
+  // into the composer input. Matches the original server-side per-part limit.
+  const TEXT_ATTACH_THRESHOLD = 2000;
+
   const [pending, setPending] = useState<Array<PendingAttachment>>([]);
+  const [textAttachments, setTextAttachments] = useState<Array<TextAttachment>>([]);
   const abortRefs = useRef(new Map<string, AbortController>());
   const cancelledRef = useRef(new Set<string>());
+
+  const formatBytes = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const handlePaste = useCallback(
+    (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
+      const text = event.clipboardData.getData('text');
+      if (!text || text.length <= TEXT_ATTACH_THRESHOLD) return;
+
+      event.preventDefault();
+      const trimmed = text.trim();
+      if (!trimmed) return;
+
+      const id = createId();
+      const name = `pasted-text-${new Date().toISOString().slice(0, 10)}.txt`;
+      setTextAttachments((current) => [
+        ...current,
+        { id, name, content: trimmed },
+      ]);
+      toast(`Pasted text attached as ${name} (${trimmed.length.toLocaleString()} chars)`);
+    },
+    [],
+  );
+
+  const removeTextAttachment = useCallback((id: string) => {
+    setTextAttachments((current) =>
+      current.filter((item) => item.id !== id),
+    );
+  }, []);
 
   const createId = () =>
     typeof crypto !== 'undefined' && 'randomUUID' in crypto
@@ -296,6 +339,10 @@ function PureMultimodalInput({
           name: attachment.name,
           mediaType: attachment.contentType,
         })),
+        ...textAttachments.map((doc) => ({
+          type: 'text' as const,
+          text: `[Attached document: ${doc.name}]\n${doc.content}`,
+        })),
         {
           type: 'text',
           text: input,
@@ -304,6 +351,7 @@ function PureMultimodalInput({
     });
 
     setAttachments([]);
+    setTextAttachments([]);
     setLocalStorageInput('');
     resetHeight();
     setInput('');
@@ -315,8 +363,10 @@ function PureMultimodalInput({
     input,
     setInput,
     attachments,
+    textAttachments,
     sendMessage,
     setAttachments,
+    setTextAttachments,
     setLocalStorageInput,
     width,
     chatId,
@@ -367,11 +417,38 @@ function PureMultimodalInput({
         tabIndex={-1}
       />
 
-      {(attachments.length > 0 || pending.length > 0) && (
+      {(attachments.length > 0 || pending.length > 0 || textAttachments.length > 0) && (
         <div
           data-testid="attachments-preview"
           className="flex flex-row gap-2 overflow-x-scroll items-end"
         >
+          {textAttachments.map((doc) => (
+            <div
+              key={doc.id}
+              data-testid="text-attachment-preview"
+              className="flex flex-col gap-1"
+            >
+              <div className="flex flex-row items-center gap-2 rounded-md border border-border/70 bg-muted/50 px-3 py-2 max-w-56">
+                <FileText size={14} className="shrink-0 text-muted-foreground" />
+                <div className="flex flex-col min-w-0">
+                  <span className="text-xs font-medium truncate">{doc.name}</span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {formatBytes(new Blob([doc.content]).size)}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  data-testid="remove-text-attachment-button"
+                  aria-label="Remove attached text"
+                  onClick={() => removeTextAttachment(doc.id)}
+                  className="shrink-0 rounded p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            </div>
+          ))}
+
           {attachments.map((attachment) => (
             <PreviewAttachment
               key={attachment.url}
@@ -401,6 +478,7 @@ function PureMultimodalInput({
         placeholder="Send a message..."
         value={input}
         onChange={handleInput}
+        onPaste={handlePaste}
         className={cx(
           'min-h-[24px] max-h-[calc(75dvh)] overflow-hidden resize-none rounded-2xl bg-muted pb-10 dark:border-zinc-700 chat-input input-typography',
           className,
@@ -436,6 +514,7 @@ function PureMultimodalInput({
             input={input}
             submitForm={submitForm}
             uploadQueue={uploadQueue}
+            hasAttachments={textAttachments.length > 0}
           />
         )}
       </div>
@@ -509,10 +588,12 @@ function PureSendButton({
   submitForm,
   input,
   uploadQueue,
+  hasAttachments = false,
 }: {
   submitForm: () => void;
   input: string;
   uploadQueue: Array<string>;
+  hasAttachments?: boolean;
 }) {
   return (
     <Button
@@ -522,7 +603,9 @@ function PureSendButton({
         event.preventDefault();
         submitForm();
       }}
-      disabled={input.length === 0 || uploadQueue.length > 0}
+      disabled={
+        (input.length === 0 && !hasAttachments) || uploadQueue.length > 0
+      }
     >
       <ArrowUpIcon size={14} />
     </Button>
@@ -533,5 +616,6 @@ const SendButton = memo(PureSendButton, (prevProps, nextProps) => {
   if (prevProps.uploadQueue.length !== nextProps.uploadQueue.length)
     return false;
   if (prevProps.input !== nextProps.input) return false;
+  if (prevProps.hasAttachments !== nextProps.hasAttachments) return false;
   return true;
 });
