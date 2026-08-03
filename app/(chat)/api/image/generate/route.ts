@@ -36,13 +36,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
   }
 
-  const { modelId, prompt, aspectRatio, outputFormat, refImage } = body as {
-    modelId?: string;
-    prompt?: string;
-    aspectRatio?: string;
-    outputFormat?: string;
-    refImage?: string;
-  };
+  const { modelId, prompt, aspectRatio, outputFormat, refImage, numOutputs, quality } =
+    body as {
+      modelId?: string;
+      prompt?: string;
+      aspectRatio?: string;
+      outputFormat?: string;
+      refImage?: string;
+      numOutputs?: number;
+      quality?: string;
+    };
 
   const model = getImageModelById(modelId ?? '');
 
@@ -73,7 +76,7 @@ export async function POST(request: Request) {
   };
 
   if (model.imageField && typeof refImage === 'string' && refImage.length > 0) {
-    input[model.imageField] = refImage;
+    input[model.imageField] = model.imageFieldIsArray ? [refImage] : refImage;
   }
 
   if (
@@ -90,6 +93,29 @@ export async function POST(request: Request) {
     model.capabilities.outputFormats.includes(outputFormat)
   ) {
     input[model.outputFormatField] = outputFormat;
+  }
+
+  if (model.numOutputsField && model.capabilities.numOutputs) {
+    const count = Number.isInteger(numOutputs)
+      ? (numOutputs as number)
+      : model.capabilities.numOutputs.default;
+    input[model.numOutputsField] = Math.max(
+      1,
+      Math.min(model.capabilities.numOutputs.max, count),
+    );
+  }
+
+  if (model.qualityField && model.capabilities.quality) {
+    const selected =
+      typeof quality === 'string' &&
+      model.capabilities.quality.options.includes(quality)
+        ? quality
+        : model.capabilities.quality.default;
+    input[model.qualityField] = selected;
+  }
+
+  if (model.fixedInput) {
+    Object.assign(input, model.fixedInput);
   }
 
   try {

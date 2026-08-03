@@ -51,6 +51,8 @@ export default function ImageStudioPage() {
   const [prompt, setPrompt] = useState('');
   const [aspectRatio, setAspectRatio] = useState('1:1');
   const [outputFormat, setOutputFormat] = useState('png');
+  const [numOutputs, setNumOutputs] = useState(1);
+  const [quality, setQuality] = useState('low');
   const [refImage, setRefImage] = useState<string | null>(null);
   const [generations, setGenerations] = useState<Generation[]>([]);
   const [refProcessing, setRefProcessing] = useState(false);
@@ -66,6 +68,12 @@ export default function ImageStudioPage() {
     }
     if (!next.capabilities.outputFormats.includes(outputFormat)) {
       setOutputFormat(next.capabilities.outputFormats[0] ?? 'png');
+    }
+    if (next.capabilities.numOutputs) {
+      setNumOutputs(next.capabilities.numOutputs.default);
+    }
+    if (next.capabilities.quality) {
+      setQuality(next.capabilities.quality.default);
     }
     if (next.capabilities.maxRefImages === 0) {
       setRefImage(null);
@@ -154,6 +162,8 @@ export default function ImageStudioPage() {
           prompt: prompt.trim(),
           aspectRatio,
           outputFormat,
+          numOutputs,
+          quality,
           refImage,
         }),
       });
@@ -185,7 +195,7 @@ export default function ImageStudioPage() {
       );
       toast.error(error instanceof Error ? error.message : 'Generation failed');
     }
-  }, [prompt, model, aspectRatio, outputFormat, refImage]);
+  }, [prompt, model, aspectRatio, outputFormat, numOutputs, quality, refImage]);
 
   const isGenerating = generations.some((gen) => gen.status === 'loading');
 
@@ -290,6 +300,51 @@ export default function ImageStudioPage() {
                     )}
                   >
                     {format}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {model.capabilities.numOutputs && (
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="mr-1 text-xs text-muted-foreground">Images</span>
+                {Array.from(
+                  { length: model.capabilities.numOutputs.max },
+                  (_, index) => index + 1,
+                ).map((count) => (
+                  <button
+                    key={count}
+                    type="button"
+                    onClick={() => setNumOutputs(count)}
+                    className={cn(
+                      'rounded-md border px-2 py-1 text-xs transition-colors',
+                      count === numOutputs
+                        ? 'border-primary bg-muted'
+                        : 'border-border hover:bg-muted/50',
+                    )}
+                  >
+                    {count}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {model.capabilities.quality && (
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="mr-1 text-xs text-muted-foreground">Quality</span>
+                {model.capabilities.quality.options.map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => setQuality(option)}
+                    className={cn(
+                      'rounded-md border px-2 py-1 text-xs transition-colors',
+                      option === quality
+                        ? 'border-primary bg-muted'
+                        : 'border-border hover:bg-muted/50',
+                    )}
+                  >
+                    {option}
                   </button>
                 ))}
               </div>
