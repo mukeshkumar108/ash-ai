@@ -12,6 +12,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 
 const FAVS_STORAGE_KEY = 'image-studio-favs';
+const GENS_STORAGE_KEY = 'image-studio-generations';
+const MAX_STORED_GENERATIONS = 200;
 
 type FavEntry = {
   pathname: string;
@@ -35,6 +37,7 @@ type Generation = {
   status: 'loading' | 'done' | 'failed';
   error?: string;
   images: GeneratedImage[];
+  createdAt: number;
 };
 
 const createId = () =>
@@ -73,19 +76,104 @@ export default function ImageStudioPage() {
   const [showFavsOnly, setShowFavsOnly] = useState(false);
   const refInputRef = useRef<HTMLInputElement>(null);
 
+  // Load favorites + saved history + recover orphaned blobs from the store.
   useEffect(() => {
+    let cancelled = false;
+
+    let storedFavs: Record<string, FavEntry> = {};
     try {
       const raw = localStorage.getItem(FAVS_STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as FavEntry[];
         const map: Record<string, FavEntry> = {};
         for (const entry of parsed) map[entry.pathname] = entry;
-        setFavs(map);
+        storedFavs = map;
       }
     } catch {
       // ignore corrupt storage
     }
+    setFavs(storedFavs);
+
+    let savedGenerations: Generation[] = [];
+    try {
+      const raw = localStorage.getItem(GENS_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as Generation[];
+        savedGenerations = parsed.map((gen) => ({
+          ...gen,
+          createdAt: gen.createdAt ?? 0,
+        }));
+      }
+    } catch {
+      // ignore corrupt storage
+    }
+
+    const loadRecovered = async () => {
+      try {
+        const response = await fetch('/api/image/list');
+        if (!response.ok) return;
+        const payload = await response.json();
+
+        const seen = new Set<string>();
+        for (const gen of savedGenerations) {
+          for (const img of gen.images) seen.add(img.pathname);
+        }
+
+        const recovered: Generation[] = (payload.blobs as Array<{
+          pathname: string;
+          url: string;
+          uploadedAt: string;
+        }>)
+          .filter((blob) => !seen.has(blob.pathname))
+          .map((blob) => ({
+            id: `recovered-${blob.pathname}`,
+            modelId: storedFavs[blob.pathname]?.modelId ?? 'unknown',
+            prompt:
+              storedFavs[blob.pathname]?.prompt ??
+              '(recovered image — original prompt not saved)',
+            status: 'done' as const,
+            images: [
+              {
+                pathname: blob.pathname,
+                url: blob.url,
+                mediaType: blob.pathname.toLowerCase().endsWith('.png')
+                  ? 'image/png'
+                  : 'image/jpeg',
+              },
+            ],
+            createdAt: new Date(blob.uploadedAt).getTime() || 0,
+          }));
+
+        if (!cancelled) {
+          setGenerations(
+            [...savedGenerations, ...recovered].sort(
+              (a, b) => b.createdAt - a.createdAt,
+            ),
+          );
+        }
+      } catch {
+        // fall back to saved history only
+        if (!cancelled) setGenerations(savedGenerations);
+      }
+    };
+
+    void loadRecovered();
+    return () => {
+      cancelled = true;
+    };
   }, []);
+
+  // Persist completed generations so they survive reloads.
+  useEffect(() => {
+    try {
+      const done = generations
+        .filter((gen) => gen.status === 'done')
+        .slice(0, MAX_STORED_GENERATIONS);
+      localStorage.setItem(GENS_STORAGE_KEY, JSON.stringify(done));
+    } catch {
+      // storage unavailable
+    }
+  }, [generations]);
 
   const model =
     imageModels.find((m) => m.id === selectedModelId) ?? imageModels[0];
@@ -249,6 +337,7 @@ export default function ImageStudioPage() {
       prompt: prompt.trim(),
       status: 'loading',
       images: [],
+      createdAt: Date.now(),
     };
 
     setGenerations((current) => [gen, ...current]);
