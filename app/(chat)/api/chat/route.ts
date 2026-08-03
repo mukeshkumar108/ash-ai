@@ -65,6 +65,19 @@ const OPENROUTER_FALLBACK: RuntimeModelId = 'deepseek/deepseek-chat-v3-0324';
 // image requests from falling back to text-only models.
 const VISION_CAPABLE_ALIASES = new Set<RuntimeModelId>(['chat-model']);
 
+// Internal aliases whose underlying model is text-only (rejects image parts).
+const TEXT_ONLY_ALIASES = new Set<RuntimeModelId>([
+  'chat-model-fallback',
+  'chat-model-reasoning',
+]);
+
+function isTextOnlyModel(modelId: RuntimeModelId): boolean {
+  if (VISION_CAPABLE_ALIASES.has(modelId)) return false;
+  if (TEXT_ONLY_ALIASES.has(modelId)) return true;
+  const def = chatModels.find((chatModel) => chatModel.id === modelId);
+  return def ? def.vision === false : false;
+}
+
 const MODEL_FALLBACKS: Record<RuntimeModelId, RuntimeModelId[]> = {
   'chat-model': ['chat-model', 'chat-model-fallback', OPENROUTER_FALLBACK],
   'chat-model-reasoning': [
@@ -230,7 +243,7 @@ export async function POST(request: Request) {
 
     // Keep the most recent context window for the model.
     const contextWindowSize = Number(process.env.CONTEXT_WINDOW_SIZE ?? 40);
-    const messagesToSend = uiMessages.slice(-Math.max(3, contextWindowSize));
+    let messagesToSend = uiMessages.slice(-Math.max(3, contextWindowSize));
 
     const system = sophieSystemPrompt();
 
@@ -249,23 +262,35 @@ export async function POST(request: Request) {
     const streamId = generateUUID();
     await createStreamId({ streamId, chatId: id });
 
-    const presignedMessages = await presignFilePartUrls(messagesToSend);
-
     let modelToUse: RuntimeModelId = selectedChatModel;
 
     const hasImageParts = sanitizedMessage.parts.some(
       (part) => part.type === 'file',
     );
-    const selectedModelDef = chatModels.find(
-      (chatModel) => chatModel.id === selectedChatModel,
-    );
 
-    if (hasImageParts && selectedModelDef?.vision === false) {
+    if (hasImageParts && isTextOnlyModel(selectedChatModel)) {
       console.warn(
         `[chat] ${selectedChatModel} does not support image input; falling back to chat-model`,
       );
       modelToUse = 'chat-model';
     }
+
+    // Text-only models reject image parts anywhere in the context (including
+    // history), so strip them before building the model messages.
+    if (isTextOnlyModel(modelToUse)) {
+      messagesToSend = messagesToSend.map((entry) => ({
+        ...entry,
+        parts: entry.parts.filter(
+          (part) => part.type !== 'file',
+        ) as ChatMessage['parts'],
+      }));
+    }
+
+    const contextHasImages = messagesToSend.some((entry) =>
+      entry.parts.some((part) => part.type === 'file'),
+    );
+
+    const presignedMessages = await presignFilePartUrls(messagesToSend);
 
     const recentAssistantTexts = uiMessages
       .filter((entry) => entry.role === 'assistant')
@@ -301,7 +326,7 @@ export async function POST(request: Request) {
           modelId: modelToUse,
           preferFallbackFirst,
         });
-        const modelCandidates = hasImageParts
+        const modelCandidates = contextHasImages
           ? orderedCandidates.filter(isVisionCapableCandidate)
           : orderedCandidates;
         const responseMessageId = generateUUID();
