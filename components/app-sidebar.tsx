@@ -16,6 +16,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
+import { ImageIcon } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 export function AppSidebar() {
@@ -61,6 +62,16 @@ export function AppSidebar() {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
+        <div className="px-2 pb-2">
+          <Link
+            href="/image"
+            onClick={() => setOpenMobile(false)}
+            className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <ImageIcon size={16} />
+            Image Studio
+          </Link>
+        </div>
         <SidebarHistory user={user} />
       </SidebarContent>
       <SidebarFooter>
