@@ -89,7 +89,7 @@ export const imageModels: ImageModel[] = [
     capabilities: {
       textToImage: true,
       imageToImage: true,
-      maxRefImages: 1,
+      maxRefImages: 4,
       aspectRatios: [
         '1:1', '1:4', '1:8', '2:3', '3:2', '3:4', '4:1', '4:3', '4:5',
         '5:4', '8:1', '9:16', '16:9', '21:9',
@@ -114,7 +114,7 @@ export const imageModels: ImageModel[] = [
     capabilities: {
       textToImage: true,
       imageToImage: true,
-      maxRefImages: 1,
+      maxRefImages: 4,
       aspectRatios: ['1:1', '3:2', '2:3'],
       outputFormats: ['png', 'jpeg', 'webp'],
       numOutputs: { default: 1, max: 4 },
@@ -137,7 +137,7 @@ export const imageModels: ImageModel[] = [
     capabilities: {
       textToImage: true,
       imageToImage: true,
-      maxRefImages: 1,
+      maxRefImages: 4,
       aspectRatios: ['1:1', '16:9', '3:2', '2:3', '4:5', '5:4', '9:16', '3:4', '4:3'],
       outputFormats: ['webp', 'jpg', 'png'],
     },
@@ -158,7 +158,7 @@ export const imageModels: ImageModel[] = [
     capabilities: {
       textToImage: true,
       imageToImage: true,
-      maxRefImages: 1,
+      maxRefImages: 4,
       aspectRatios: ['1:1', '4:3', '3:4', '16:9', '9:16', '3:2', '2:3', '21:9'],
       outputFormats: ['png', 'jpeg'],
       numOutputs: { default: 1, max: 4 },

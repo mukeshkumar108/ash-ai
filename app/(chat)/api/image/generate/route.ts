@@ -37,13 +37,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
   }
 
-  const { modelId, prompt, aspectRatio, outputFormat, refImage, numOutputs, quality } =
+  const { modelId, prompt, aspectRatio, outputFormat, refImages, numOutputs, quality } =
     body as {
       modelId?: string;
       prompt?: string;
       aspectRatio?: string;
       outputFormat?: string;
-      refImage?: string;
+      refImages?: string[];
       numOutputs?: number;
       quality?: string;
     };
@@ -64,7 +64,8 @@ export async function POST(request: Request) {
   if (
     model.capabilities.imageToImage &&
     !model.imageField &&
-    typeof refImage === 'string'
+    Array.isArray(refImages) &&
+    refImages.length > 0
   ) {
     return NextResponse.json(
       { error: 'This model does not accept a reference image' },
@@ -76,8 +77,15 @@ export async function POST(request: Request) {
     [model.promptField]: prompt.trim(),
   };
 
-  if (model.imageField && typeof refImage === 'string' && refImage.length > 0) {
-    input[model.imageField] = model.imageFieldIsArray ? [refImage] : refImage;
+  if (model.imageField && Array.isArray(refImages) && refImages.length > 0) {
+    const refs = refImages.filter(
+      (ref) => typeof ref === 'string' && ref.length > 0,
+    );
+    if (refs.length > 0) {
+      input[model.imageField] = model.imageFieldIsArray
+        ? refs
+        : refs[0];
+    }
   }
 
   if (

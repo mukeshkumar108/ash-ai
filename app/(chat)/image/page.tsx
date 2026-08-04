@@ -9,6 +9,13 @@ import { processImageFile } from '@/lib/image-processing';
 import { getBlobDisplayUrl } from '@/lib/blob';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
 const FAVS_STORAGE_KEY = 'image-studio-favs';
@@ -67,7 +74,7 @@ export default function ImageStudioPage() {
   const [outputFormat, setOutputFormat] = useState('png');
   const [numOutputs, setNumOutputs] = useState(1);
   const [quality, setQuality] = useState('low');
-  const [refImage, setRefImage] = useState<string | null>(null);
+  const [refImages, setRefImages] = useState<Array<{ id: string; dataUri: string }>>([]);
   const [generations, setGenerations] = useState<Generation[]>([]);
   const [refProcessing, setRefProcessing] = useState(false);
   const [enhancing, setEnhancing] = useState(false);
@@ -182,26 +189,35 @@ export default function ImageStudioPage() {
     if (next.capabilities.quality) {
       setQuality(next.capabilities.quality.default);
     }
-    if (next.capabilities.maxRefImages === 0) {
-      setRefImage(null);
-    }
+    setRefImages((current) =>
+      current.slice(0, Math.max(0, next.capabilities.maxRefImages)),
+    );
   };
 
   const handleRefFile = useCallback(
     async (file: File | undefined) => {
       if (!file) return;
+      if (refImages.length >= model.capabilities.maxRefImages) {
+        toast.error(
+          `This model accepts up to ${model.capabilities.maxRefImages} reference image${model.capabilities.maxRefImages === 1 ? '' : 's'}`,
+        );
+        return;
+      }
       setRefProcessing(true);
       try {
         const processed = await processImageFile(file);
         const dataUri = await fileToDataUri(processed.file);
-        setRefImage(dataUri);
+        setRefImages((current) => [
+          ...current,
+          { id: createId(), dataUri },
+        ]);
       } catch {
         toast.error('Could not process reference image');
       } finally {
         setRefProcessing(false);
       }
     },
-    [],
+    [model, refImages.length],
   );
 
   const deleteImage = useCallback(async (img: GeneratedImage, gen: Generation) => {
@@ -352,7 +368,7 @@ export default function ImageStudioPage() {
           outputFormat,
           numOutputs,
           quality,
-          refImage,
+          refImages: refImages.map((ref) => ref.dataUri),
         }),
       });
 
@@ -383,7 +399,7 @@ export default function ImageStudioPage() {
       );
       toast.error(error instanceof Error ? error.message : 'Generation failed');
     }
-  }, [prompt, model, aspectRatio, outputFormat, numOutputs, quality, refImage]);
+  }, [prompt, model, aspectRatio, outputFormat, numOutputs, quality, refImages]);
 
   const isGenerating = generations.some((gen) => gen.status === 'loading');
 
@@ -411,36 +427,39 @@ export default function ImageStudioPage() {
       <div className="flex flex-col gap-6 md:flex-row md:items-start md:gap-8">
         {/* Controls column */}
         <div className="flex w-full shrink-0 flex-col gap-4 md:sticky md:top-6 md:w-80">
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1.5">
             <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               Model
             </span>
-            <div className="flex flex-col gap-2">
-              {imageModels.map((m) => (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => selectModel(m)}
-                  className={cn(
-                    'rounded-xl border p-3 text-left transition-colors',
-                    m.id === selectedModelId
-                      ? 'border-primary bg-muted/60'
-                      : 'border-border hover:bg-muted/40',
-                  )}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-medium text-sm">{m.name}</span>
-                    <span className="text-[10px] text-muted-foreground">
-                      {m.capabilities.textToImage ? 'text→image' : ''}
-                      {m.capabilities.imageToImage ? ' · image→image' : ''}
+            <Select
+              value={selectedModelId}
+              onValueChange={(value) => {
+                const next = imageModels.find((m) => m.id === value);
+                if (next) selectModel(next);
+              }}
+            >
+              <SelectTrigger className="h-9 w-full">
+                <SelectValue placeholder="Select a model" />
+              </SelectTrigger>
+              <SelectContent>
+                {imageModels.map((m) => (
+                  <SelectItem key={m.id} value={m.id}>
+                    <span className="flex items-center gap-2">
+                      {m.name}
+                      <span className="text-[10px] text-muted-foreground">
+                        {m.capabilities.imageToImage ? 'img→img' : 'text→img'}
+                        {m.capabilities.maxRefImages > 1
+                          ? ` · ${m.capabilities.maxRefImages} refs`
+                          : ''}
+                      </span>
                     </span>
-                  </div>
-                  <div className="mt-1 text-xs text-muted-foreground">
-                    {m.description}
-                  </div>
-                </button>
-              ))}
-            </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-[11px] text-muted-foreground">
+              {model.description}
+            </p>
           </div>
 
           <div className="flex flex-col gap-3 rounded-xl border bg-muted/30 p-4">
@@ -484,125 +503,136 @@ export default function ImageStudioPage() {
             </div>
 
             {model.capabilities.aspectRatios.length > 0 && (
-              <div className="flex flex-wrap items-center gap-1.5">
-                <span className="mr-1 text-xs text-muted-foreground">Ratio</span>
-                {model.capabilities.aspectRatios.map((ratio) => (
-                  <button
-                    key={ratio}
-                    type="button"
-                    onClick={() => setAspectRatio(ratio)}
-                    className={cn(
-                      'rounded-md border px-2 py-1 text-xs transition-colors',
-                      ratio === aspectRatio
-                        ? 'border-primary bg-muted'
-                        : 'border-border hover:bg-muted/50',
-                    )}
-                  >
-                    {ratio}
-                  </button>
-                ))}
+              <div className="flex items-center gap-2">
+                <span className="w-14 shrink-0 text-xs text-muted-foreground">
+                  Ratio
+                </span>
+                <Select value={aspectRatio} onValueChange={setAspectRatio}>
+                  <SelectTrigger className="h-8 flex-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {model.capabilities.aspectRatios.map((ratio) => (
+                      <SelectItem key={ratio} value={ratio}>
+                        {ratio}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             )}
 
             {model.capabilities.outputFormats.length > 0 && (
-              <div className="flex flex-wrap items-center gap-1.5">
-                <span className="mr-1 text-xs text-muted-foreground">Format</span>
-                {model.capabilities.outputFormats.map((format) => (
-                  <button
-                    key={format}
-                    type="button"
-                    onClick={() => setOutputFormat(format)}
-                    className={cn(
-                      'rounded-md border px-2 py-1 text-xs transition-colors',
-                      format === outputFormat
-                        ? 'border-primary bg-muted'
-                        : 'border-border hover:bg-muted/50',
-                    )}
-                  >
-                    {format}
-                  </button>
-                ))}
+              <div className="flex items-center gap-2">
+                <span className="w-14 shrink-0 text-xs text-muted-foreground">
+                  Format
+                </span>
+                <Select value={outputFormat} onValueChange={setOutputFormat}>
+                  <SelectTrigger className="h-8 flex-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {model.capabilities.outputFormats.map((format) => (
+                      <SelectItem key={format} value={format}>
+                        {format}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             )}
 
             {model.capabilities.numOutputs && (
-              <div className="flex flex-wrap items-center gap-1.5">
-                <span className="mr-1 text-xs text-muted-foreground">Images</span>
-                {Array.from(
-                  { length: model.capabilities.numOutputs.max },
-                  (_, index) => index + 1,
-                ).map((count) => (
-                  <button
-                    key={count}
-                    type="button"
-                    onClick={() => setNumOutputs(count)}
-                    className={cn(
-                      'rounded-md border px-2 py-1 text-xs transition-colors',
-                      count === numOutputs
-                        ? 'border-primary bg-muted'
-                        : 'border-border hover:bg-muted/50',
-                    )}
-                  >
-                    {count}
-                  </button>
-                ))}
+              <div className="flex items-center gap-2">
+                <span className="w-14 shrink-0 text-xs text-muted-foreground">
+                  Images
+                </span>
+                <Select
+                  value={String(numOutputs)}
+                  onValueChange={(value) => setNumOutputs(Number(value))}
+                >
+                  <SelectTrigger className="h-8 flex-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from(
+                      { length: model.capabilities.numOutputs.max },
+                      (_, index) => index + 1,
+                    ).map((count) => (
+                      <SelectItem key={count} value={String(count)}>
+                        {count}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             )}
 
             {model.capabilities.quality && (
-              <div className="flex flex-wrap items-center gap-1.5">
-                <span className="mr-1 text-xs text-muted-foreground">Quality</span>
-                {model.capabilities.quality.options.map((option) => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => setQuality(option)}
-                    className={cn(
-                      'rounded-md border px-2 py-1 text-xs transition-colors',
-                      option === quality
-                        ? 'border-primary bg-muted'
-                        : 'border-border hover:bg-muted/50',
-                    )}
-                  >
-                    {option}
-                  </button>
-                ))}
+              <div className="flex items-center gap-2">
+                <span className="w-14 shrink-0 text-xs text-muted-foreground">
+                  Quality
+                </span>
+                <Select value={quality} onValueChange={setQuality}>
+                  <SelectTrigger className="h-8 flex-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {model.capabilities.quality.options.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             )}
 
             {model.capabilities.imageToImage &&
               model.capabilities.maxRefImages > 0 && (
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="flex flex-col gap-2">
                   <span className="text-xs text-muted-foreground">
-                    Reference ({model.capabilities.maxRefImages})
+                    Reference images ({refImages.length}/{model.capabilities.maxRefImages})
                   </span>
-                  {refImage ? (
-                    <div className="relative">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={refImage}
-                        alt="Reference"
-                        className="h-16 w-16 rounded-lg border object-cover"
-                      />
+                  <div className="flex flex-wrap gap-2">
+                    {refImages.map((ref) => (
+                      <div key={ref.id} className="relative">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={ref.dataUri}
+                          alt="Reference"
+                          className="h-16 w-16 rounded-lg border object-cover"
+                        />
+                        <button
+                          type="button"
+                          aria-label="Remove reference image"
+                          onClick={() =>
+                            setRefImages((current) =>
+                              current.filter((item) => item.id !== ref.id),
+                            )
+                          }
+                          className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-zinc-900/80 text-white"
+                        >
+                          <X size={10} />
+                        </button>
+                      </div>
+                    ))}
+                    {refImages.length < model.capabilities.maxRefImages && (
                       <button
                         type="button"
-                        aria-label="Remove reference image"
-                        onClick={() => setRefImage(null)}
-                        className="absolute -right-1.5 -top-1.5 rounded-full bg-zinc-900/80 p-0.5 text-white"
+                        aria-label="Add reference image"
+                        onClick={() => refInputRef.current?.click()}
+                        disabled={refProcessing}
+                        className="flex h-16 w-16 items-center justify-center rounded-lg border border-dashed text-muted-foreground hover:bg-muted/50"
                       >
-                        <X size={11} />
+                        {refProcessing ? (
+                          <Loader2 size={16} className="animate-spin" />
+                        ) : (
+                          <ImagePlus size={16} />
+                        )}
                       </button>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => refInputRef.current?.click()}
-                      className="flex items-center gap-2 rounded-lg border border-dashed px-3 py-2 text-xs text-muted-foreground hover:bg-muted/50"
-                    >
-                      <ImagePlus size={14} />
-                      {refProcessing ? 'Processing…' : 'Upload reference image'}
-                    </button>
-                  )}
+                    )}
+                  </div>
                   <input
                     ref={refInputRef}
                     type="file"
