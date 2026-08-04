@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 
 import { auth } from '@/app/(auth)/auth';
 import { getImageModelById } from '@/lib/ai/image-models';
+import { saveGeneration } from '@/lib/db/queries';
 
 export const maxDuration = 300;
 const POLL_INTERVAL_MS = 1500;
@@ -211,7 +212,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to store generated image' }, { status: 502 });
     }
 
-    return NextResponse.json({ modelId: model.id, results });
+    // Persist metadata (model, prompt, provenance) so history survives reloads.
+    const generationRow = await saveGeneration({
+      userId: session.user.id,
+      modelId: model.id,
+      prompt: prompt.trim(),
+      images: results,
+      generationIndex: 1,
+      parentImageId: null,
+    });
+
+    return NextResponse.json({
+      modelId: model.id,
+      generationId: generationRow?.[0]?.id ?? null,
+      results,
+    });
   } catch (error) {
     console.error('[image-gen] failed', error);
     return NextResponse.json({ error: 'Failed to generate image' }, { status: 500 });

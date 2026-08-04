@@ -26,6 +26,7 @@ import {
   type DBMessage,
   type Chat,
   stream,
+  generation,
 } from './schema';
 import type { ArtifactKind } from '@/components/artifact';
 import { generateUUID } from '../utils';
@@ -1318,6 +1319,79 @@ export async function getStreamIdsByChatId({ chatId }: { chatId: string }) {
     throw new ChatSDKError(
       'bad_request:database',
       'Failed to get stream ids by chat id',
+    );
+  }
+}
+
+export async function saveGeneration({
+  userId,
+  modelId,
+  prompt,
+  images,
+  generationIndex = 1,
+  parentImageId = null,
+}: {
+  userId: string;
+  modelId: string;
+  prompt: string;
+  images: Array<{ url: string; pathname: string; mediaType: string }>;
+  generationIndex?: number;
+  parentImageId?: string | null;
+}) {
+  try {
+    return await db
+      .insert(generation)
+      .values({
+        userId,
+        modelId,
+        prompt,
+        images,
+        generationIndex,
+        parentImageId,
+        createdAt: new Date(),
+      })
+      .returning({ id: generation.id });
+  } catch (error) {
+    logDatabaseError('save generation', error);
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to save generation',
+    );
+  }
+}
+
+export async function getGenerationsByUserId(userId: string) {
+  try {
+    return await db
+      .select()
+      .from(generation)
+      .where(eq(generation.userId, userId))
+      .orderBy(desc(generation.createdAt));
+  } catch (error) {
+    logDatabaseError('get generations by user id', error);
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to get generations',
+    );
+  }
+}
+
+export async function deleteGenerationById({
+  id,
+  userId,
+}: {
+  id: string;
+  userId: string;
+}) {
+  try {
+    return await db
+      .delete(generation)
+      .where(and(eq(generation.id, id), eq(generation.userId, userId)));
+  } catch (error) {
+    logDatabaseError('delete generation', error);
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to delete generation',
     );
   }
 }

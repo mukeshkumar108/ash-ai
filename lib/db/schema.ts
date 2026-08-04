@@ -187,4 +187,19 @@ export const stream = pgTable(
   }),
 );
 
+export const generation = pgTable('Generation', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  userId: uuid('userId')
+    .notNull()
+    .references(() => user.id),
+  modelId: varchar('modelId', { length: 200 }).notNull(),
+  prompt: text('prompt').notNull(),
+  images: json('images').notNull(),
+  generationIndex: integer('generationIndex').notNull().default(1),
+  parentImageId: varchar('parentImageId', { length: 200 }),
+  createdAt: timestamp('createdAt').notNull(),
+});
+
+export type Generation = InferSelectModel<typeof generation>;
+
 export type Stream = InferSelectModel<typeof stream>;

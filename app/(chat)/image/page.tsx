@@ -12,8 +12,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 
 const FAVS_STORAGE_KEY = 'image-studio-favs';
-const GENS_STORAGE_KEY = 'image-studio-generations';
-const MAX_STORED_GENERATIONS = 200;
 
 type FavEntry = {
   pathname: string;
@@ -38,6 +36,8 @@ type Generation = {
   error?: string;
   images: GeneratedImage[];
   createdAt: number;
+  generationIndex: number;
+  parentImageId?: string | null;
 };
 
 const createId = () =>
@@ -76,7 +76,7 @@ export default function ImageStudioPage() {
   const [showFavsOnly, setShowFavsOnly] = useState(false);
   const refInputRef = useRef<HTMLInputElement>(null);
 
-  // Load favorites + saved history + recover orphaned blobs from the store.
+  // Load favorites + generations (DB) + orphaned blobs from the store.
   useEffect(() => {
     let cancelled = false;
 
@@ -94,86 +94,76 @@ export default function ImageStudioPage() {
     }
     setFavs(storedFavs);
 
-    let savedGenerations: Generation[] = [];
-    try {
-      const raw = localStorage.getItem(GENS_STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as Generation[];
-        savedGenerations = parsed.map((gen) => ({
-          ...gen,
-          createdAt: gen.createdAt ?? 0,
-        }));
-      }
-    } catch {
-      // ignore corrupt storage
-    }
-
-    const loadRecovered = async () => {
+    const load = async () => {
       try {
         const response = await fetch('/api/image/list');
         if (!response.ok) return;
         const payload = await response.json();
 
+        const fromDb: Generation[] = (payload.generations as Array<{
+          id: string;
+          modelId: string;
+          prompt: string;
+          images: GeneratedImage[];
+          generationIndex: number;
+          parentImageId?: string | null;
+          createdAt: string;
+        }>).map((row) => ({
+          id: row.id,
+          modelId: row.modelId,
+          prompt: row.prompt,
+          status: 'done' as const,
+          images: row.images,
+          generationIndex: row.generationIndex ?? 1,
+          parentImageId: row.parentImageId ?? null,
+          createdAt: new Date(row.createdAt).getTime() || 0,
+        }));
+
         const seen = new Set<string>();
-        for (const gen of savedGenerations) {
+        for (const gen of fromDb) {
           for (const img of gen.images) seen.add(img.pathname);
         }
 
-        const recovered: Generation[] = (payload.blobs as Array<{
+        const orphans: Generation[] = (payload.orphans as Array<{
           pathname: string;
           url: string;
           uploadedAt: string;
-        }>)
-          .filter((blob) => !seen.has(blob.pathname))
-          .map((blob) => ({
-            id: `recovered-${blob.pathname}`,
-            modelId: storedFavs[blob.pathname]?.modelId ?? 'unknown',
-            prompt:
-              storedFavs[blob.pathname]?.prompt ??
-              '(recovered image — original prompt not saved)',
-            status: 'done' as const,
-            images: [
-              {
-                pathname: blob.pathname,
-                url: blob.url,
-                mediaType: blob.pathname.toLowerCase().endsWith('.png')
-                  ? 'image/png'
-                  : 'image/jpeg',
-              },
-            ],
-            createdAt: new Date(blob.uploadedAt).getTime() || 0,
-          }));
+        }>).map((blob) => ({
+          id: `recovered-${blob.pathname}`,
+          modelId: storedFavs[blob.pathname]?.modelId ?? 'unknown',
+          prompt:
+            storedFavs[blob.pathname]?.prompt ??
+            '(recovered image — original prompt not saved)',
+          status: 'done' as const,
+          images: [
+            {
+              pathname: blob.pathname,
+              url: blob.url,
+              mediaType: blob.pathname.toLowerCase().endsWith('.png')
+                ? 'image/png'
+                : 'image/jpeg',
+            },
+          ],
+          generationIndex: 1,
+          parentImageId: null,
+          createdAt: new Date(blob.uploadedAt).getTime() || 0,
+        }));
 
         if (!cancelled) {
           setGenerations(
-            [...savedGenerations, ...recovered].sort(
-              (a, b) => b.createdAt - a.createdAt,
-            ),
+            [...fromDb, ...orphans].sort((a, b) => b.createdAt - a.createdAt),
           );
         }
       } catch {
-        // fall back to saved history only
-        if (!cancelled) setGenerations(savedGenerations);
+        // leave empty on failure
       }
     };
 
-    void loadRecovered();
+    void load();
     return () => {
       cancelled = true;
     };
   }, []);
-
-  // Persist completed generations so they survive reloads.
-  useEffect(() => {
-    try {
-      const done = generations
-        .filter((gen) => gen.status === 'done')
-        .slice(0, MAX_STORED_GENERATIONS);
-      localStorage.setItem(GENS_STORAGE_KEY, JSON.stringify(done));
-    } catch {
-      // storage unavailable
-    }
-  }, [generations]);
 
   const model =
     imageModels.find((m) => m.id === selectedModelId) ?? imageModels[0];
@@ -214,17 +204,24 @@ export default function ImageStudioPage() {
     [],
   );
 
-  const deleteImage = useCallback(async (pathname: string) => {
+  const deleteImage = useCallback(async (img: GeneratedImage, gen: Generation) => {
     setGenerations((current) =>
-      current.map((gen) => ({
-        ...gen,
-        images: gen.images.filter((img) => img.pathname !== pathname),
-      })),
+      current
+        .map((g) =>
+          g.id === gen.id
+            ? { ...g, images: g.images.filter((i) => i.pathname !== img.pathname) }
+            : g,
+        )
+        .filter((g) => g.images.length > 0),
     );
     try {
-      await fetch(`/api/files?pathname=${encodeURIComponent(pathname)}`, {
+      await fetch(`/api/files?pathname=${encodeURIComponent(img.pathname)}`, {
         method: 'DELETE',
       });
+      // Remove the metadata row if this was a DB-backed generation.
+      if (!gen.id.startsWith('recovered-')) {
+        await fetch(`/api/image/generation/${gen.id}`, { method: 'DELETE' });
+      }
     } catch {
       // best-effort cleanup
     }
@@ -338,6 +335,8 @@ export default function ImageStudioPage() {
       status: 'loading',
       images: [],
       createdAt: Date.now(),
+      generationIndex: 1,
+      parentImageId: null,
     };
 
     setGenerations((current) => [gen, ...current]);
@@ -739,7 +738,7 @@ export default function ImageStudioPage() {
                         <button
                           type="button"
                           aria-label="Delete image"
-                          onClick={() => deleteImage(img.pathname)}
+                          onClick={() => deleteImage(img, gen)}
                           className="rounded-md bg-zinc-900/70 p-1.5 text-white hover:bg-zinc-900"
                         >
                           <Trash2 size={13} />
@@ -747,9 +746,21 @@ export default function ImageStudioPage() {
                       </div>
                     </div>
                     <div className="p-2">
-                      <div className="truncate text-xs text-muted-foreground">
-                        {imageModels.find((m) => m.id === gen.modelId)?.name ??
-                          gen.modelId}
+                      <div className="flex items-center gap-2">
+                        <span className="truncate text-xs text-muted-foreground">
+                          {imageModels.find((m) => m.id === gen.modelId)?.name ??
+                            gen.modelId}
+                        </span>
+                        <span
+                          title={
+                            gen.generationIndex === 1
+                              ? 'Original generation'
+                              : `Remix of a generation ${gen.generationIndex - 1} image`
+                          }
+                          className="shrink-0 rounded border border-border/70 bg-muted/60 px-1 py-px text-[10px] font-medium uppercase tracking-wide text-muted-foreground"
+                        >
+                          Gen {gen.generationIndex}
+                        </span>
                       </div>
                       <div className="line-clamp-2 text-xs">{gen.prompt}</div>
                     </div>
