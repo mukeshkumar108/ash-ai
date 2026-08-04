@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { Markdown } from './markdown';
+import { MessageResponse } from '@/components/ai-elements/message';
 import { cn } from '@/lib/utils';
 
 interface MessageContentProps {
@@ -21,14 +21,11 @@ const NonMemoizedMessageContent = ({ text, role }: MessageContentProps) => {
     >
       <div
         className={cn(
-          'prose max-w-none text-[16px] font-medium leading-[1.34] md:text-base md:leading-[1.4]',
-          'prose-p:my-0 prose-strong:font-semibold prose-em:italic',
-          isUser
-            ? 'prose-invert text-white'
-            : 'text-slate-800 dark:text-zinc-100',
+          'text-[16px] font-medium leading-[1.34] md:text-base md:leading-[1.4]',
+          isUser ? 'text-white' : 'text-slate-800 dark:text-zinc-100',
         )}
       >
-        <Markdown>{text}</Markdown>
+        <MessageResponse>{text}</MessageResponse>
       </div>
     </div>
   );
