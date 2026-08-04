@@ -2,77 +2,68 @@
 
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import Link from 'next/link';
+import { ImageIcon, MessagesSquare } from 'lucide-react';
 
 import { PlusIcon } from '@/components/icons';
 import { SidebarHistory } from '@/components/sidebar-history';
 import { SidebarUserNav } from '@/components/sidebar-user-nav';
-import { Button } from '@/components/ui/button';
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
-import Link from 'next/link';
-import { ImageIcon } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 export function AppSidebar() {
   const router = useRouter();
-  const { setOpenMobile } = useSidebar();
+  const { setOpenMobile, state } = useSidebar();
   const { data: session } = useSession();
   const user = session?.user;
 
   return (
-    <Sidebar className="group-data-[side=left]:border-r-0">
+    <Sidebar collapsible="icon" className="group-data-[side=left]:border-r-0">
       <SidebarHeader>
         <SidebarMenu>
-          <div className="flex flex-row justify-between items-center">
-            <Link
-              href="/"
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Chat">
+              <Link href="/" onClick={() => setOpenMobile(false)}>
+                <MessagesSquare />
+                <span>Chat</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Image Studio">
+              <Link href="/image" onClick={() => setOpenMobile(false)}>
+                <ImageIcon />
+                <span>Image Studio</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="New chat"
               onClick={() => {
                 setOpenMobile(false);
+                router.push('/');
+                router.refresh();
               }}
-              className="flex flex-row gap-3 items-center"
             >
-              <span className="text-lg font-semibold px-2 hover:bg-muted rounded-md cursor-pointer">
-                Chatbot
-              </span>
-            </Link>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  type="button"
-                  className="p-2 h-fit"
-                  onClick={() => {
-                    setOpenMobile(false);
-                    router.push('/');
-                    router.refresh();
-                  }}
-                >
-                  <PlusIcon />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent align="end">New Chat</TooltipContent>
-            </Tooltip>
-          </div>
+              <PlusIcon />
+              <span>New chat</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </SidebarMenu>
+        <SidebarTrigger className="mt-2" />
       </SidebarHeader>
       <SidebarContent>
-        <div className="px-2 pb-2">
-          <Link
-            href="/image"
-            onClick={() => setOpenMobile(false)}
-            className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            <ImageIcon size={16} />
-            Image Studio
-          </Link>
-        </div>
-        <SidebarHistory user={user} />
+        {state === 'expanded' && <SidebarHistory user={user} />}
       </SidebarContent>
       <SidebarFooter>
         <div className="flex flex-col gap-2 p-2">
