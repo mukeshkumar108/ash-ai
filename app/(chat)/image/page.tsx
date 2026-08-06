@@ -1,7 +1,17 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Copy, Download, Heart, ImagePlus, Loader2, Trash2, Wand2, X } from 'lucide-react';
+import {
+  Copy,
+  Download,
+  Heart,
+  ImagePlus,
+  Loader2,
+  RefreshCw,
+  Trash2,
+  Wand2,
+  X,
+} from 'lucide-react';
 import { toast } from 'sonner';
 
 import { imageModels, type ImageModel } from '@/lib/ai/image-models';
@@ -44,7 +54,21 @@ type Generation = {
   images: GeneratedImage[];
   createdAt: number;
   generationIndex: number;
-  parentImageId?: string | null;
+  parentGenerationId?: string | null;
+  parentOutputPathname?: string | null;
+  instruction?: string | null;
+  inputImages?: Array<{
+    pathname: string;
+    mediaType: string;
+    role: string;
+  }> | null;
+  remixState?: {
+    originalIntent: string;
+    locked: string[];
+    preserve: string[];
+    established: string[];
+    removed: string[];
+  } | null;
 };
 
 const createId = () =>
@@ -61,11 +85,49 @@ function fileToDataUri(file: File): Promise<string> {
   });
 }
 
-function downloadNameFor(pathname: string) {
-  const base = pathname.split('/').pop() ?? 'image';
+function downloadNameFor(img: GeneratedImage) {
+  const base = img.pathname.split('/').pop() ?? 'image';
   const clean = base.replace(/\.[^.]+$/, '');
-  return `${clean}.${base.includes('.') ? base.split('.').pop() : 'png'}`;
+  const subtype = (img.mediaType.split('/')[1] ?? 'png').split('+')[0];
+  const ext = subtype === 'jpeg' ? 'jpg' : subtype;
+  return `${clean}.${ext}`;
 }
+
+// Renders the gallery in row-major order (newest at top-left, filling
+// left-to-right). CSS columns fill down each column first, so we split the
+// items into explicit column buckets instead.
+function useColumnCount() {
+  const getCount = () => {
+    if (typeof window === 'undefined') return 3;
+    if (window.matchMedia('(min-width: 1024px)').matches) return 3;
+    if (window.matchMedia('(min-width: 640px)').matches) return 2;
+    return 1;
+  };
+  const [count, setCount] = useState(getCount);
+  useEffect(() => {
+    const update = () => setCount(getCount());
+    const lg = window.matchMedia('(min-width: 1024px)');
+    const sm = window.matchMedia('(min-width: 640px)');
+    lg.addEventListener('change', update);
+    sm.addEventListener('change', update);
+    return () => {
+      lg.removeEventListener('change', update);
+      sm.removeEventListener('change', update);
+    };
+  }, []);
+  return count;
+}
+
+type RefImage = {
+  id: string;
+  dataUri: string;
+  /** Populated when the reference was uploaded to the blob store (remix mode). */
+  pathname?: string;
+  mediaType?: string;
+  role?: string;
+};
+
+const REF_ROLES = ['style', 'object', 'identity', 'layout'] as const;
 
 export default function ImageStudioPage() {
   const [selectedModelId, setSelectedModelId] = useState(imageModels[0].id);
@@ -74,11 +136,17 @@ export default function ImageStudioPage() {
   const [outputFormat, setOutputFormat] = useState('png');
   const [numOutputs, setNumOutputs] = useState(1);
   const [quality, setQuality] = useState('low');
-  const [refImages, setRefImages] = useState<Array<{ id: string; dataUri: string }>>([]);
+  const [refImages, setRefImages] = useState<RefImage[]>([]);
+  const [remixTarget, setRemixTarget] = useState<{
+    gen: Generation;
+    img: GeneratedImage;
+  } | null>(null);
   const [generations, setGenerations] = useState<Generation[]>([]);
   const [refProcessing, setRefProcessing] = useState(false);
   const [enhancing, setEnhancing] = useState(false);
-  const [lastOriginalPrompt, setLastOriginalPrompt] = useState<string | null>(null);
+  const [lastOriginalPrompt, setLastOriginalPrompt] = useState<string | null>(
+    null,
+  );
   const [favs, setFavs] = useState<Record<string, FavEntry>>({});
   const [showFavsOnly, setShowFavsOnly] = useState(false);
   const refInputRef = useRef<HTMLInputElement>(null);
@@ -107,22 +175,42 @@ export default function ImageStudioPage() {
         if (!response.ok) return;
         const payload = await response.json();
 
-        const fromDb: Generation[] = (payload.generations as Array<{
-          id: string;
-          modelId: string;
-          prompt: string;
-          images: GeneratedImage[];
-          generationIndex: number;
-          parentImageId?: string | null;
-          createdAt: string;
-        }>).map((row) => ({
+        const fromDb: Generation[] = (
+          payload.generations as Array<{
+            id: string;
+            modelId: string;
+            prompt: string;
+            images: GeneratedImage[];
+            generationIndex: number;
+            parentGenerationId?: string | null;
+            parentOutputPathname?: string | null;
+            instruction?: string | null;
+            inputImages?: Array<{
+              pathname: string;
+              mediaType: string;
+              role: string;
+            }> | null;
+            remixState?: {
+              originalIntent: string;
+              locked: string[];
+              preserve: string[];
+              established: string[];
+              removed: string[];
+            } | null;
+            createdAt: string;
+          }>
+        ).map((row) => ({
           id: row.id,
           modelId: row.modelId,
           prompt: row.prompt,
           status: 'done' as const,
           images: row.images,
           generationIndex: row.generationIndex ?? 1,
-          parentImageId: row.parentImageId ?? null,
+          parentGenerationId: row.parentGenerationId ?? null,
+          parentOutputPathname: row.parentOutputPathname ?? null,
+          instruction: row.instruction ?? null,
+          inputImages: row.inputImages ?? null,
+          remixState: row.remixState ?? null,
           createdAt: new Date(row.createdAt).getTime() || 0,
         }));
 
@@ -131,11 +219,13 @@ export default function ImageStudioPage() {
           for (const img of gen.images) seen.add(img.pathname);
         }
 
-        const orphans: Generation[] = (payload.orphans as Array<{
-          pathname: string;
-          url: string;
-          uploadedAt: string;
-        }>).map((blob) => ({
+        const orphans: Generation[] = (
+          payload.orphans as Array<{
+            pathname: string;
+            url: string;
+            uploadedAt: string;
+          }>
+        ).map((blob) => ({
           id: `recovered-${blob.pathname}`,
           modelId: storedFavs[blob.pathname]?.modelId ?? 'unknown',
           prompt:
@@ -152,7 +242,8 @@ export default function ImageStudioPage() {
             },
           ],
           generationIndex: 1,
-          parentImageId: null,
+          parentGenerationId: null,
+          parentOutputPathname: null,
           createdAt: new Date(blob.uploadedAt).getTime() || 0,
         }));
 
@@ -207,64 +298,137 @@ export default function ImageStudioPage() {
       try {
         const processed = await processImageFile(file);
         const dataUri = await fileToDataUri(processed.file);
-        setRefImages((current) => [
-          ...current,
-          { id: createId(), dataUri },
-        ]);
+        if (remixTarget) {
+          const form = new FormData();
+          form.append('file', processed.file, processed.file.name || 'ref.png');
+          const upload = await fetch('/api/files/upload', {
+            method: 'POST',
+            body: form,
+          });
+          const uploadPayload = await upload.json();
+          if (!upload.ok) {
+            throw new Error(uploadPayload?.error || 'Reference upload failed');
+          }
+          setRefImages((current) => [
+            ...current,
+            {
+              id: createId(),
+              dataUri,
+              pathname: uploadPayload.pathname as string,
+              mediaType: (uploadPayload.contentType as string) ?? 'image/png',
+              role: 'style',
+            },
+          ]);
+        } else {
+          setRefImages((current) => [...current, { id: createId(), dataUri }]);
+        }
       } catch {
         toast.error('Could not process reference image');
       } finally {
         setRefProcessing(false);
       }
     },
-    [model, refImages.length],
+    [model, refImages.length, remixTarget],
   );
 
-  const deleteImage = useCallback(async (img: GeneratedImage, gen: Generation) => {
-    setGenerations((current) =>
-      current
-        .map((g) =>
-          g.id === gen.id
-            ? { ...g, images: g.images.filter((i) => i.pathname !== img.pathname) }
-            : g,
-        )
-        .filter((g) => g.images.length > 0),
+  const setRefRole = useCallback((id: string, role: string) => {
+    setRefImages((current) =>
+      current.map((ref) => (ref.id === id ? { ...ref, role } : ref)),
     );
-    try {
-      await fetch(`/api/files?pathname=${encodeURIComponent(img.pathname)}`, {
-        method: 'DELETE',
-      });
-      // Remove the metadata row if this was a DB-backed generation.
-      if (!gen.id.startsWith('recovered-')) {
-        await fetch(`/api/image/generation/${gen.id}`, { method: 'DELETE' });
-      }
-    } catch {
-      // best-effort cleanup
-    }
   }, []);
 
-  const downloadImage = useCallback(
-    async (img: GeneratedImage) => {
+  // Editing-capable models for the remix workspace (filtered from the DB list).
+  const availableModels = useMemo(
+    () => imageModels.filter((m) => m.capabilities.imageToImage),
+    [],
+  );
+
+  // Ancestor path of the baseline being remixed, oldest first.
+  const remixAncestors = useMemo(() => {
+    if (!remixTarget) return [];
+    const chain: Generation[] = [];
+    let current: Generation | undefined = remixTarget.gen;
+    const byId = new Map(generations.map((gen) => [gen.id, gen]));
+    while (current && !chain.includes(current)) {
+      chain.unshift(current);
+      current = current.parentGenerationId
+        ? byId.get(current.parentGenerationId)
+        : undefined;
+    }
+    return chain;
+  }, [remixTarget, generations]);
+
+  const startRemix = useCallback(
+    (gen: Generation, img: GeneratedImage) => {
+      setRemixTarget({ gen, img });
+      setRefImages([]);
+      setPrompt('');
+      setLastOriginalPrompt(null);
+      setNumOutputs(1);
+      const editing = availableModels.some((m) => m.id === model.id)
+        ? model
+        : availableModels[0];
+      if (editing && editing.id !== model.id) selectModel(editing);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+    [model, availableModels, selectModel],
+  );
+
+  const exitRemix = useCallback(() => {
+    setRemixTarget(null);
+    setRefImages([]);
+    setPrompt('');
+    setLastOriginalPrompt(null);
+  }, []);
+
+  const deleteImage = useCallback(
+    async (img: GeneratedImage, gen: Generation) => {
+      setGenerations((current) =>
+        current
+          .map((g) =>
+            g.id === gen.id
+              ? {
+                  ...g,
+                  images: g.images.filter((i) => i.pathname !== img.pathname),
+                }
+              : g,
+          )
+          .filter((g) => g.images.length > 0),
+      );
       try {
-        const response = await fetch(
-          `/api/files?pathname=${encodeURIComponent(img.pathname)}`,
-        );
-        if (!response.ok) {
-          throw new Error('Download failed');
+        await fetch(`/api/files?pathname=${encodeURIComponent(img.pathname)}`, {
+          method: 'DELETE',
+        });
+        // Remove the metadata row if this was a DB-backed generation.
+        if (!gen.id.startsWith('recovered-')) {
+          await fetch(`/api/image/generation/${gen.id}`, { method: 'DELETE' });
         }
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        const anchor = document.createElement('a');
-        anchor.href = url;
-        anchor.download = downloadNameFor(img.pathname);
-        anchor.click();
-        URL.revokeObjectURL(url);
       } catch {
-        toast.error('Could not download image');
+        // best-effort cleanup
       }
     },
     [],
   );
+
+  const downloadImage = useCallback(async (img: GeneratedImage) => {
+    try {
+      const response = await fetch(
+        `/api/files?pathname=${encodeURIComponent(img.pathname)}`,
+      );
+      if (!response.ok) {
+        throw new Error('Download failed');
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = downloadNameFor(img);
+      anchor.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error('Could not download image');
+    }
+  }, []);
 
   const copyPrompt = useCallback(async (text: string) => {
     try {
@@ -307,35 +471,30 @@ export default function ImageStudioPage() {
     }
   }, [lastOriginalPrompt]);
 
-  const toggleFav = useCallback(
-    (img: GeneratedImage, gen: Generation) => {
-      setFavs((current) => {
-        const next = { ...current };
-        if (next[img.pathname]) {
-          delete next[img.pathname];
-        } else {
-          next[img.pathname] = {
-            pathname: img.pathname,
-            url: img.url,
-            mediaType: img.mediaType,
-            prompt: gen.prompt,
-            modelId: gen.modelId,
-            likedAt: Date.now(),
-          };
-        }
-        const entries = Object.values(next).sort(
-          (a, b) => b.likedAt - a.likedAt,
-        );
-        try {
-          localStorage.setItem(FAVS_STORAGE_KEY, JSON.stringify(entries));
-        } catch {
-          // storage unavailable
-        }
-        return next;
-      });
-    },
-    [],
-  );
+  const toggleFav = useCallback((img: GeneratedImage, gen: Generation) => {
+    setFavs((current) => {
+      const next = { ...current };
+      if (next[img.pathname]) {
+        delete next[img.pathname];
+      } else {
+        next[img.pathname] = {
+          pathname: img.pathname,
+          url: img.url,
+          mediaType: img.mediaType,
+          prompt: gen.prompt,
+          modelId: gen.modelId,
+          likedAt: Date.now(),
+        };
+      }
+      const entries = Object.values(next).sort((a, b) => b.likedAt - a.likedAt);
+      try {
+        localStorage.setItem(FAVS_STORAGE_KEY, JSON.stringify(entries));
+      } catch {
+        // storage unavailable
+      }
+      return next;
+    });
+  }, []);
 
   const generate = useCallback(async () => {
     if (!prompt.trim()) {
@@ -344,6 +503,7 @@ export default function ImageStudioPage() {
     }
 
     const id = createId();
+    const isRemix = remixTarget != null;
     const gen: Generation = {
       id,
       modelId: model.id,
@@ -351,26 +511,51 @@ export default function ImageStudioPage() {
       status: 'loading',
       images: [],
       createdAt: Date.now(),
-      generationIndex: 1,
-      parentImageId: null,
+      generationIndex: (remixTarget?.gen.generationIndex ?? 0) + 1,
+      parentGenerationId: remixTarget?.gen.id ?? null,
+      parentOutputPathname: remixTarget?.img.pathname ?? null,
+      instruction: isRemix ? prompt.trim() : null,
     };
 
     setGenerations((current) => [gen, ...current]);
 
     try {
-      const response = await fetch('/api/image/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          modelId: model.id,
-          prompt: prompt.trim(),
-          aspectRatio,
-          outputFormat,
-          numOutputs,
-          quality,
-          refImages: refImages.map((ref) => ref.dataUri),
-        }),
-      });
+      const response = await fetch(
+        isRemix ? '/api/image/remix' : '/api/image/generate',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(
+            isRemix
+              ? {
+                  modelId: model.id,
+                  parentGenerationId: remixTarget.gen.id,
+                  parentOutputPathname: remixTarget.img.pathname,
+                  instruction: prompt.trim(),
+                  refs: refImages
+                    .filter((ref) => ref.pathname)
+                    .map((ref) => ({
+                      pathname: ref.pathname,
+                      mediaType: ref.mediaType,
+                      role: ref.role ?? 'style',
+                    })),
+                  aspectRatio,
+                  outputFormat,
+                  numOutputs,
+                  quality,
+                }
+              : {
+                  modelId: model.id,
+                  prompt: prompt.trim(),
+                  aspectRatio,
+                  outputFormat,
+                  numOutputs,
+                  quality,
+                  refImages: refImages.map((ref) => ref.dataUri),
+                },
+          ),
+        },
+      );
 
       const payload = await response.json();
 
@@ -381,10 +566,23 @@ export default function ImageStudioPage() {
       setGenerations((current) =>
         current.map((g) =>
           g.id === id
-            ? { ...g, status: 'done', images: payload.results }
+            ? {
+                ...g,
+                status: 'done',
+                prompt: payload.prompt ?? g.prompt,
+                images: payload.results,
+              }
             : g,
         ),
       );
+
+      if (
+        isRemix &&
+        Array.isArray(payload.warnings) &&
+        payload.warnings.length > 0
+      ) {
+        toast.warning(payload.warnings[0]);
+      }
     } catch (error) {
       setGenerations((current) =>
         current.map((g) =>
@@ -392,14 +590,24 @@ export default function ImageStudioPage() {
             ? {
                 ...g,
                 status: 'failed',
-                error: error instanceof Error ? error.message : 'Generation failed',
+                error:
+                  error instanceof Error ? error.message : 'Generation failed',
               }
             : g,
         ),
       );
       toast.error(error instanceof Error ? error.message : 'Generation failed');
     }
-  }, [prompt, model, aspectRatio, outputFormat, numOutputs, quality, refImages]);
+  }, [
+    prompt,
+    model,
+    aspectRatio,
+    outputFormat,
+    numOutputs,
+    quality,
+    refImages,
+    remixTarget,
+  ]);
 
   const isGenerating = generations.some((gen) => gen.status === 'loading');
 
@@ -413,6 +621,27 @@ export default function ImageStudioPage() {
     }
     return flat;
   }, [generations]);
+
+  // Bucket newest-first items into columns (item i -> column i % count) so the
+  // gallery reads left-to-right, top-to-bottom, with the latest image at the
+  // top-left, while keeping the masonry look.
+  const columnCount = useColumnCount();
+  const gridColumns = useMemo(() => {
+    const cols: Array<{
+      id: string;
+      items: Array<{ gen: Generation; img: GeneratedImage }>;
+    }> = Array.from({ length: columnCount }, (_, i) => ({
+      id: `col-${i}`,
+      items: [],
+    }));
+    let index = 0;
+    for (const item of images) {
+      if (showFavsOnly && !favs[item.img.pathname]) continue;
+      cols[index % columnCount].items.push(item);
+      index += 1;
+    }
+    return cols;
+  }, [images, columnCount, showFavsOnly, favs]);
 
   return (
     <div className="flex min-h-dvh w-full flex-col gap-6 p-4 md:p-6">
@@ -442,7 +671,7 @@ export default function ImageStudioPage() {
                 <SelectValue placeholder="Select a model" />
               </SelectTrigger>
               <SelectContent>
-                {imageModels.map((m) => (
+                {(remixTarget ? availableModels : imageModels).map((m) => (
                   <SelectItem key={m.id} value={m.id}>
                     <span className="flex items-center gap-2">
                       {m.name}
@@ -463,44 +692,107 @@ export default function ImageStudioPage() {
           </div>
 
           <div className="flex flex-col gap-3 rounded-xl border bg-muted/30 p-4">
+            {remixTarget && (
+              <div className="flex flex-col gap-3 rounded-lg border bg-background p-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Remixing
+                  </span>
+                  <button
+                    type="button"
+                    aria-label="Exit remix mode"
+                    onClick={exitRemix}
+                    className="rounded-md p-1 text-muted-foreground hover:bg-muted"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
+                  {remixAncestors.map((ancestor, index) => (
+                    <span
+                      key={ancestor.id}
+                      className="flex items-center gap-1.5"
+                    >
+                      <button
+                        type="button"
+                        title={`Remix this output instead (Gen ${ancestor.generationIndex})`}
+                        onClick={() =>
+                          ancestor.images[0] &&
+                          startRemix(ancestor, ancestor.images[0])
+                        }
+                        className="rounded border border-border/70 bg-muted/50 px-1.5 py-px hover:bg-muted"
+                      >
+                        {index === 0
+                          ? 'Original'
+                          : `Gen ${ancestor.generationIndex}`}
+                      </button>
+                      {index < remixAncestors.length - 1 && <span>→</span>}
+                    </span>
+                  ))}
+                  <span className="flex items-center gap-1.5">
+                    <span className="rounded border border-pink-500/40 bg-pink-500/10 px-1.5 py-px text-pink-600">
+                      Remix
+                    </span>
+                  </span>
+                </div>
+
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={getBlobDisplayUrl(remixTarget.img.url)}
+                  alt="Baseline to remix"
+                  className="max-h-52 w-full rounded-lg border object-cover"
+                />
+                <p className="line-clamp-2 text-[11px] text-muted-foreground">
+                  {remixTarget.gen.prompt}
+                </p>
+              </div>
+            )}
+
             <Textarea
               value={prompt}
               onChange={(event) => setPrompt(event.target.value)}
-              placeholder="Describe the image you want to generate…"
+              placeholder={
+                remixTarget
+                  ? 'Describe what to change in the baseline image…'
+                  : 'Describe the image you want to generate…'
+              }
               className="min-h-24 bg-background"
             />
 
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={enhancePrompt}
-                disabled={enhancing || !prompt.trim() || isGenerating}
-                title="Rewrite the prompt for the selected model"
-              >
-                {enhancing ? (
-                  <Loader2 size={14} className="mr-1 animate-spin" />
-                ) : (
-                  <Wand2 size={14} className="mr-1" />
-                )}
-                Rewrite
-              </Button>
-              {lastOriginalPrompt != null && (
+            {!remixTarget && (
+              <div className="flex flex-wrap items-center gap-2">
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
-                  onClick={revertPrompt}
-                  title="Revert to the original prompt"
+                  onClick={enhancePrompt}
+                  disabled={enhancing || !prompt.trim() || isGenerating}
+                  title="Rewrite the prompt for the selected model"
                 >
-                  Revert
+                  {enhancing ? (
+                    <Loader2 size={14} className="mr-1 animate-spin" />
+                  ) : (
+                    <Wand2 size={14} className="mr-1" />
+                  )}
+                  Rewrite
                 </Button>
-              )}
-              <span className="text-[10px] text-muted-foreground">
-                Rewrites via a model-aware prompt enhancer for {model.name}
-              </span>
-            </div>
+                {lastOriginalPrompt != null && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={revertPrompt}
+                    title="Revert to the original prompt"
+                  >
+                    Revert
+                  </Button>
+                )}
+                <span className="text-[10px] text-muted-foreground">
+                  Rewrites via a model-aware prompt enhancer for {model.name}
+                </span>
+              </div>
+            )}
 
             {model.capabilities.aspectRatios.length > 0 && (
               <div className="flex items-center gap-2">
@@ -592,17 +884,40 @@ export default function ImageStudioPage() {
               model.capabilities.maxRefImages > 0 && (
                 <div className="flex flex-col gap-2">
                   <span className="text-xs text-muted-foreground">
-                    Reference images ({refImages.length}/{model.capabilities.maxRefImages})
+                    {remixTarget
+                      ? 'Supplementary references'
+                      : 'Reference images'}{' '}
+                    ({refImages.length}/{model.capabilities.maxRefImages})
                   </span>
                   <div className="flex flex-wrap gap-2">
                     {refImages.map((ref) => (
-                      <div key={ref.id} className="relative">
+                      <div
+                        key={ref.id}
+                        className="relative flex flex-col items-center gap-1"
+                      >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={ref.dataUri}
                           alt="Reference"
                           className="h-16 w-16 rounded-lg border object-cover"
                         />
+                        {remixTarget && (
+                          <Select
+                            value={ref.role ?? 'style'}
+                            onValueChange={(value) => setRefRole(ref.id, value)}
+                          >
+                            <SelectTrigger className="h-6 w-16 px-1 text-[10px]">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {REF_ROLES.map((role) => (
+                                <SelectItem key={role} value={role}>
+                                  {role}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
                         <button
                           type="button"
                           aria-label="Remove reference image"
@@ -651,7 +966,12 @@ export default function ImageStudioPage() {
               {isGenerating ? (
                 <>
                   <Loader2 size={14} className="mr-1 animate-spin" />
-                  Generating…
+                  {remixTarget ? 'Remixing…' : 'Generating…'}
+                </>
+              ) : remixTarget ? (
+                <>
+                  <RefreshCw size={14} className="mr-1" />
+                  Remix
                 </>
               ) : (
                 'Generate'
@@ -709,91 +1029,114 @@ export default function ImageStudioPage() {
                         {gen.status === 'loading' ? (
                           <span className="flex items-center gap-2">
                             <Loader2 size={14} className="animate-spin" />
-                            Generating “{gen.prompt}”…
+                            {gen.parentGenerationId ? 'Remixing' : 'Generating'} “
+                            {gen.prompt}”…
                           </span>
                         ) : (
-                          gen.error ?? 'Generation failed'
+                          (gen.error ?? 'Generation failed')
                         )}
                       </div>
                     ))}
                 </div>
               )}
 
-              <div className="columns-1 gap-4 sm:columns-2 lg:columns-3">
-                {images
-                  .filter(({ img }) => !showFavsOnly || favs[img.pathname])
-                  .map(({ gen, img }) => (
+              <div className="flex gap-4">
+                {gridColumns.map((col) => (
                   <div
-                    key={img.pathname}
-                    className="group mb-4 break-inside-avoid overflow-hidden rounded-xl border"
+                    key={col.id}
+                    className="flex min-w-0 flex-1 flex-col gap-4"
                   >
-                    <div className="relative">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={getBlobDisplayUrl(img.url)}
-                        alt={gen.prompt}
-                        className="w-full object-cover"
-                      />
-                      <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                        <button
-                          type="button"
-                          aria-label={favs[img.pathname] ? 'Unfavorite' : 'Favorite'}
-                          onClick={() => toggleFav(img, gen)}
-                          className={cn(
-                            'rounded-md bg-zinc-900/70 p-1.5 text-white hover:bg-zinc-900',
-                            favs[img.pathname] && 'text-pink-400',
-                          )}
-                        >
-                          <Heart
-                            size={13}
-                            className={favs[img.pathname] ? 'fill-current' : ''}
+                    {col.items.map(({ gen, img }) => (
+                      <div
+                        key={img.pathname}
+                        className="group overflow-hidden rounded-xl border"
+                      >
+                        <div className="relative">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={getBlobDisplayUrl(img.url)}
+                            alt={gen.prompt}
+                            className="w-full object-cover"
                           />
-                        </button>
-                        <button
-                          type="button"
-                          aria-label="Copy prompt"
-                          onClick={() => copyPrompt(gen.prompt)}
-                          className="rounded-md bg-zinc-900/70 p-1.5 text-white hover:bg-zinc-900"
-                        >
-                          <Copy size={13} />
-                        </button>
-                        <button
-                          type="button"
-                          aria-label="Download image"
-                          onClick={() => downloadImage(img)}
-                          className="rounded-md bg-zinc-900/70 p-1.5 text-white hover:bg-zinc-900"
-                        >
-                          <Download size={13} />
-                        </button>
-                        <button
-                          type="button"
-                          aria-label="Delete image"
-                          onClick={() => deleteImage(img, gen)}
-                          className="rounded-md bg-zinc-900/70 p-1.5 text-white hover:bg-zinc-900"
-                        >
-                          <Trash2 size={13} />
-                        </button>
+                          <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                            {!gen.id.startsWith('recovered-') && (
+                              <button
+                                type="button"
+                                aria-label="Remix image"
+                                title="Remix this image"
+                                onClick={() => startRemix(gen, img)}
+                                className="rounded-md bg-zinc-900/70 p-1.5 text-white hover:bg-zinc-900"
+                              >
+                                <RefreshCw size={13} />
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              aria-label={
+                                favs[img.pathname] ? 'Unfavorite' : 'Favorite'
+                              }
+                              onClick={() => toggleFav(img, gen)}
+                              className={cn(
+                                'rounded-md bg-zinc-900/70 p-1.5 text-white hover:bg-zinc-900',
+                                favs[img.pathname] && 'text-pink-400',
+                              )}
+                            >
+                              <Heart
+                                size={13}
+                                className={
+                                  favs[img.pathname] ? 'fill-current' : ''
+                                }
+                              />
+                            </button>
+                            <button
+                              type="button"
+                              aria-label="Copy prompt"
+                              onClick={() => copyPrompt(gen.prompt)}
+                              className="rounded-md bg-zinc-900/70 p-1.5 text-white hover:bg-zinc-900"
+                            >
+                              <Copy size={13} />
+                            </button>
+                            <button
+                              type="button"
+                              aria-label="Download image"
+                              onClick={() => downloadImage(img)}
+                              className="rounded-md bg-zinc-900/70 p-1.5 text-white hover:bg-zinc-900"
+                            >
+                              <Download size={13} />
+                            </button>
+                            <button
+                              type="button"
+                              aria-label="Delete image"
+                              onClick={() => deleteImage(img, gen)}
+                              className="rounded-md bg-zinc-900/70 p-1.5 text-white hover:bg-zinc-900"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="p-2">
+                          <div className="flex items-center gap-2">
+                            <span className="truncate text-xs text-muted-foreground">
+                              {imageModels.find((m) => m.id === gen.modelId)
+                                ?.name ?? gen.modelId}
+                            </span>
+                            <span
+                              title={
+                                gen.generationIndex === 1
+                                  ? 'Original generation'
+                                  : `Remix of a generation ${gen.generationIndex - 1} image`
+                              }
+                              className="shrink-0 rounded border border-border/70 bg-muted/60 px-1 py-px text-[10px] font-medium uppercase tracking-wide text-muted-foreground"
+                            >
+                              Gen {gen.generationIndex}
+                            </span>
+                          </div>
+                          <div className="line-clamp-2 text-xs">
+                            {gen.prompt}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div className="p-2">
-                      <div className="flex items-center gap-2">
-                        <span className="truncate text-xs text-muted-foreground">
-                          {imageModels.find((m) => m.id === gen.modelId)?.name ??
-                            gen.modelId}
-                        </span>
-                        <span
-                          title={
-                            gen.generationIndex === 1
-                              ? 'Original generation'
-                              : `Remix of a generation ${gen.generationIndex - 1} image`
-                          }
-                          className="shrink-0 rounded border border-border/70 bg-muted/60 px-1 py-px text-[10px] font-medium uppercase tracking-wide text-muted-foreground"
-                        >
-                          Gen {gen.generationIndex}
-                        </span>
-                      </div>
-                      <div className="line-clamp-2 text-xs">{gen.prompt}</div>
-                    </div>
+                    ))}
                   </div>
                 ))}
               </div>

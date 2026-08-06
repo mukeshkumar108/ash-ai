@@ -24,7 +24,21 @@ export async function GET() {
         mediaType: string;
       }>,
       generationIndex: row.generationIndex,
-      parentImageId: row.parentImageId,
+      parentGenerationId: row.parentGenerationId,
+      parentOutputPathname: row.parentOutputPathname,
+      instruction: row.instruction,
+      inputImages: row.inputImages as Array<{
+        pathname: string;
+        mediaType: string;
+        role: string;
+      }> | null,
+      remixState: row.remixState as {
+        originalIntent: string;
+        locked: string[];
+        preserve: string[];
+        established: string[];
+        removed: string[];
+      } | null,
       createdAt: row.createdAt.toISOString(),
     }));
 
@@ -51,6 +65,9 @@ export async function GET() {
     return NextResponse.json({ generations, orphans });
   } catch (error) {
     console.error('[image-list] failed', error);
-    return NextResponse.json({ error: 'Failed to list images' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to list images' },
+      { status: 500 },
+    );
   }
 }

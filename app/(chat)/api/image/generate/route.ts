@@ -37,16 +37,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
   }
 
-  const { modelId, prompt, aspectRatio, outputFormat, refImages, numOutputs, quality } =
-    body as {
-      modelId?: string;
-      prompt?: string;
-      aspectRatio?: string;
-      outputFormat?: string;
-      refImages?: string[];
-      numOutputs?: number;
-      quality?: string;
-    };
+  const {
+    modelId,
+    prompt,
+    aspectRatio,
+    outputFormat,
+    refImages,
+    numOutputs,
+    quality,
+  } = body as {
+    modelId?: string;
+    prompt?: string;
+    aspectRatio?: string;
+    outputFormat?: string;
+    refImages?: string[];
+    numOutputs?: number;
+    quality?: string;
+  };
 
   const model = getImageModelById(modelId ?? '');
 
@@ -54,7 +61,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unknown model' }, { status: 400 });
   }
 
-  if (typeof prompt !== 'string' || prompt.trim().length === 0 || prompt.length > 5000) {
+  if (
+    typeof prompt !== 'string' ||
+    prompt.trim().length === 0 ||
+    prompt.length > 5000
+  ) {
     return NextResponse.json(
       { error: 'A prompt between 1 and 5000 characters is required' },
       { status: 400 },
@@ -82,9 +93,7 @@ export async function POST(request: Request) {
       (ref) => typeof ref === 'string' && ref.length > 0,
     );
     if (refs.length > 0) {
-      input[model.imageField] = model.imageFieldIsArray
-        ? refs
-        : refs[0];
+      input[model.imageField] = model.imageFieldIsArray ? refs : refs[0];
     }
   }
 
@@ -128,14 +137,18 @@ export async function POST(request: Request) {
   }
 
   try {
-    const created = await replicateJson('https://api.replicate.com/v1/predictions', {
-      method: 'POST',
-      body: JSON.stringify({ version: model.version, input }),
-    });
+    const created = await replicateJson(
+      'https://api.replicate.com/v1/predictions',
+      {
+        method: 'POST',
+        body: JSON.stringify({ version: model.version, input }),
+      },
+    );
 
     if (!created.ok) {
       const detail =
-        (created.body as { detail?: string })?.detail || `HTTP ${created.status}`;
+        (created.body as { detail?: string })?.detail ||
+        `HTTP ${created.status}`;
       return NextResponse.json(
         { error: `Replicate failed to start: ${detail}` },
         { status: 502 },
@@ -152,7 +165,10 @@ export async function POST(request: Request) {
     const getUrl = prediction.urls?.get;
 
     if (!getUrl) {
-      return NextResponse.json({ error: 'Replicate did not return a prediction' }, { status: 502 });
+      return NextResponse.json(
+        { error: 'Replicate did not return a prediction' },
+        { status: 502 },
+      );
     }
 
     const deadline = Date.now() + POLL_TIMEOUT_MS;
@@ -186,7 +202,10 @@ export async function POST(request: Request) {
         : [];
 
     if (outputs.length === 0) {
-      return NextResponse.json({ error: 'Replicate returned no output' }, { status: 502 });
+      return NextResponse.json(
+        { error: 'Replicate returned no output' },
+        { status: 502 },
+      );
     }
 
     const results = [];
@@ -217,7 +236,10 @@ export async function POST(request: Request) {
     }
 
     if (results.length === 0) {
-      return NextResponse.json({ error: 'Failed to store generated image' }, { status: 502 });
+      return NextResponse.json(
+        { error: 'Failed to store generated image' },
+        { status: 502 },
+      );
     }
 
     // Persist metadata (model, prompt, provenance) so history survives reloads.
@@ -227,7 +249,8 @@ export async function POST(request: Request) {
       prompt: prompt.trim(),
       images: results,
       generationIndex: 1,
-      parentImageId: null,
+      parentOutputPathname: null,
+      parentGenerationId: null,
     });
 
     return NextResponse.json({
@@ -237,6 +260,9 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error('[image-gen] failed', error);
-    return NextResponse.json({ error: 'Failed to generate image' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to generate image' },
+      { status: 500 },
+    );
   }
 }

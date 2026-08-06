@@ -10,6 +10,7 @@ import {
   primaryKey,
   foreignKey,
   boolean,
+  index,
 } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('User', {
@@ -39,7 +40,9 @@ export const chat = pgTable('Chat', {
   userId: uuid('userId')
     .notNull()
     .references(() => user.id),
-  characterId: varchar('characterId', { length: 50 }).notNull().default('lila-harper'),
+  characterId: varchar('characterId', { length: 50 })
+    .notNull()
+    .default('lila-harper'),
   visibility: varchar('visibility', { enum: ['public', 'private'] })
     .notNull()
     .default('private'),
@@ -48,7 +51,9 @@ export const chat = pgTable('Chat', {
   relationshipDynamics: json('relationship_dynamics'),
   continuityEvents: json('continuity_events'),
   continuitySeq: integer('continuity_seq').notNull().default(0),
-  chatModel: varchar('chatModel', { length: 100 }).notNull().default('chat-model'),
+  chatModel: varchar('chatModel', { length: 100 })
+    .notNull()
+    .default('chat-model'),
 });
 
 export type Chat = InferSelectModel<typeof chat>;
@@ -187,19 +192,58 @@ export const stream = pgTable(
   }),
 );
 
-export const generation = pgTable('Generation', {
-  id: uuid('id').primaryKey().notNull().defaultRandom(),
-  userId: uuid('userId')
-    .notNull()
-    .references(() => user.id),
-  modelId: varchar('modelId', { length: 200 }).notNull(),
-  prompt: text('prompt').notNull(),
-  images: json('images').notNull(),
-  generationIndex: integer('generationIndex').notNull().default(1),
-  parentImageId: varchar('parentImageId', { length: 200 }),
-  createdAt: timestamp('createdAt').notNull(),
-});
+export const generation = pgTable(
+  'Generation',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id),
+    modelId: varchar('modelId', { length: 200 }).notNull(),
+    prompt: text('prompt').notNull(),
+    images: json('images').notNull(),
+    generationIndex: integer('generationIndex').notNull().default(1),
+    parentGenerationId: uuid('parentGenerationId'),
+    parentOutputPathname: varchar('parentOutputPathname', { length: 200 }),
+    instruction: text('instruction'),
+    inputImages: json('inputImages'),
+    remixState: json('remixState'),
+    createdAt: timestamp('createdAt').notNull(),
+  },
+  (table) => {
+    return {
+      parentGenerationRef: foreignKey({
+        columns: [table.parentGenerationId],
+        foreignColumns: [table.id],
+      }).onDelete('set null'),
+      parentGenerationIdx: index('Generation_parentGenerationId_idx').on(
+        table.parentGenerationId,
+      ),
+    };
+  },
+);
 
 export type Generation = InferSelectModel<typeof generation>;
+
+/** Role an image plays in a remix. The baseline is the image being edited. */
+export type RemixInputImage = {
+  pathname: string;
+  mediaType: string;
+  role: 'baseline' | 'style' | 'object' | 'identity' | 'layout';
+};
+
+/**
+ * Compact creative state maintained across a remix chain. `locked` holds
+ * explicit user constraints ("keep the room layout exactly the same");
+ * `preserve` is softer continuity guidance ("unrelated visible elements stay
+ * stable unless the change requires them to move").
+ */
+export type RemixState = {
+  originalIntent: string;
+  locked: string[];
+  preserve: string[];
+  established: string[];
+  removed: string[];
+};
 
 export type Stream = InferSelectModel<typeof stream>;

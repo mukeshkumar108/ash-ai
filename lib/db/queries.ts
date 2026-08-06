@@ -1,16 +1,7 @@
 import 'server-only';
 import { AsyncLocalStorage } from 'node:async_hooks';
 
-import {
-  and,
-  asc,
-  count,
-  desc,
-  eq,
-  gt,
-  gte,
-  inArray,
-} from 'drizzle-orm';
+import { and, asc, count, desc, eq, gt, gte, inArray } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres, { type Sql } from 'postgres';
 
@@ -27,6 +18,8 @@ import {
   type Chat,
   stream,
   generation,
+  type RemixInputImage,
+  type RemixState,
 } from './schema';
 import type { ArtifactKind } from '@/components/artifact';
 import { generateUUID } from '../utils';
@@ -102,7 +95,11 @@ function instrumentReadResult<T>(helperName: string, result: T): T {
   }
 
   const routeName = queryContextStorage.getStore()?.routeName ?? 'unknown';
-  const rowCount = Array.isArray(result) ? result.length : result == null ? 0 : 1;
+  const rowCount = Array.isArray(result)
+    ? result.length
+    : result == null
+      ? 0
+      : 1;
   const approxBytes = approximateJsonBytes(result);
 
   console.log(
@@ -298,7 +295,9 @@ async function getMessageCursorById(id: string) {
 
 export async function getUser(email: string): Promise<Array<User>> {
   try {
-    const users = await getClient()<Array<Pick<CompatibleUserRow, 'id' | 'email' | 'password'>>>`
+    const users = await getClient()<
+      Array<Pick<CompatibleUserRow, 'id' | 'email' | 'password'>>
+    >`
       select
         u.id,
         u.email,
@@ -437,10 +436,7 @@ export async function updateChatModelById({
   chatModel: string;
 }) {
   try {
-    return await db
-      .update(chat)
-      .set({ chatModel })
-      .where(eq(chat.id, id));
+    return await db.update(chat).set({ chatModel }).where(eq(chat.id, id));
   } catch (error) {
     logDatabaseError('update chat model', error);
     throw new ChatSDKError(
@@ -748,7 +744,8 @@ export async function saveChatState({
     }
 
     // Only write one format to the continuityEvents column — never both
-    const hasV2Data = continuityItems !== undefined || personModels !== undefined;
+    const hasV2Data =
+      continuityItems !== undefined || personModels !== undefined;
 
     if (continuityEvents !== undefined && !hasV2Data) {
       updateValues.continuityEvents = continuityEvents;
@@ -756,9 +753,12 @@ export async function saveChatState({
 
     // Store ontology items and person models in a versioned wrapper within continuityEvents column
     if (hasV2Data) {
-      const existing = updateValues.continuityEvents && typeof updateValues.continuityEvents === 'object' && !Array.isArray(updateValues.continuityEvents)
-        ? updateValues.continuityEvents as any
-        : { _v: '2', items: [], relationship: {} };
+      const existing =
+        updateValues.continuityEvents &&
+        typeof updateValues.continuityEvents === 'object' &&
+        !Array.isArray(updateValues.continuityEvents)
+          ? (updateValues.continuityEvents as any)
+          : { _v: '2', items: [], relationship: {} };
       updateValues.continuityEvents = {
         ...existing,
         _v: '2',
@@ -770,7 +770,10 @@ export async function saveChatState({
       };
     }
 
-    if (expectedContinuitySeq !== undefined && nextContinuitySeq !== undefined) {
+    if (
+      expectedContinuitySeq !== undefined &&
+      nextContinuitySeq !== undefined
+    ) {
       updateValues.continuitySeq = nextContinuitySeq;
     }
 
@@ -803,19 +806,23 @@ export async function saveChatState({
         expectedContinuitySeq !== undefined &&
         String((casError as Error)?.message ?? '').includes('continuity_seq')
       ) {
-        logDatabaseError('save chat state (CAS unavailable — migration 0014 not applied?)', casError);
+        logDatabaseError(
+          'save chat state (CAS unavailable — migration 0014 not applied?)',
+          casError,
+        );
         delete updateValues.continuitySeq;
         await db.update(chat).set(updateValues).where(eq(chat.id, chatId));
-        return { saved: true, stale: false, reason: 'cas_unavailable_fallback' };
+        return {
+          saved: true,
+          stale: false,
+          reason: 'cas_unavailable_fallback',
+        };
       }
       throw casError;
     }
   } catch (error) {
     logDatabaseError('save chat state', error);
-    throw new ChatSDKError(
-      'bad_request:database',
-      'Failed to save chat state',
-    );
+    throw new ChatSDKError('bad_request:database', 'Failed to save chat state');
   }
 }
 
@@ -1182,16 +1189,10 @@ export async function updateMessageParts({
   parts: any;
 }) {
   try {
-    return await db
-      .update(message)
-      .set({ parts })
-      .where(eq(message.id, id));
+    return await db.update(message).set({ parts }).where(eq(message.id, id));
   } catch (error) {
     logDatabaseError('update message parts', error);
-    throw new ChatSDKError(
-      'bad_request:database',
-      'Failed to update message',
-    );
+    throw new ChatSDKError('bad_request:database', 'Failed to update message');
   }
 }
 
@@ -1329,14 +1330,22 @@ export async function saveGeneration({
   prompt,
   images,
   generationIndex = 1,
-  parentImageId = null,
+  parentOutputPathname = null,
+  parentGenerationId = null,
+  instruction = null,
+  inputImages = null,
+  remixState = null,
 }: {
   userId: string;
   modelId: string;
   prompt: string;
   images: Array<{ url: string; pathname: string; mediaType: string }>;
   generationIndex?: number;
-  parentImageId?: string | null;
+  parentOutputPathname?: string | null;
+  parentGenerationId?: string | null;
+  instruction?: string | null;
+  inputImages?: RemixInputImage[] | null;
+  remixState?: RemixState | null;
 }) {
   try {
     return await db
@@ -1347,16 +1356,17 @@ export async function saveGeneration({
         prompt,
         images,
         generationIndex,
-        parentImageId,
+        parentOutputPathname,
+        parentGenerationId,
+        instruction,
+        inputImages,
+        remixState,
         createdAt: new Date(),
       })
       .returning({ id: generation.id });
   } catch (error) {
     logDatabaseError('save generation', error);
-    throw new ChatSDKError(
-      'bad_request:database',
-      'Failed to save generation',
-    );
+    throw new ChatSDKError('bad_request:database', 'Failed to save generation');
   }
 }
 
@@ -1369,10 +1379,27 @@ export async function getGenerationsByUserId(userId: string) {
       .orderBy(desc(generation.createdAt));
   } catch (error) {
     logDatabaseError('get generations by user id', error);
-    throw new ChatSDKError(
-      'bad_request:database',
-      'Failed to get generations',
-    );
+    throw new ChatSDKError('bad_request:database', 'Failed to get generations');
+  }
+}
+
+export async function getGenerationById({
+  id,
+  userId,
+}: {
+  id: string;
+  userId: string;
+}) {
+  try {
+    const rows = await db
+      .select()
+      .from(generation)
+      .where(and(eq(generation.id, id), eq(generation.userId, userId)))
+      .limit(1);
+    return rows[0] ?? null;
+  } catch (error) {
+    logDatabaseError('get generation by id', error);
+    throw new ChatSDKError('bad_request:database', 'Failed to get generation');
   }
 }
 
