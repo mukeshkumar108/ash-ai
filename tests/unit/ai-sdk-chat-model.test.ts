@@ -137,6 +137,7 @@ test('adapter preserves multiple generated tool calls and rejects malformed inpu
   );
 
   const response = (await valid.invoke([new HumanMessage('go')])) as AIMessage;
+  expect(response.additional_kwargs.finish_reason).toBe('tool-calls');
   expect(response.tool_calls).toEqual([
     { id: 'call-1', name: 'first_tool', args: { value: 1 } },
     { id: 'call-2', name: 'second_tool', args: { value: 2 } },

@@ -131,7 +131,11 @@ test('the model-visible Google tool surface is read-only until approvals exist',
   const tools = buildAshModelTools('user-42');
   const names = tools.map((t) => (t as { name?: string }).name ?? '');
 
-  expect(names).toEqual([
+  expect(
+    names.filter(
+      (name) => name.startsWith('gmail_') || name.startsWith('calendar_'),
+    ),
+  ).toEqual([
     'gmail_list_messages',
     'gmail_read_thread',
     'calendar_list_events',

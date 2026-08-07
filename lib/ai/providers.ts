@@ -16,6 +16,12 @@ const openrouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY,
 });
 
+export const PINNED_OPENAI_PROVIDER_ROUTING = {
+  only: ['openai'],
+  allow_fallbacks: true,
+  require_parameters: true,
+} as const;
+
 // Venice API — OpenAI-compatible, Chat Completions endpoint
 // Wraps fetch to:
 // 1. Inject venice_parameters to suppress Venice's default system prompts
@@ -36,7 +42,10 @@ const venice = process.env.VENICE_API_KEY
         }
         const response = await fetch(url, init);
         if (!response.ok || !response.body) return response;
-        if (!response.headers.get('content-type')?.includes('text/event-stream')) return response;
+        if (
+          !response.headers.get('content-type')?.includes('text/event-stream')
+        )
+          return response;
         const body = response.clone().body;
         if (!body) return response;
         const decoder = new TextDecoder();
@@ -45,7 +54,10 @@ const venice = process.env.VENICE_API_KEY
           transform(chunk, controller) {
             const text = decoder.decode(chunk, { stream: true });
             if (!firstDeltaPatched && text.includes('"delta":{')) {
-              const patched = text.replace(/"delta":\{/g, '"delta":{"role":"assistant",');
+              const patched = text.replace(
+                /"delta":\{/g,
+                '"delta":{"role":"assistant",',
+              );
               firstDeltaPatched = true;
               controller.enqueue(new TextEncoder().encode(patched));
             } else {
@@ -105,10 +117,10 @@ export const myProvider = isTestEnvironment
           : (openrouter('thedrummer/cydonia-24b-v4.1') as any),
         'chat-model-reasoning': nanoGPT
           ? (nanoGPT('deepseek/deepseek-v4-flash') as any)
-          : wrapLanguageModel({
+          : (wrapLanguageModel({
               model: openrouter('meta-llama/llama-4-maverick') as any,
               middleware: extractReasoningMiddleware({ tagName: 'think' }),
-            }) as any,
+            }) as any),
         // Scene directive models — NanoGPT first, then OpenRouter
         'scene-model': nanoGPT
           ? (nanoGPT('Qwen3.5-27B-earica-Derestricted') as any)
@@ -131,11 +143,18 @@ export const myProvider = isTestEnvironment
     });
 
 const INTERNAL_ALIASES = new Set([
-  'chat-model', 'chat-model-fallback', 'chat-model-reasoning',
-  'title-model', 'artifact-model',
-  'summarizer-model', 'summarizer-model-fallback',
-  'scene-model', 'scene-model-fallback',
-  'state-judge-model', 'active-state-model', 'continuity-model',
+  'chat-model',
+  'chat-model-fallback',
+  'chat-model-reasoning',
+  'title-model',
+  'artifact-model',
+  'summarizer-model',
+  'summarizer-model-fallback',
+  'scene-model',
+  'scene-model-fallback',
+  'state-judge-model',
+  'active-state-model',
+  'continuity-model',
   'small-model',
 ]);
 
@@ -165,4 +184,15 @@ export function getLanguageModel(modelId: string) {
     return openrouter(modelId) as any;
   }
   return myProvider.languageModel(modelId as any);
+}
+
+export function getPinnedOpenAIModel(modelId: string) {
+  if (isTestEnvironment) return chatModel;
+  return openrouter(modelId, {
+    extraBody: {
+      provider: {
+        ...PINNED_OPENAI_PROVIDER_ROUTING,
+      },
+    },
+  }) as any;
 }

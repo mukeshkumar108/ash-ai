@@ -19,6 +19,9 @@
     "db:check": "drizzle-kit check",
     "db:up": "drizzle-kit up",
     "eval:character-models": "pnpm exec tsx scripts/character-model-eval.ts",
+    "eval:sophie-behavior": "pnpm exec tsx scripts/sophie-behavior-eval.ts",
+    "eval:sophie-product": "pnpm exec tsx scripts/sophie-product-eval.ts",
+    "eval:sophie-routing": "pnpm exec tsx scripts/sophie-routing-eval.ts",
     "eval:continuity": "pnpm exec tsx scripts/continuity-benchmark.ts",
     "test": "export PLAYWRIGHT=True && pnpm exec playwright test"
   },

@@ -12,6 +12,12 @@ test('tool schemas convert to AI SDK JSON schema', () => {
     'gmail_read_thread',
     'calendar_list_events',
     'calendar_get_event',
+    'web_search',
+    'news_search',
+    'video_search',
+    'image_search',
+    'place_search',
+    'fetch_web_page',
   ]);
 
   for (const t of tools) {

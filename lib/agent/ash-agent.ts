@@ -6,8 +6,14 @@ import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
 import { z } from 'zod';
 
 import { AISDKChatModel } from '@/lib/agent/ai-sdk-chat-model';
+import {
+  buildBraveResearchTools,
+  createResearchSession,
+  type ResearchSession,
+} from '@/lib/agent/brave-search';
 import { buildAshAgentSystemPrompt } from '@/lib/agent/system-prompt';
-import { getLanguageModel } from '@/lib/ai/providers';
+import { buildTinyFishFetchTool } from '@/lib/agent/tinyfish-fetch';
+import { getLanguageModel, getPinnedOpenAIModel } from '@/lib/ai/providers';
 import {
   describeIntegrationFailure,
   describeWriteError,
@@ -48,6 +54,21 @@ import { generateUUID } from '@/lib/utils';
 const CHAT_MAX_OUTPUT_TOKENS = Number(
   process.env.CHAT_MAX_OUTPUT_TOKENS ?? 1200,
 );
+const RESEARCH_CHAT_MAX_OUTPUT_TOKENS = Number(
+  process.env.RESEARCH_CHAT_MAX_OUTPUT_TOKENS ?? 3200,
+);
+
+export function outputTokenBudget(researchDepth?: 'none' | 'light' | 'deep') {
+  return researchDepth && researchDepth !== 'none'
+    ? RESEARCH_CHAT_MAX_OUTPUT_TOKENS
+    : CHAT_MAX_OUTPUT_TOKENS;
+}
+
+function isPinnedOpenAIResearchModel(modelId: string): boolean {
+  return (
+    modelId === 'openai/gpt-5.6-luna-pro' || modelId === 'openai/gpt-5.6-luna'
+  );
+}
 
 // Chat does not yet have a durable approve-and-resume protocol. Keep the
 // deterministic write implementations available to the settings UI, but do
@@ -133,7 +154,15 @@ function compactEvent(event: CalendarEvent) {
   };
 }
 
-export function buildAshAgentTools(userId: string) {
+export function buildAshAgentTools(
+  userId: string,
+  temporalContext: {
+    now?: Date;
+    timeZone?: string;
+  } = {},
+) {
+  const now = temporalContext.now ?? new Date();
+  const timeZone = temporalContext.timeZone ?? 'Europe/London';
   const tools = [
     tool(
       async ({ limit, query }: { limit?: number; query?: string }) => {
@@ -317,7 +346,23 @@ export function buildAshAgentTools(userId: string) {
       async ({ days }: { days?: number }) => {
         try {
           const result = await getUpcomingCalendarEvents(userId, { days });
-          return { events: result.events };
+          const effectiveDays = days ?? 7;
+          return {
+            currentLocalDate: new Intl.DateTimeFormat('en-CA', {
+              timeZone,
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+            }).format(now),
+            timeZone,
+            queryRange: {
+              startsAt: now.toISOString(),
+              endsAt: new Date(
+                now.getTime() + effectiveDays * 24 * 60 * 60 * 1_000,
+              ).toISOString(),
+            },
+            events: result.events,
+          };
         } catch (error) {
           return { error: safeToolError(error) };
         }
@@ -466,33 +511,85 @@ export function buildAshAgentTools(userId: string) {
   return tools;
 }
 
-export function buildAshModelTools(userId: string) {
-  return buildAshAgentTools(userId).filter(
-    (candidate) => !MODEL_BLOCKED_WRITE_TOOLS.has(candidate.name),
-  );
+export function buildAshModelTools(
+  userId: string,
+  temporalContext: { now?: Date; timeZone?: string } = {},
+  researchSession: ResearchSession = createResearchSession(),
+) {
+  const canonicalUrl = (url: URL | string) => {
+    const parsed = new URL(url);
+    parsed.hash = '';
+    return parsed.toString();
+  };
+
+  return [
+    ...buildAshAgentTools(userId, temporalContext).filter(
+      (candidate) => !MODEL_BLOCKED_WRITE_TOOLS.has(candidate.name),
+    ),
+    ...buildBraveResearchTools({
+      session: researchSession,
+      onDiscoveredUrl: (url) =>
+        researchSession.discoveredUrls.add(canonicalUrl(url)),
+    }),
+    buildTinyFishFetchTool({
+      isUrlAllowed: (url) =>
+        researchSession.discoveredUrls.has(canonicalUrl(url)),
+    }),
+  ];
 }
 
 export function createAshAgent({
   userId,
   modelId,
   model,
+  now = new Date(),
+  timeZone = process.env.ASH_TIME_ZONE?.trim() || 'Europe/London',
+  researchRequirement,
+  researchSession,
 }: {
   userId: string;
   modelId: string;
   model?: BaseChatModel;
+  now?: Date;
+  timeZone?: string;
+  researchRequirement?: {
+    reason: string;
+    retry: boolean;
+    researchDepth?: 'none' | 'light' | 'deep';
+    freshnessNeed?: 'none' | 'preferred' | 'required';
+    authorityNeed?: 'none' | 'preferred' | 'required';
+    sourceSensitivity?: 'low' | 'medium' | 'high';
+    neutralResearchQuestion?: string | null;
+    userDeclinedResearch?: boolean;
+    missing?: string[];
+  };
+  researchSession?: ResearchSession;
 }) {
   assertPrivateTracingPolicy();
 
   const chatModel =
     model ??
-    new AISDKChatModel(getLanguageModel(modelId) as never, {
-      temperature: 0.85,
-      maxOutputTokens: CHAT_MAX_OUTPUT_TOKENS,
-    });
+    new AISDKChatModel(
+      (isPinnedOpenAIResearchModel(modelId)
+        ? getPinnedOpenAIModel(modelId)
+        : getLanguageModel(modelId)) as never,
+      {
+        ...(isPinnedOpenAIResearchModel(modelId) ? {} : { temperature: 0.85 }),
+        maxOutputTokens: outputTokenBudget(researchRequirement?.researchDepth),
+      },
+    );
 
   return createDeepAgent({
     model: chatModel as BaseChatModel,
-    systemPrompt: buildAshAgentSystemPrompt(),
-    tools: buildAshModelTools(userId),
+    systemPrompt: buildAshAgentSystemPrompt({
+      now,
+      timeZone,
+      researchRequirement,
+    }),
+    tools: buildAshModelTools(
+      userId,
+      { now, timeZone },
+      researchSession ?? createResearchSession(),
+    ),
   });
 }

@@ -11,6 +11,7 @@ import { StateBackend } from 'deepagents';
 import {
   assertPrivateTracingPolicy,
   createAshAgent,
+  outputTokenBudget,
 } from '@/lib/agent/ash-agent';
 
 const TEST_BASE_URL = 'http://workspace-connect.test';
@@ -161,6 +162,12 @@ test('private external tracing requires a separate explicit opt-in', () => {
   expect(() => assertPrivateTracingPolicy()).not.toThrow();
 });
 
+test('researched answers receive a larger but bounded output budget', () => {
+  expect(outputTokenBudget('none')).toBe(1200);
+  expect(outputTokenBudget('light')).toBe(3200);
+  expect(outputTokenBudget('deep')).toBe(3200);
+});
+
 test('default DeepAgents filesystem is isolated state, not the host filesystem', () => {
   const first = new StateBackend({ state: { files: {} } } as never);
   const second = new StateBackend({ state: { files: {} } } as never);
@@ -225,6 +232,12 @@ test('agent invokes gmail_list_messages for an unread-email request and answers'
       'gmail_read_thread',
       'calendar_list_events',
       'calendar_get_event',
+      'web_search',
+      'news_search',
+      'video_search',
+      'image_search',
+      'place_search',
+      'fetch_web_page',
       'ls',
       'read_file',
       'write_file',

@@ -19,6 +19,7 @@ import {
 import { AnimatedText } from './animated-text';
 import { MessageContent } from './message-content';
 import { MessageActions } from './message-actions';
+import { ResearchTraceView } from './research-trace';
 
 const PurePreviewMessage = ({
   chatId,
@@ -104,10 +105,17 @@ const PurePreviewMessage = ({
                 return null;
               }
 
+              if (type === 'data-research') {
+                return <ResearchTraceView key={key} trace={part.data} />;
+              }
+
               if (type === 'text') {
                 if (mode === 'view') {
                   return (
-                    <div key={key} className="flex flex-row gap-2 items-start text-message-part">
+                    <div
+                      key={key}
+                      className="flex flex-row gap-2 items-start text-message-part"
+                    >
                       {message.role === 'user' && !isReadonly && (
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -232,10 +240,7 @@ export const ThinkingMessage = () => {
     return () => clearInterval(stageInterval);
   }, []);
 
-  const currentMessage = getThinkingMessage(
-    currentStage,
-    messageIndex,
-  );
+  const currentMessage = getThinkingMessage(currentStage, messageIndex);
 
   return (
     <motion.div
