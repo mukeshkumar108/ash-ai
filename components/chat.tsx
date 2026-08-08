@@ -25,6 +25,7 @@ import { ChatSDKError } from '@/lib/errors';
 import type { Attachment, ChatMessage } from '@/lib/types';
 import { saveChatModel } from '@/app/(chat)/actions';
 import type { UserType } from '@/app/(auth)/auth';
+import { voiceTranscriptParts } from '@/lib/voice-message';
 
 const MESSAGE_PAGE_SIZE = 40;
 
@@ -59,10 +60,15 @@ export function Chat({
 
   const [input, setInput] = useState<string>('');
   const [chatModel, setChatModel] = useState<string>(initialChatModel);
-  const [hasOlderMessages, setHasOlderMessages] =
-    useState(initialHasOlderMessages);
+  const [hasOlderMessages, setHasOlderMessages] = useState(
+    initialHasOlderMessages,
+  );
   const [isLoadingOlderMessages, setIsLoadingOlderMessages] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
+  const voiceTurnPendingRef = useRef(false);
+  const [voiceReplyIds, setVoiceReplyIds] = useState<Set<string>>(
+    () => new Set(),
+  );
 
   const {
     messages,
@@ -92,8 +98,12 @@ export function Chat({
         };
       },
     }),
-    onFinish: () => {
+    onFinish: ({ message }) => {
       setChatError(null);
+      if (voiceTurnPendingRef.current) {
+        voiceTurnPendingRef.current = false;
+        setVoiceReplyIds((current) => new Set(current).add(message.id));
+      }
       mutate(unstable_serialize(getChatHistoryPaginationKey));
       setTimeout(() => {
         void reconcileChatFromServer();
@@ -137,9 +147,12 @@ export function Chat({
     reconcileInFlightRef.current = true;
 
     try {
-      const response = await fetch(`/api/chat/${id}/messages?limit=${MESSAGE_PAGE_SIZE}`, {
-        cache: 'no-store',
-      });
+      const response = await fetch(
+        `/api/chat/${id}/messages?limit=${MESSAGE_PAGE_SIZE}`,
+        {
+          cache: 'no-store',
+        },
+      );
 
       if (!response.ok) {
         return;
@@ -199,8 +212,7 @@ export function Chat({
         .trim() ?? '';
 
     const likelyMissingAssistantReply =
-      messages.length > 0 &&
-      lastMessage?.role === 'user';
+      messages.length > 0 && lastMessage?.role === 'user';
 
     const likelyTruncatedAssistantReply =
       lastMessage?.role === 'assistant' && lastVisibleText.length < 12;
@@ -286,10 +298,13 @@ export function Chat({
     }
   }, [hasOlderMessages, id, isLoadingOlderMessages, messages, setMessages]);
 
-  const handleModelChange = useCallback((newModelId: string) => {
-    setChatModel(newModelId);
-    void saveChatModel({ id, model: newModelId });
-  }, [id]);
+  const handleModelChange = useCallback(
+    (newModelId: string) => {
+      setChatModel(newModelId);
+      void saveChatModel({ id, model: newModelId });
+    },
+    [id],
+  );
 
   return (
     <>
@@ -314,6 +329,7 @@ export function Chat({
           hasOlderMessages={hasOlderMessages}
           isLoadingOlderMessages={isLoadingOlderMessages}
           onLoadOlderMessages={loadOlderMessages}
+          voiceReplyIds={voiceReplyIds}
         />
 
         {chatError ? (
@@ -349,6 +365,13 @@ export function Chat({
               setMessages={setMessages}
               sendMessage={sendMessage}
               selectedVisibilityType={visibilityType}
+              onVoiceTranscript={(transcript) => {
+                voiceTurnPendingRef.current = true;
+                sendMessage({
+                  role: 'user',
+                  parts: voiceTranscriptParts(transcript),
+                });
+              }}
             />
           )}
         </form>

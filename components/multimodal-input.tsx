@@ -34,6 +34,7 @@ import { ArrowDown, FileText, X } from 'lucide-react';
 import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom';
 import type { VisibilityType } from './visibility-selector';
 import type { Attachment, ChatMessage } from '@/lib/types';
+import { VoiceRecorder } from './voice-recorder';
 
 function PureMultimodalInput({
   chatId,
@@ -48,6 +49,7 @@ function PureMultimodalInput({
   sendMessage,
   className,
   selectedVisibilityType,
+  onVoiceTranscript,
 }: {
   chatId: string;
   input: string;
@@ -61,6 +63,7 @@ function PureMultimodalInput({
   sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
   className?: string;
   selectedVisibilityType: VisibilityType;
+  onVoiceTranscript?: (transcript: string) => void;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
@@ -132,7 +135,9 @@ function PureMultimodalInput({
   const TEXT_ATTACH_THRESHOLD = 2000;
 
   const [pending, setPending] = useState<Array<PendingAttachment>>([]);
-  const [textAttachments, setTextAttachments] = useState<Array<TextAttachment>>([]);
+  const [textAttachments, setTextAttachments] = useState<Array<TextAttachment>>(
+    [],
+  );
   const abortRefs = useRef(new Map<string, AbortController>());
   const cancelledRef = useRef(new Set<string>());
 
@@ -157,15 +162,15 @@ function PureMultimodalInput({
         ...current,
         { id, name, content: trimmed },
       ]);
-      toast(`Pasted text attached as ${name} (${trimmed.length.toLocaleString()} chars)`);
+      toast(
+        `Pasted text attached as ${name} (${trimmed.length.toLocaleString()} chars)`,
+      );
     },
     [],
   );
 
   const removeTextAttachment = useCallback((id: string) => {
-    setTextAttachments((current) =>
-      current.filter((item) => item.id !== id),
-    );
+    setTextAttachments((current) => current.filter((item) => item.id !== id));
   }, []);
 
   const createId = () =>
@@ -417,7 +422,9 @@ function PureMultimodalInput({
         tabIndex={-1}
       />
 
-      {(attachments.length > 0 || pending.length > 0 || textAttachments.length > 0) && (
+      {(attachments.length > 0 ||
+        pending.length > 0 ||
+        textAttachments.length > 0) && (
         <div
           data-testid="attachments-preview"
           className="flex flex-row gap-2 overflow-x-scroll items-end"
@@ -429,9 +436,14 @@ function PureMultimodalInput({
               className="flex flex-col gap-1"
             >
               <div className="flex flex-row items-center gap-2 rounded-md border border-border/70 bg-muted/50 px-3 py-2 max-w-56">
-                <FileText size={14} className="shrink-0 text-muted-foreground" />
+                <FileText
+                  size={14}
+                  className="shrink-0 text-muted-foreground"
+                />
                 <div className="flex flex-col min-w-0">
-                  <span className="text-xs font-medium truncate">{doc.name}</span>
+                  <span className="text-xs font-medium truncate">
+                    {doc.name}
+                  </span>
                   <span className="text-[10px] text-muted-foreground">
                     {formatBytes(new Blob([doc.content]).size)}
                   </span>
@@ -454,10 +466,14 @@ function PureMultimodalInput({
               key={attachment.url}
               attachment={attachment}
               onRemove={
-                attachment.id ? () => removeAttachment(attachment.id as string) : undefined
+                attachment.id
+                  ? () => removeAttachment(attachment.id as string)
+                  : undefined
               }
               onReplace={
-                attachment.id ? () => replaceAttachment(attachment.id as string) : undefined
+                attachment.id
+                  ? () => replaceAttachment(attachment.id as string)
+                  : undefined
               }
             />
           ))}
@@ -465,7 +481,11 @@ function PureMultimodalInput({
           {pending.map((item) => (
             <PreviewAttachment
               key={item.id}
-              pending={{ name: item.name, state: item.state, error: item.error }}
+              pending={{
+                name: item.name,
+                state: item.state,
+                error: item.error,
+              }}
               onRemove={() => removeAttachment(item.id)}
             />
           ))}
@@ -502,8 +522,14 @@ function PureMultimodalInput({
         }}
       />
 
-      <div className="absolute bottom-0 p-2 w-fit flex flex-row justify-start">
+      <div className="absolute bottom-0 p-2 w-fit flex flex-row items-center justify-start gap-1">
         <AttachmentsButton fileInputRef={fileInputRef} status={status} />
+        {onVoiceTranscript ? (
+          <VoiceRecorder
+            disabled={status !== 'ready'}
+            onTranscript={onVoiceTranscript}
+          />
+        ) : null}
       </div>
 
       <div className="absolute bottom-0 right-0 p-2 w-fit flex flex-row justify-end gap-2">
@@ -529,6 +555,8 @@ export const MultimodalInput = memo(
     if (prevProps.status !== nextProps.status) return false;
     if (!equal(prevProps.attachments, nextProps.attachments)) return false;
     if (prevProps.selectedVisibilityType !== nextProps.selectedVisibilityType)
+      return false;
+    if (prevProps.onVoiceTranscript !== nextProps.onVoiceTranscript)
       return false;
 
     return true;

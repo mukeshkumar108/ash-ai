@@ -20,6 +20,7 @@ interface MessagesProps {
   hasOlderMessages: boolean;
   isLoadingOlderMessages: boolean;
   onLoadOlderMessages: () => void;
+  voiceReplyIds: Set<string>;
 }
 
 function PureMessages({
@@ -33,6 +34,7 @@ function PureMessages({
   hasOlderMessages,
   isLoadingOlderMessages,
   onLoadOlderMessages,
+  voiceReplyIds,
 }: MessagesProps) {
   const {
     containerRef: messagesContainerRef,
@@ -46,7 +48,8 @@ function PureMessages({
   });
 
   const renderMessage = (message: ChatMessage, index: number) => {
-    const isThreadLastMessage = message.id === messages[messages.length - 1]?.id;
+    const isThreadLastMessage =
+      message.id === messages[messages.length - 1]?.id;
 
     return (
       <PreviewMessage
@@ -65,6 +68,7 @@ function PureMessages({
         requiresScrollPadding={
           hasSentMessage && isThreadLastMessage && index === messages.length - 1
         }
+        autoGenerateVoice={voiceReplyIds.has(message.id)}
       />
     );
   };
@@ -84,7 +88,9 @@ function PureMessages({
               onClick={onLoadOlderMessages}
               disabled={isLoadingOlderMessages}
             >
-              {isLoadingOlderMessages ? 'Loading older messages...' : 'Load older messages'}
+              {isLoadingOlderMessages
+                ? 'Loading older messages...'
+                : 'Load older messages'}
             </Button>
           </div>
         </div>
@@ -96,9 +102,7 @@ function PureMessages({
 
       {status === 'submitted' &&
         messages.length > 0 &&
-        messages[messages.length - 1].role === 'user' && (
-          <ThinkingMessage />
-        )}
+        messages[messages.length - 1].role === 'user' && <ThinkingMessage />}
 
       <motion.div
         ref={messagesEndRef}
@@ -120,6 +124,7 @@ export const Messages = memo(PureMessages, (prevProps, nextProps) => {
   if (prevProps.hasOlderMessages !== nextProps.hasOlderMessages) return false;
   if (prevProps.isLoadingOlderMessages !== nextProps.isLoadingOlderMessages)
     return false;
+  if (prevProps.voiceReplyIds !== nextProps.voiceReplyIds) return false;
 
   return true;
 });

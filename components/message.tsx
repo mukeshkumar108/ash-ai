@@ -20,6 +20,7 @@ import { AnimatedText } from './animated-text';
 import { MessageContent } from './message-content';
 import { MessageActions } from './message-actions';
 import { ResearchTraceView } from './research-trace';
+import { VoiceReply } from './voice-reply';
 
 const PurePreviewMessage = ({
   chatId,
@@ -30,6 +31,7 @@ const PurePreviewMessage = ({
   regenerate,
   isReadonly,
   requiresScrollPadding,
+  autoGenerateVoice,
 }: {
   chatId: string;
   message: ChatMessage;
@@ -39,6 +41,7 @@ const PurePreviewMessage = ({
   regenerate: UseChatHelpers<ChatMessage>['regenerate'];
   isReadonly: boolean;
   requiresScrollPadding: boolean;
+  autoGenerateVoice?: boolean;
 }) => {
   const [mode, setMode] = useState<'view' | 'edit'>('view');
 
@@ -160,6 +163,13 @@ const PurePreviewMessage = ({
                           role={message.role as 'user' | 'assistant'}
                         />
                         {message.role === 'assistant' && (
+                          <VoiceReply
+                            chatId={chatId}
+                            messageId={message.id}
+                            autoGenerate={Boolean(autoGenerateVoice)}
+                          />
+                        )}
+                        {message.role === 'assistant' && (
                           <div className="pl-1">
                             <MessageActions
                               message={message}
@@ -216,6 +226,8 @@ export const PreviewMessage = memo(
     if (!equal(prevProps.vote, nextProps.vote)) return false;
     if (prevProps.message.role !== nextProps.message.role) return false;
     if (prevProps.isReadonly !== nextProps.isReadonly) return false;
+    if (prevProps.autoGenerateVoice !== nextProps.autoGenerateVoice)
+      return false;
 
     return true;
   },
