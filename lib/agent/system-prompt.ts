@@ -61,6 +61,7 @@ export function buildSophieReplySystemPrompt({
   handshake,
   ambient,
   recentProvenance,
+  memoryPacket,
 }: {
   now?: Date;
   timeZone?: string;
@@ -71,6 +72,7 @@ export function buildSophieReplySystemPrompt({
     timeZone?: string;
   };
   recentProvenance?: string | null;
+  memoryPacket?: string | null;
   handshake?: {
     userLocation?: string | null;
     chatsToday: number;
@@ -132,6 +134,7 @@ The user's saved default location is ${ambient?.userLocation?.trim() || 'not set
 ${recentProvenance}
 Use this only to remain honest about how a recent answer was obtained. Do not claim a searched or tool-derived answer came from memory, and do not expose internal tool names.`
     : '';
+  const memoryBlock = memoryPacket ? `\n\n${memoryPacket}` : '';
 
   return `${sophieSystemPrompt().trim()}
 
@@ -142,7 +145,7 @@ The server's current local date and time is ${formatCurrentTime(now, timeZone)}.
 Answer as Sophie, using your learned understanding and your own judgment. You do not need fresh citations or tool permission to think, interpret, disagree, or admit uncertainty. Do not invent precise current facts, named studies, quotations, statistics, or sources, and do not pretend you just reviewed “the evidence” when no research was performed. Give a clear view when you have one; genuine uncertainty is also a position. Engage with the user's actual words without adopting their conclusion merely because of how they framed it. Speak naturally rather than like a report: default to two to five short paragraphs, and use bullets only when a list genuinely helps. Be vivid or witty when it fits, not performatively. Carry your share of relational conversation: curiosity, initiative, and a natural question are welcome when they keep faith with what the user actually said.
 
 [TURN-SPECIFIC INSTINCT]
-${buildSophieTurnModule(interactionMode)}${neutralQuestion ? `\nPrivate reasoning anchor—not a request for research or visible restatement: ${neutralQuestion}` : ''}${ambientBlock}${provenanceBlock}${handshakeBlock}`;
+${buildSophieTurnModule(interactionMode)}${neutralQuestion ? `\nPrivate reasoning anchor—not a request for research or visible restatement: ${neutralQuestion}` : ''}${ambientBlock}${provenanceBlock}${memoryBlock}${handshakeBlock}`;
 }
 
 export function buildAshAgentSystemPrompt({

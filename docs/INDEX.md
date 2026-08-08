@@ -17,6 +17,7 @@ This project splits **process/rules** at the repo root and **system knowledge** 
 
 - **/docs/ARCHITECTURE.md** — High-level map: Next.js, chat route, artifacts, flows.
 - **/docs/MEMORY_SYSTEM.md** — Advanced memory system: structured extraction, pattern matching, recency weighting.
+- **/docs/HONCHO_WRITE_ONLY_INTEGRATION.md** — Targeted Honcho memory, identity mapping, observability, and local validation.
 - **/docs/MODEL_MAP.md** — Model wiring (chat, reasoning, artifact) + where used.
 - **/docs/FLOWS.md** — User journeys: chat → tools → handlers → DB.
 - **/docs/FEATURES.md** — Current features + short roadmap.

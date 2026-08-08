@@ -604,6 +604,7 @@ export function createAshAgent({
   researchRequirement,
   researchSession,
   capabilityMode = 'all',
+  memoryPacket,
 }: {
   userId: string;
   modelId: string;
@@ -624,6 +625,7 @@ export function createAshAgent({
   };
   researchSession?: ResearchSession;
   capabilityMode?: 'all' | 'read_tools' | 'research';
+  memoryPacket?: string | null;
 }) {
   assertPrivateTracingPolicy();
 
@@ -652,7 +654,7 @@ export function createAshAgent({
         : capabilityMode === 'read_tools'
           ? 'Only private read-only Gmail and Calendar tools are available for this turn. Public web research tools are unavailable.'
           : 'Private read-only tools and public research tools are available when relevant.'
-    }`,
+    }${memoryPacket ? `\n\n${memoryPacket}` : ''}`,
     tools: buildAshModelTools(
       userId,
       { now, timeZone },

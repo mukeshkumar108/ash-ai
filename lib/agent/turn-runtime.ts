@@ -29,6 +29,7 @@ export type TurnEvent = {
     timeZone: string;
   };
   recentProvenance?: string | null;
+  memoryPacket?: string | null;
   handshake?: {
     chatsToday: number;
     lastInteractionAt?: Date | null;
@@ -202,6 +203,7 @@ export function createTurnPacket({
       handshake: event.handshake,
       ambient: event.ambient,
       recentProvenance: event.recentProvenance,
+      memoryPacket: event.memoryPacket,
     }),
   };
 }

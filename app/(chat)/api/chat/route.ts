@@ -67,6 +67,8 @@ import { ChatSDKError } from '@/lib/errors';
 import type { ChatMessage, ResearchTrace } from '@/lib/types';
 import type { ChatModel } from '@/lib/ai/models';
 import type { VisibilityType } from '@/components/visibility-selector';
+import { mirrorCompletedTurn } from '@/lib/honcho';
+import { prepareTurnMemory, recordMemoryTrace } from '@/lib/agent/memory';
 
 export const maxDuration = 300;
 const CHAT_AGENT_TIMEOUT_MS = Number(
@@ -283,6 +285,7 @@ export async function POST(request: Request) {
       const contextWindowSize = Number(process.env.CONTEXT_WINDOW_SIZE ?? 40);
       let messagesToSend = uiMessages.slice(-Math.max(3, contextWindowSize));
 
+      const userCreatedAt = new Date();
       await db
         .insert(messageTable)
         .values({
@@ -291,7 +294,7 @@ export async function POST(request: Request) {
           role: 'user',
           parts: message.parts as any,
           attachments: [],
-          createdAt: new Date(),
+          createdAt: userCreatedAt,
         })
         .onConflictDoNothing();
 
@@ -299,15 +302,36 @@ export async function POST(request: Request) {
         .filter((part) => part.type === 'text')
         .map((part) => ('text' in part ? part.text : ''))
         .join('\n');
-      const epistemicPolicy = await assessEpistemicPolicy({
-        currentTurn: currentUserText,
-        recentContext: boundedEpistemicContext(uiMessages),
-        signal: AbortSignal.any([
-          request.signal,
-          AbortSignal.timeout(
-            Number(process.env.EPISTEMIC_POLICY_TIMEOUT_MS ?? 8_000),
-          ),
-        ]),
+      const recentConversation = boundedEpistemicContext(uiMessages);
+      const [epistemicPolicy, turnMemory] = await Promise.all([
+        assessEpistemicPolicy({
+          currentTurn: currentUserText,
+          recentContext: recentConversation,
+          signal: AbortSignal.any([
+            request.signal,
+            AbortSignal.timeout(
+              Number(process.env.EPISTEMIC_POLICY_TIMEOUT_MS ?? 8_000),
+            ),
+          ]),
+        }),
+        prepareTurnMemory({
+          userId: session.user.id,
+          chatId: id,
+          currentUserTurn: currentUserText,
+          recentConversation,
+          compilerSignal: AbortSignal.any([
+            request.signal,
+            AbortSignal.timeout(
+              Number(process.env.MEMORY_COMPILER_TIMEOUT_MS ?? 10_000),
+            ),
+          ]),
+        }),
+      ]);
+      recordMemoryTrace({
+        userId: session.user.id,
+        chatId: id,
+        userTurn: currentUserText,
+        ...turnMemory,
       });
       const hasImageParts = sanitizedMessage.parts.some(
         (part) => part.type === 'file',
@@ -323,6 +347,7 @@ export async function POST(request: Request) {
           timeZone,
         },
         recentProvenance: recentRetrievalProvenance(uiMessages),
+        memoryPacket: turnMemory.packet,
         handshake,
       };
       const turnDecision = decideTurn(turnEvent, epistemicPolicy);
@@ -330,7 +355,7 @@ export async function POST(request: Request) {
       const modelToUse = turnDecision.modelId;
 
       console.info(
-        `[chat] lane=${turnDecision.lane} role=${turnDecision.modelRole} interaction=${epistemicPolicy.interactionMode ?? 'unset'} classifier_ran=${epistemicPolicy.classifierRan} classifier_ok=${epistemicPolicy.classifierSucceeded} depth=${epistemicPolicy.researchDepth} freshness=${epistemicPolicy.freshnessNeed} authority=${epistemicPolicy.authorityNeed} sensitivity=${epistemicPolicy.sourceSensitivity} confidence=${epistemicPolicy.confidence.toFixed(2)} model=${modelToUse}`,
+        `[chat] lane=${turnDecision.lane} role=${turnDecision.modelRole} interaction=${epistemicPolicy.interactionMode ?? 'unset'} classifier_ran=${epistemicPolicy.classifierRan} classifier_ok=${epistemicPolicy.classifierSucceeded} depth=${epistemicPolicy.researchDepth} freshness=${epistemicPolicy.freshnessNeed} authority=${epistemicPolicy.authorityNeed} sensitivity=${epistemicPolicy.sourceSensitivity} confidence=${epistemicPolicy.confidence.toFixed(2)} memory=${turnMemory.decision.needsMemory ? turnMemory.retrievalMode : 'no'} memory_ms=${turnMemory.decisionLatencyMs + (turnMemory.retrievalLatencyMs ?? 0)} model=${modelToUse}`,
       );
 
       // Text-only models reject image parts anywhere in the context (including
@@ -423,6 +448,7 @@ export async function POST(request: Request) {
               },
               researchSession,
               capabilityMode: researchTurn ? 'research' : 'read_tools',
+              memoryPacket: turnMemory.packet,
             }).invoke({ messages: inputMessages }, { signal: agentSignal });
 
           const invokeWithFallback = async (
@@ -634,6 +660,7 @@ export async function POST(request: Request) {
       }
       researchTrace = markCitedSources(researchTrace, finalText);
 
+      const assistantCreatedAt = new Date();
       await saveMessages({
         messages: [
           {
@@ -645,12 +672,32 @@ export async function POST(request: Request) {
                 : []),
               { type: 'text', text: finalText },
             ],
-            createdAt: new Date(),
+            createdAt: assistantCreatedAt,
             attachments: [],
             chatId: id,
           },
         ],
       });
+
+      // Honcho is a derived, write-only memory mirror at this stage. Register
+      // the best-effort write only after both canonical messages are durable,
+      // and keep it entirely outside Sophie prompt assembly and generation.
+      after(() =>
+        mirrorCompletedTurn({
+          userId: session.user.id,
+          chatId: id,
+          userMessage: {
+            id: message.id,
+            text: currentUserText,
+            createdAt: userCreatedAt,
+          },
+          assistantMessage: {
+            id: assistantId,
+            text: finalText,
+            createdAt: assistantCreatedAt,
+          },
+        }),
+      );
 
       // Buffered delivery has nothing resumable until the graph has completed
       // and its final assistant message is durable. Creating the stream record
