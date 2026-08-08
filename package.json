@@ -21,8 +21,12 @@
     "eval:character-models": "pnpm exec tsx scripts/character-model-eval.ts",
     "eval:sophie-behavior": "pnpm exec tsx scripts/sophie-behavior-eval.ts",
     "eval:sophie-product": "pnpm exec tsx scripts/sophie-product-eval.ts",
+    "eval:sophie-conversation": "pnpm exec tsx scripts/sophie-conversation-eval.ts",
+    "eval:sophie-relational": "pnpm exec tsx scripts/sophie-relational-eval.ts",
     "eval:sophie-routing": "pnpm exec tsx scripts/sophie-routing-eval.ts",
     "eval:continuity": "pnpm exec tsx scripts/continuity-benchmark.ts",
+    "smoke:weather": "pnpm exec tsx scripts/weather-smoke.ts",
+    "smoke:weather-agent": "pnpm exec tsx scripts/weather-agent-smoke.ts",
     "test": "export PLAYWRIGHT=True && pnpm exec playwright test"
   },
   "dependencies": {
@@ -102,7 +106,6 @@
     "redis": "^5.0.0",
     "resumable-stream": "^2.0.0",
     "server-only": "^0.0.1",
-    "shiki": "^4.1.0",
     "sonner": "^1.5.0",
     "streamdown": "^2.5.0",
     "swr": "^2.2.5",

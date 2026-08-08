@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 
 import {
   assessEpistemicPolicy,
+  celebrationModelId,
   evidenceGapsForRetry,
   evidenceState,
   hasInlineCitation,
@@ -131,17 +132,23 @@ test('framed conversational judgments use a dedicated model without research', (
 
   expect(shouldUseResearchModel(judgment)).toBe(false);
   expect(shouldUseJudgmentModel(judgment)).toBe(true);
-  expect(judgmentModelId()).toBe('openai/gpt-5.6-luna-pro');
+  expect(judgmentModelId()).toBe('google/gemini-3.5-flash-lite');
+});
+
+test('celebration model remains independently configurable', () => {
+  expect(celebrationModelId()).toBe('openai/gpt-5.6-luna-pro');
 });
 
 test('framed statements and tag questions remain conversational judgments', async () => {
   const classify = async () => ({
-    researchDepth: 'light' as const,
-    freshnessNeed: 'preferred' as const,
-    authorityNeed: 'preferred' as const,
+    researchDepth: 'none' as const,
+    freshnessNeed: 'none' as const,
+    authorityNeed: 'none' as const,
     sourceSensitivity: 'medium' as const,
     stakes: 'low' as const,
-    questionMode: 'explanation' as const,
+    questionMode: 'conversation' as const,
+    capabilityRoute: 'reply' as const,
+    interactionMode: 'judgment' as const,
     neutralResearchQuestion:
       'How stable and categorical are introversion and extroversion?',
     reason: 'Stable psychology explanation.',
@@ -163,9 +170,7 @@ test('framed statements and tag questions remain conversational judgments', asyn
   expect(shouldUseResearchModel(tagQuestion)).toBe(false);
   expect(tagQuestion.questionMode).toBe('conversation');
   expect(shouldUseResearchModel(framedStatement)).toBe(false);
-  expect(shouldUseJudgmentModel(framedStatement, 'it means nothing')).toBe(
-    true,
-  );
+  expect(shouldUseJudgmentModel(framedStatement)).toBe(true);
 });
 
 test('trusted private tools and server clock do not require public research', async () => {
@@ -184,6 +189,21 @@ test('trusted private tools and server clock do not require public research', as
       authorityNeed: 'none',
     });
   }
+});
+
+test('semantic classifier routes private data separately from public research', async () => {
+  const privateRead = await classify("What's on my calendar?", {
+    capabilityRoute: 'read_tools',
+    questionMode: 'conversation',
+  });
+  const clock = await classify('What time is it?', {
+    capabilityRoute: 'reply',
+    questionMode: 'conversation',
+  });
+
+  expect(privateRead.capabilityRoute).toBe('read_tools');
+  expect(privateRead.researchDepth).toBe('none');
+  expect(clock.capabilityRoute).toBe('reply');
 });
 
 test('semantic assessment represents current and factual verification needs', async () => {
@@ -246,7 +266,7 @@ test('specific authorities and original papers can require an authority read', a
   });
 });
 
-test('source-sensitive opinion is guided by evidence without citation-gating judgment', () => {
+test('source-sensitive research requires citations for material factual claims', () => {
   expect(
     requiresInlineCitations({
       researchDepth: 'deep',
@@ -261,7 +281,23 @@ test('source-sensitive opinion is guided by evidence without citation-gating jud
       classifierSucceeded: true,
       userDeclinedResearch: false,
     }),
-  ).toBe(false);
+  ).toBe(true);
+});
+
+test('do-you-think phrasing is recognised as judgment without forced research', async () => {
+  const policy = await classify(
+    'Do you think social media contributes to political polarisation?',
+    {
+      questionMode: 'conversation',
+      interactionMode: 'judgment',
+      neutralResearchQuestion:
+        'What role does social media play in political polarisation?',
+    },
+  );
+
+  expect(policy.interactionMode).toBe('judgment');
+  expect(shouldUseJudgmentModel(policy)).toBe(true);
+  expect(shouldUseResearchModel(policy)).toBe(false);
 });
 
 test('bounded recent context lets a follow-up inherit verification needs', async () => {
@@ -524,4 +560,103 @@ test('research synthesis model remains configurable', () => {
   } else {
     process.env.RESEARCH_CHAT_FALLBACK_MODEL = previousFallback;
   }
+});
+
+test('semantic live-data decisions pass through without keyword overrides', async () => {
+  for (const currentTurn of [
+    'What is the weather in Burwell today?',
+    'Reckon I need a jacket?',
+    'What time is sunset?',
+    'Will it rain this evening?',
+  ]) {
+    const policy = await assessEpistemicPolicy({
+      currentTurn,
+      recentContext: '',
+      classify: async () => ({
+        ...base,
+        researchDepth: 'none',
+        freshnessNeed: 'required',
+        capabilityRoute: 'live_data',
+        interactionMode: 'practical',
+      }),
+    });
+    expect(policy.capabilityRoute).toBe('live_data');
+    expect(policy.researchDepth).toBe('none');
+    expect(policy.freshnessNeed).toBe('required');
+  }
+});
+
+test('semantic classifier—not sky keywords—selects current astronomy research', async () => {
+  const policy = await assessEpistemicPolicy({
+    currentTurn: 'Which planets can I see tonight?',
+    recentContext: 'user: I am in Burwell, Cambridgeshire',
+    classify: async () => ({
+      ...base,
+      capabilityRoute: 'reply',
+      researchDepth: 'light',
+      freshnessNeed: 'required',
+      authorityNeed: 'preferred',
+      sourceSensitivity: 'medium',
+      questionMode: 'verification',
+      interactionMode: 'practical',
+      neutralResearchQuestion:
+        'Which planets are visible from Burwell tonight, and at what verified times and directions?',
+    }),
+  });
+
+  expect(policy).toMatchObject({
+    capabilityRoute: 'reply',
+    researchDepth: 'light',
+    freshnessNeed: 'required',
+    authorityNeed: 'preferred',
+    sourceSensitivity: 'medium',
+    questionMode: 'verification',
+    interactionMode: 'practical',
+  });
+  expect(policy.neutralResearchQuestion).toContain('Burwell');
+});
+
+test('semantic classifier can keep weather-adjacent conversation out of tools', async () => {
+  const policy = await assessEpistemicPolicy({
+    currentTurn:
+      'No jacket even this evening — shorts and t-shirt weather lol. Maybe watch the sunset.',
+    recentContext: 'assistant: It is warm in Burwell today.',
+    classify: async () => ({
+      ...base,
+      capabilityRoute: 'reply',
+      interactionMode: 'social',
+      questionMode: 'conversation',
+    }),
+  });
+
+  expect(policy).toMatchObject({
+    capabilityRoute: 'reply',
+    researchDepth: 'none',
+    interactionMode: 'social',
+  });
+});
+
+test('exact researched clock times count as material citation-bearing claims', () => {
+  const trace: ResearchTrace = {
+    activities: [],
+    sources: [
+      {
+        title: 'Sky guide',
+        url: 'https://astronomy.example/guide',
+        hostname: 'astronomy.example',
+      },
+    ],
+  };
+  expect(
+    hasMaterialClaimCitationCoverage(
+      'Saturn rises at 10:30 pm in the southeast.',
+      trace,
+    ),
+  ).toBe(false);
+  expect(
+    hasMaterialClaimCitationCoverage(
+      'Saturn rises at 10:30 pm in the southeast [Sky guide](https://astronomy.example/guide).',
+      trace,
+    ),
+  ).toBe(true);
 });

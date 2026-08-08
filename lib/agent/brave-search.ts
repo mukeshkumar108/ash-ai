@@ -39,6 +39,7 @@ const RESEARCH_TOOL_NAMES = new Set([
   'image_search',
   'place_search',
   'fetch_web_page',
+  'get_weather',
 ]);
 
 const queryField = z
@@ -784,6 +785,7 @@ function researchKind(name: string): ResearchActivity['kind'] | undefined {
   if (name === 'image_search') return 'image';
   if (name === 'place_search') return 'place';
   if (name === 'fetch_web_page') return 'page';
+  if (name === 'get_weather') return 'weather';
   return undefined;
 }
 
@@ -872,7 +874,7 @@ export function extractResearchTrace(messages: BaseMessage[]): ResearchTrace {
     }
 
     const resultCount =
-      kind === 'page'
+      kind === 'page' || kind === 'weather'
         ? 1
         : Array.isArray(output?.results)
           ? output.results.length
@@ -920,6 +922,15 @@ export function extractResearchTrace(messages: BaseMessage[]): ResearchTrace {
           ...(sourceRole ? { sourceRole } : {}),
         });
       }
+    }
+    if (kind === 'weather') {
+      sources.set('https://open-meteo.com/', {
+        url: 'https://open-meteo.com/',
+        title: 'Weather data by Open-Meteo.com (CC BY 4.0)',
+        hostname: 'open-meteo.com',
+        retrieval: 'search_context',
+        sourceRole: 'official',
+      });
     }
   }
 

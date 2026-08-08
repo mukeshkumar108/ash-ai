@@ -1,6 +1,7 @@
 import type { ResearchActivity, ResearchTrace } from '@/lib/types';
 
 function searchKindLabel(kind: ResearchActivity['kind']): string {
+  if (kind === 'weather') return 'weather check';
   if (kind === 'page') return 'page read';
   if (kind === 'news') return 'news search';
   if (kind === 'video') return 'video search';
@@ -17,19 +18,25 @@ export function summarizeResearchTrace(trace: ResearchTrace): string {
     (activity) => activity.status === 'failed',
   );
   const searchActivities = successful.filter(
-    (activity) => activity.kind !== 'page',
+    (activity) => activity.kind !== 'page' && activity.kind !== 'weather',
   );
+  const weatherCount = successful.filter(
+    (activity) => activity.kind === 'weather',
+  ).length;
   const pageCount = successful.filter(
     (activity) => activity.kind === 'page',
   ).length;
   const callCount = searchActivities.length;
   const resultCount = trace.activities.reduce(
     (total, activity) =>
-      activity.kind === 'page' ? total : total + (activity.resultCount ?? 0),
+      activity.kind === 'page' || activity.kind === 'weather'
+        ? total
+        : total + (activity.resultCount ?? 0),
     0,
   );
 
   const labels: string[] = [];
+  if (weatherCount > 0) labels.push('Checked live weather');
   if (callCount === 1) {
     labels.push(`1 ${searchKindLabel(searchActivities[0].kind)}`);
   } else if (callCount > 1) {

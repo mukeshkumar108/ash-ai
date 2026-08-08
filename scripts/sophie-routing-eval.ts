@@ -46,16 +46,14 @@ const requestedIds = new Set(
 );
 
 async function main() {
-  const {
-    assessEpistemicPolicy,
-    judgmentModelId,
-    shouldUseJudgmentModel,
-    shouldUseResearchModel,
-  } = await import('@/lib/agent/research-policy');
-  const { buildAshAgentSystemPrompt } = await import(
+  const { assessEpistemicPolicy } = await import('@/lib/agent/research-policy');
+  const { buildSophieReplySystemPrompt } = await import(
     '@/lib/agent/system-prompt'
   );
-  const { getLanguageModel } = await import('@/lib/ai/providers');
+  const { decideTurn } = await import('@/lib/agent/turn-runtime');
+  const { getLanguageModel, getPinnedOpenAIModel } = await import(
+    '@/lib/ai/providers'
+  );
 
   for (const scenario of scenarios.filter((entry) =>
     requestedIds.has(entry.id),
@@ -66,25 +64,26 @@ async function main() {
       signal: AbortSignal.timeout(15_000),
     });
     let answer: string | undefined;
-    const answerModelId =
-      requestedModelId ??
-      (shouldUseJudgmentModel(policy, scenario.prompt)
-        ? judgmentModelId()
-        : 'deepseek/deepseek-v4-flash');
+    const decision = decideTurn(
+      {
+        userId: 'eval-user',
+        chatId: 'eval-chat',
+        currentUserText: scenario.prompt,
+        selectedModelId: 'deepseek/deepseek-v4-flash',
+        hasImageParts: false,
+        ambient: { userLocation: null, timeZone: 'Europe/London' },
+      },
+      policy,
+    );
+    const answerModelId = requestedModelId ?? decision.modelId;
 
-    if (!shouldUseResearchModel(policy) && scenario.id.startsWith('opinion-')) {
+    if (decision.lane === 'reply_only' && scenario.id.startsWith('opinion-')) {
       const result = await generateText({
-        model: getLanguageModel(answerModelId),
-        system: buildAshAgentSystemPrompt({
-          researchRequirement: {
-            reason: policy.reason,
-            retry: false,
-            researchDepth: policy.researchDepth,
-            freshnessNeed: policy.freshnessNeed,
-            authorityNeed: policy.authorityNeed,
-            sourceSensitivity: policy.sourceSensitivity,
-            neutralResearchQuestion: policy.neutralResearchQuestion,
-          },
+        model: answerModelId.startsWith('openai/gpt-5.6-')
+          ? getPinnedOpenAIModel(answerModelId)
+          : getLanguageModel(answerModelId),
+        system: buildSophieReplySystemPrompt({
+          neutralQuestion: policy.neutralResearchQuestion,
         }),
         prompt: scenario.prompt,
         maxOutputTokens: 700,
@@ -96,7 +95,7 @@ async function main() {
       JSON.stringify({
         id: scenario.id,
         prompt: scenario.prompt,
-        route: shouldUseResearchModel(policy) ? 'research' : 'conversation',
+        route: decision.lane,
         policy: {
           depth: policy.researchDepth,
           freshness: policy.freshnessNeed,

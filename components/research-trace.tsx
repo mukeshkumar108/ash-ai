@@ -8,12 +8,14 @@ import {
   Newspaper,
   Search,
   Video,
+  CloudSun,
 } from 'lucide-react';
 import type { ResearchActivity, ResearchTrace } from '@/lib/types';
 import { summarizeResearchTrace } from '@/lib/research-trace';
 
 function ActivityIcon({ kind }: { kind: ResearchActivity['kind'] }) {
   const className = 'size-3.5 shrink-0';
+  if (kind === 'weather') return <CloudSun className={className} />;
   if (kind === 'news') return <Newspaper className={className} />;
   if (kind === 'video') return <Video className={className} />;
   if (kind === 'image') return <ImageIcon className={className} />;
@@ -23,6 +25,11 @@ function ActivityIcon({ kind }: { kind: ResearchActivity['kind'] }) {
 }
 
 function activityLabel(activity: ResearchActivity): string {
+  if (activity.kind === 'weather') {
+    return activity.status === 'failed'
+      ? `Couldn't check weather · ${activity.query}`
+      : `Checked weather · ${activity.query}`;
+  }
   if (activity.kind === 'page') {
     try {
       const action =
@@ -68,11 +75,17 @@ export function ResearchTraceView({ trace }: { trace: ResearchTrace }) {
               <ActivityIcon kind={activity.kind} />
               <span>
                 {activityLabel(activity)}
-                {activity.kind !== 'page' ? ` for “${activity.query}”` : ''}
-                {activity.kind !== 'page' && activity.resultCount !== undefined
+                {activity.kind !== 'page' && activity.kind !== 'weather'
+                  ? ` for “${activity.query}”`
+                  : ''}
+                {activity.kind !== 'page' &&
+                activity.kind !== 'weather' &&
+                activity.resultCount !== undefined
                   ? ` (${activity.resultCount} results)`
                   : ''}
-                {activity.status === 'failed' && activity.kind !== 'page'
+                {activity.status === 'failed' &&
+                activity.kind !== 'page' &&
+                activity.kind !== 'weather'
                   ? ' (failed)'
                   : ''}
               </span>

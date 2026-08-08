@@ -209,6 +209,54 @@ export type MessagePage = {
   hasMore: boolean;
 };
 
+export type ConversationHandshakeContext = {
+  chatsToday: number;
+  lastInteractionAt: Date | null;
+};
+
+export async function getConversationHandshakeContext({
+  userId,
+  currentChatId,
+  timeZone,
+}: {
+  userId: string;
+  currentChatId: string;
+  timeZone: string;
+}): Promise<ConversationHandshakeContext> {
+  try {
+    const [row] = await getClient()<
+      Array<{ chatsToday: number; lastInteractionAt: Date | string | null }>
+    >`
+      select
+        count(distinct c.id) filter (
+          where (
+            c."createdAt" at time zone 'UTC' at time zone ${timeZone}
+          )::date = (now() at time zone ${timeZone})::date
+        )::int as "chatsToday",
+        max(m."createdAt") filter (where c.id <> ${currentChatId}) as "lastInteractionAt"
+      from "Chat" c
+      left join "Message_v2" m on m."chatId" = c.id
+      where c."userId" = ${userId}
+    `;
+
+    const parsedLastInteractionAt = row?.lastInteractionAt
+      ? new Date(row.lastInteractionAt)
+      : null;
+
+    return instrumentReadResult('getConversationHandshakeContext', {
+      chatsToday: row?.chatsToday ?? 1,
+      lastInteractionAt:
+        parsedLastInteractionAt &&
+        !Number.isNaN(parsedLastInteractionAt.getTime())
+          ? parsedLastInteractionAt
+          : null,
+    });
+  } catch (error) {
+    logDatabaseError('get conversation handshake context', error);
+    return { chatsToday: 1, lastInteractionAt: null };
+  }
+}
+
 function normalizeUserRow(row: CompatibleUserRow): User {
   return {
     id: row.id,
@@ -357,6 +405,28 @@ export async function getUserById(id: string): Promise<UserProfileRow | null> {
   } catch (error) {
     logDatabaseError('get user by id', error);
     throw new ChatSDKError('bad_request:database', 'Failed to get user by id');
+  }
+}
+
+export async function saveUserDefaultLocationIfMissing({
+  userId,
+  location,
+}: {
+  userId: string;
+  location: string;
+}): Promise<void> {
+  const normalized = location.trim().slice(0, 120);
+  if (!normalized) return;
+
+  try {
+    await getClient()`
+      update "User"
+      set "rp_location" = ${normalized}
+      where id = ${userId}
+        and nullif(trim(coalesce("rp_location", '')), '') is null
+    `;
+  } catch (error) {
+    logDatabaseError('save user default location if missing', error);
   }
 }
 

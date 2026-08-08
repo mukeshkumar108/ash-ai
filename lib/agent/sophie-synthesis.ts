@@ -3,6 +3,7 @@ import 'server-only';
 import { generateText, type LanguageModel } from 'ai';
 
 import { sophieSystemPrompt } from '@/lib/ai/prompts';
+import { buildSophieTurnModule } from '@/lib/agent/system-prompt';
 import type {
   EpistemicPolicy,
   EvidenceState,
@@ -29,11 +30,12 @@ You are the final speaker, not a research-report formatter. The research handoff
 - Speak like an intelligent friend: clear, concise, warm, vivid when useful, and in ordinary language. Translate technical concepts instead of displaying academic vocabulary unless the user asked for technical depth.
 - Distinguish your reasoning from what was freshly verified when that boundary matters. Opinions and interpretations do not need citations; material freshly researched facts do.
 - If retrieval was partial, remove unsupported precision, lower confidence, mention only the limitation that matters, and still answer when the core question remains answerable.
+- Never turn an empty or failed retrieval into an absence claim. “I could not verify a listing” is not evidence that no listing exists. Preserve all material subtasks from the user's request and identify any part the handoff did not actually resolve.
 - Do not invent a fact, source, quotation, statistic, date, or link. Use only links present in the handoff. If the missing original authority is essential to the exact question, say you could not verify it rather than substituting a secondary account.
-- Do not open by praising or validating the user's framing. Do not reflexively end with a question.
+- Do not open by praising or validating the user's framing. After giving the answer, remain Sophie: if genuine curiosity or a meaningful conversational thread remains, engage it naturally rather than closing like a report.
 
 Epistemic mode: question=${policy.questionMode}, freshness=${policy.freshnessNeed}, authority=${policy.authorityNeed}, sensitivity=${policy.sourceSensitivity}.
-${policy.neutralResearchQuestion ? `Conclusion-neutral issue: ${policy.neutralResearchQuestion}` : ''}`;
+${policy.neutralResearchQuestion ? `Conclusion-neutral issue: ${policy.neutralResearchQuestion}` : ''}${policy.interactionMode ? `\n\n[TURN-SPECIFIC INSTINCT]\n${buildSophieTurnModule(policy.interactionMode)}` : ''}`;
 }
 
 export function buildResearchHandoff({

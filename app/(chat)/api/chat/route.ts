@@ -15,12 +15,18 @@ import {
   judgmentModelId,
   markCitedSources,
   missingRequiredEvidence,
-  researchFallbackModelId,
-  researchModelId,
   requiresInlineCitations,
-  shouldUseResearchModel,
-  shouldUseJudgmentModel,
 } from '@/lib/agent/research-policy';
+import {
+  createTurnPacket,
+  decideTurn,
+  isTextOnlyModel,
+} from '@/lib/agent/turn-runtime';
+import {
+  executeDirectReply,
+  executeLiveDataReply,
+  isRetryableModelError,
+} from '@/lib/agent/turn-executor';
 import {
   chatMessagesToLangChain,
   langChainMessageText,
@@ -35,8 +41,10 @@ import {
   deleteChatById,
   getChatAccessById,
   getChatById,
+  getConversationHandshakeContext,
   getMessagesByChatId,
   getUserById,
+  saveUserDefaultLocationIfMissing,
   saveChat,
   saveMessages,
   withQueryContext,
@@ -57,7 +65,7 @@ import {
 import { after } from 'next/server';
 import { ChatSDKError } from '@/lib/errors';
 import type { ChatMessage, ResearchTrace } from '@/lib/types';
-import { type ChatModel, chatModels } from '@/lib/ai/models';
+import type { ChatModel } from '@/lib/ai/models';
 import type { VisibilityType } from '@/components/visibility-selector';
 
 export const maxDuration = 300;
@@ -81,49 +89,6 @@ function assistantFinishReason(message: unknown): string | undefined {
   return typeof value === 'string' ? value : undefined;
 }
 
-function retryableModelError(error: unknown): boolean {
-  if (typeof error !== 'object' || error === null) return false;
-  const candidate = error as {
-    name?: string;
-    statusCode?: number;
-    message?: string;
-    cause?: unknown;
-  };
-  if (candidate.name === 'AbortError') return false;
-  if (typeof candidate.statusCode === 'number') {
-    return (
-      candidate.statusCode === 408 ||
-      candidate.statusCode === 409 ||
-      candidate.statusCode === 429 ||
-      candidate.statusCode >= 500
-    );
-  }
-  if (candidate.cause && retryableModelError(candidate.cause)) return true;
-  return (
-    candidate.name === 'AI_APICallError' ||
-    /(?:no model available|provider|rate.?limit|overload|unavailable|timeout)/iu.test(
-      candidate.message ?? '',
-    )
-  );
-}
-
-// Internal aliases whose underlying model accepts image input. Used to keep
-// image requests from falling back to text-only models.
-const VISION_CAPABLE_ALIASES = new Set<string>(['chat-model']);
-
-// Internal aliases whose underlying model is text-only (rejects image parts).
-const TEXT_ONLY_ALIASES = new Set<string>([
-  'chat-model-fallback',
-  'chat-model-reasoning',
-]);
-
-function isTextOnlyModel(modelId: string): boolean {
-  if (VISION_CAPABLE_ALIASES.has(modelId)) return false;
-  if (TEXT_ONLY_ALIASES.has(modelId)) return true;
-  const def = chatModels.find((chatModel) => chatModel.id === modelId);
-  return def ? def.vision === false : false;
-}
-
 function boundedEpistemicContext(messages: ChatMessage[]): string {
   return messages
     .slice(0, -1)
@@ -141,6 +106,34 @@ function boundedEpistemicContext(messages: ChatMessage[]): string {
     .filter(Boolean)
     .join('\n')
     .slice(-3_500);
+}
+
+function recentRetrievalProvenance(messages: ChatMessage[]): string | null {
+  const notes = messages
+    .slice(0, -1)
+    .slice(-6)
+    .flatMap((message) =>
+      message.parts.flatMap((part) => {
+        if (part.type !== 'data-research') return [];
+        const trace = part.data;
+        const successful = trace.activities.filter(
+          (activity) => activity.status !== 'failed',
+        );
+        const failed = trace.activities.filter(
+          (activity) => activity.status === 'failed',
+        );
+        const kinds = [...new Set(successful.map((activity) => activity.kind))];
+        const quality =
+          failed.length > 0
+            ? `${failed.length} retrieval attempt${failed.length === 1 ? '' : 's'} failed`
+            : 'no recorded retrieval failures';
+        return [
+          `A recent assistant answer used ${kinds.length > 0 ? kinds.join(', ') : 'no successful retrieval'}; ${quality}.`,
+        ];
+      }),
+    )
+    .slice(-2);
+  return notes.length > 0 ? notes.join('\n') : null;
 }
 
 function textConversation(
@@ -237,7 +230,8 @@ export async function POST(request: Request) {
       }
 
       // Ensure the session user has a row so chat/message foreign keys hold.
-      if (!(await getUserById(session.user.id))) {
+      const userProfile = await getUserById(session.user.id);
+      if (!userProfile) {
         if (!isProductionEnvironment) {
           await db
             .insert(userTable)
@@ -255,6 +249,17 @@ export async function POST(request: Request) {
       }
 
       const messagesFromDb = await getMessagesByChatId({ id });
+      const timeZone = process.env.ASH_TIME_ZONE?.trim() || 'Europe/London';
+      const handshake =
+        messagesFromDb.length === 0
+          ? {
+              ...(await getConversationHandshakeContext({
+                userId: session.user.id,
+                currentChatId: id,
+                timeZone,
+              })),
+            }
+          : undefined;
 
       // Apply input sanitization to user message before processing
       const sanitizedMessage = {
@@ -304,30 +309,29 @@ export async function POST(request: Request) {
           ),
         ]),
       });
-      const researchTurn = shouldUseResearchModel(epistemicPolicy);
-      const judgmentTurn =
-        !sanitizedMessage.parts.some((part) => part.type === 'file') &&
-        shouldUseJudgmentModel(epistemicPolicy, currentUserText);
-      let modelToUse: string = researchTurn
-        ? researchModelId()
-        : judgmentTurn
-          ? judgmentModelId()
-          : selectedChatModel;
-
-      console.info(
-        `[chat] epistemic classifier_ran=${epistemicPolicy.classifierRan} classifier_ok=${epistemicPolicy.classifierSucceeded} depth=${epistemicPolicy.researchDepth} freshness=${epistemicPolicy.freshnessNeed} authority=${epistemicPolicy.authorityNeed} sensitivity=${epistemicPolicy.sourceSensitivity} confidence=${epistemicPolicy.confidence.toFixed(2)} judgment=${judgmentTurn} model=${modelToUse}`,
-      );
-
       const hasImageParts = sanitizedMessage.parts.some(
         (part) => part.type === 'file',
       );
+      const turnEvent = {
+        userId: session.user.id,
+        chatId: id,
+        currentUserText,
+        selectedModelId: selectedChatModel,
+        hasImageParts,
+        ambient: {
+          userLocation: userProfile?.rpLocation ?? null,
+          timeZone,
+        },
+        recentProvenance: recentRetrievalProvenance(uiMessages),
+        handshake,
+      };
+      const turnDecision = decideTurn(turnEvent, epistemicPolicy);
+      const researchTurn = turnDecision.lane === 'research';
+      const modelToUse = turnDecision.modelId;
 
-      if (hasImageParts && isTextOnlyModel(selectedChatModel)) {
-        console.warn(
-          `[chat] ${selectedChatModel} does not support image input; falling back to chat-model`,
-        );
-        modelToUse = 'chat-model';
-      }
+      console.info(
+        `[chat] lane=${turnDecision.lane} role=${turnDecision.modelRole} interaction=${epistemicPolicy.interactionMode ?? 'unset'} classifier_ran=${epistemicPolicy.classifierRan} classifier_ok=${epistemicPolicy.classifierSucceeded} depth=${epistemicPolicy.researchDepth} freshness=${epistemicPolicy.freshnessNeed} authority=${epistemicPolicy.authorityNeed} sensitivity=${epistemicPolicy.sourceSensitivity} confidence=${epistemicPolicy.confidence.toFixed(2)} model=${modelToUse}`,
+      );
 
       // Text-only models reject image parts anywhere in the context (including
       // history), so strip them before building the model messages.
@@ -341,6 +345,12 @@ export async function POST(request: Request) {
       }
 
       const presignedMessages = await presignFilePartUrls(messagesToSend);
+      const turnPacket = createTurnPacket({
+        event: turnEvent,
+        decision: turnDecision,
+        messages: presignedMessages,
+        timeZone,
+      });
 
       // Run the agent to completion before streaming so the assistant message
       // is persisted before the response is returned. This keeps conversation
@@ -352,178 +362,255 @@ export async function POST(request: Request) {
       let researchTrace: ResearchTrace = { activities: [], sources: [] };
 
       try {
-        const lcMessages = chatMessagesToLangChain(presignedMessages);
-        const researchSession = createResearchSession();
         const agentSignal = AbortSignal.any([
           request.signal,
           AbortSignal.timeout(CHAT_AGENT_TIMEOUT_MS),
         ]);
-        let activeAgentModel = modelToUse;
-        const fallbackAgentModel = researchTurn
-          ? researchFallbackModelId()
-          : judgmentTurn
-            ? selectedChatModel
-            : modelToUse;
-        const invokeAgent = (
-          agentModel: string,
-          retry: boolean,
-          missing: string[] = [],
-          inputMessages = lcMessages,
-        ) =>
-          createAshAgent({
-            userId: session.user.id,
-            modelId: agentModel,
-            researchRequirement: {
-              reason: epistemicPolicy.reason,
-              retry,
-              researchDepth: epistemicPolicy.researchDepth,
-              freshnessNeed: epistemicPolicy.freshnessNeed,
-              authorityNeed: epistemicPolicy.authorityNeed,
-              sourceSensitivity: epistemicPolicy.sourceSensitivity,
-              neutralResearchQuestion: epistemicPolicy.neutralResearchQuestion,
-              userDeclinedResearch: epistemicPolicy.userDeclinedResearch,
-              missing,
-            },
-            researchSession,
-          }).invoke({ messages: inputMessages }, { signal: agentSignal });
-
-        const invokeWithFallback = async (
-          retry: boolean,
-          missing: string[] = [],
-          inputMessages = lcMessages,
-        ) => {
-          try {
-            return await invokeAgent(
-              activeAgentModel,
-              retry,
-              missing,
-              inputMessages,
-            );
-          } catch (error) {
-            if (
-              (!researchTurn && !judgmentTurn) ||
-              !retryableModelError(error) ||
-              fallbackAgentModel === activeAgentModel ||
-              agentSignal.aborted
-            ) {
-              throw error;
-            }
-            console.warn(
-              `[chat] agent model fallback from=${activeAgentModel} to=${fallbackAgentModel}`,
-            );
-            activeAgentModel = fallbackAgentModel;
-            return invokeAgent(activeAgentModel, retry, missing, inputMessages);
-          }
-        };
-
-        let result = await invokeWithFallback(false);
-        let attemptTrace = extractResearchTrace(result.messages);
-        researchTrace = attemptTrace;
-        let state = evidenceState(attemptTrace);
-        let gaps = evidenceGapsForRetry(epistemicPolicy, state);
-        let finalMessage = lastAssistantMessage(result.messages);
-        let candidateText = langChainMessageText(finalMessage);
-        let truncated = assistantFinishReason(finalMessage) === 'length';
-        const citationMissing =
-          requiresInlineCitations(epistemicPolicy) &&
-          state.usableSources > 0 &&
-          !hasMaterialClaimCitationCoverage(candidateText, attemptTrace);
-
-        let retryCount = 0;
-        if (gaps.length > 0 || citationMissing || truncated) {
-          retryCount = 1;
-          const retryMissing = [
-            ...gaps,
-            ...(citationMissing ? ['inline_citations'] : []),
-            ...(truncated ? ['complete_answer_within_output_budget'] : []),
-          ];
-          console.warn(
-            `[chat] epistemic retry missing=${retryMissing.join(',')}`,
-          );
-          result = await invokeWithFallback(
-            true,
-            retryMissing,
-            result.messages,
-          );
-          const retryTrace = extractResearchTrace(result.messages);
-          researchTrace = mergeResearchTraces(attemptTrace, retryTrace);
-          attemptTrace = retryTrace;
-          state = evidenceState(attemptTrace);
-          gaps = missingRequiredEvidence(epistemicPolicy, state);
-          finalMessage = lastAssistantMessage(result.messages);
-          candidateText = langChainMessageText(finalMessage);
-          truncated = assistantFinishReason(finalMessage) === 'length';
-        } else {
-          gaps = missingRequiredEvidence(epistemicPolicy, state);
-        }
-
-        const finalCitationMissing =
-          requiresInlineCitations(epistemicPolicy) &&
-          state.usableSources > 0 &&
-          !hasMaterialClaimCitationCoverage(candidateText, attemptTrace);
-
-        console.info(
-          `[chat] evidence searches_ok=${state.successfulSearches} searches_failed=${state.failedSearches} pages_ok=${state.successfulPageReads} pages_failed=${state.failedPageReads} authority_read=${state.authorityRead} retry=${retryCount} finish_reason=${assistantFinishReason(finalMessage) ?? 'unknown'} model=${activeAgentModel}`,
-        );
-
-        const missingCentralAuthority =
-          epistemicPolicy.authorityNeed === 'required' &&
-          gaps.includes('authority_read');
-
-        if (missingCentralAuthority) {
-          finalText =
-            "I couldn't read the underlying authority well enough to answer that as a primary-source-grounded claim. I don't want to substitute snippets or summaries and pretend they're the original.";
-        } else if (researchTurn) {
-          const finalSpeakerModelId = epistemicPolicy.neutralResearchQuestion
-            ? judgmentModelId()
-            : selectedChatModel;
-          const handoff = buildResearchHandoff({
-            researchDraft: candidateText,
-            trace: researchTrace,
-            evidence: state,
-            missing: [
-              ...gaps,
-              ...(finalCitationMissing ? ['inline_citations'] : []),
-            ],
-            truncated,
+        if (turnDecision.lane === 'reply_only') {
+          const reply = await executeDirectReply({
+            packet: turnPacket,
+            signal: agentSignal,
           });
-          try {
-            const synthesis = await synthesizeSophieAnswer({
-              model: finalSpeakerModelId.startsWith('openai/gpt-5.6-')
-                ? getPinnedOpenAIModel(finalSpeakerModelId)
-                : getLanguageModel(finalSpeakerModelId),
-              conversation: textConversation(presignedMessages),
-              policy: epistemicPolicy,
-              handoff,
-              signal: agentSignal,
-              maxOutputTokens: outputTokenBudget(epistemicPolicy.researchDepth),
-            });
-            if (
-              synthesis.text.trim() &&
-              hasOnlyGroundedCitations(synthesis.text, researchTrace)
-            ) {
-              finalText = synthesis.text;
-            } else if (synthesis.text.trim()) {
-              console.warn(
-                '[chat] Sophie synthesis introduced an ungrounded citation; returning research draft',
-              );
-              finalText = candidateText;
-            }
-            if (synthesis.finishReason === 'length') {
-              console.warn('[chat] Sophie synthesis reached output limit');
-            }
-          } catch (error) {
-            if (agentSignal.aborted) throw error;
+          if (reply.usedFallback) {
             console.warn(
-              '[chat] Sophie synthesis failed; returning complete research draft',
+              `[chat] reply model fallback from=${turnDecision.modelId} to=${reply.modelId}`,
             );
+          }
+          console.info(
+            `[chat] reply model=${reply.modelId} fallback=${reply.usedFallback} finish_reason=${reply.finishReason} chars=${reply.text.length}`,
+          );
+
+          finalText = reply.text;
+          if (reply.finishReason === 'length') {
+            console.warn('[chat] direct Sophie reply reached output limit');
+          }
+        } else if (turnDecision.lane === 'live_data') {
+          const reply = await executeLiveDataReply({
+            packet: turnPacket,
+            signal: agentSignal,
+          });
+          researchTrace = reply.trace;
+          finalText = reply.text;
+          console.info(
+            `[chat] live_data model=${reply.modelId} fallback=${reply.usedFallback} success=${reply.trace.activities.some((activity) => activity.kind === 'weather' && activity.status !== 'failed')} finish_reason=${reply.finishReason} chars=${reply.text.length}`,
+          );
+        } else {
+          const lcMessages = chatMessagesToLangChain(presignedMessages);
+          const researchSession = createResearchSession();
+          let activeAgentModel = modelToUse;
+          const fallbackAgentModel = turnDecision.fallbackModelId;
+          const invokeAgent = (
+            agentModel: string,
+            retry: boolean,
+            missing: string[] = [],
+            inputMessages = lcMessages,
+          ) =>
+            createAshAgent({
+              userId: session.user.id,
+              modelId: agentModel,
+              userLocation: userProfile?.rpLocation ?? null,
+              researchRequirement: {
+                reason: epistemicPolicy.reason,
+                retry,
+                researchDepth: epistemicPolicy.researchDepth,
+                freshnessNeed: epistemicPolicy.freshnessNeed,
+                authorityNeed: epistemicPolicy.authorityNeed,
+                sourceSensitivity: epistemicPolicy.sourceSensitivity,
+                neutralResearchQuestion:
+                  epistemicPolicy.neutralResearchQuestion,
+                userDeclinedResearch: epistemicPolicy.userDeclinedResearch,
+                missing,
+              },
+              researchSession,
+              capabilityMode: researchTurn ? 'research' : 'read_tools',
+            }).invoke({ messages: inputMessages }, { signal: agentSignal });
+
+          const invokeWithFallback = async (
+            retry: boolean,
+            missing: string[] = [],
+            inputMessages = lcMessages,
+          ) => {
+            try {
+              return await invokeAgent(
+                activeAgentModel,
+                retry,
+                missing,
+                inputMessages,
+              );
+            } catch (error) {
+              if (
+                !researchTurn ||
+                !isRetryableModelError(error) ||
+                fallbackAgentModel === activeAgentModel ||
+                agentSignal.aborted
+              ) {
+                throw error;
+              }
+              console.warn(
+                `[chat] agent model fallback from=${activeAgentModel} to=${fallbackAgentModel}`,
+              );
+              activeAgentModel = fallbackAgentModel;
+              return invokeAgent(
+                activeAgentModel,
+                retry,
+                missing,
+                inputMessages,
+              );
+            }
+          };
+
+          let result = await invokeWithFallback(false);
+          let attemptTrace = extractResearchTrace(result.messages);
+          researchTrace = attemptTrace;
+          let state = evidenceState(attemptTrace);
+          let gaps = evidenceGapsForRetry(epistemicPolicy, state);
+          let finalMessage = lastAssistantMessage(result.messages);
+          let candidateText = langChainMessageText(finalMessage);
+          let truncated = assistantFinishReason(finalMessage) === 'length';
+          const citationMissing =
+            requiresInlineCitations(epistemicPolicy) &&
+            state.usableSources > 0 &&
+            !hasMaterialClaimCitationCoverage(candidateText, attemptTrace);
+
+          let retryCount = 0;
+          if (gaps.length > 0 || citationMissing || truncated) {
+            retryCount = 1;
+            const retryMissing = [
+              ...gaps,
+              ...(citationMissing ? ['inline_citations'] : []),
+              ...(truncated ? ['complete_answer_within_output_budget'] : []),
+            ];
+            console.warn(
+              `[chat] epistemic retry missing=${retryMissing.join(',')}`,
+            );
+            result = await invokeWithFallback(
+              true,
+              retryMissing,
+              result.messages,
+            );
+            const retryTrace = extractResearchTrace(result.messages);
+            researchTrace = mergeResearchTraces(attemptTrace, retryTrace);
+            attemptTrace = retryTrace;
+            state = evidenceState(attemptTrace);
+            gaps = missingRequiredEvidence(epistemicPolicy, state);
+            finalMessage = lastAssistantMessage(result.messages);
+            candidateText = langChainMessageText(finalMessage);
+            truncated = assistantFinishReason(finalMessage) === 'length';
+          } else {
+            gaps = missingRequiredEvidence(epistemicPolicy, state);
+          }
+
+          const finalCitationMissing =
+            requiresInlineCitations(epistemicPolicy) &&
+            state.usableSources > 0 &&
+            !hasMaterialClaimCitationCoverage(candidateText, attemptTrace);
+
+          console.info(
+            `[chat] evidence searches_ok=${state.successfulSearches} searches_failed=${state.failedSearches} pages_ok=${state.successfulPageReads} pages_failed=${state.failedPageReads} authority_read=${state.authorityRead} retry=${retryCount} finish_reason=${assistantFinishReason(finalMessage) ?? 'unknown'} model=${activeAgentModel}`,
+          );
+
+          const missingCentralAuthority =
+            epistemicPolicy.authorityNeed === 'required' &&
+            gaps.includes('authority_read');
+
+          if (missingCentralAuthority) {
+            finalText =
+              "I couldn't read the underlying authority well enough to answer that as a primary-source-grounded claim. I don't want to substitute snippets or summaries and pretend they're the original.";
+          } else if (researchTurn) {
+            const finalSpeakerModelId = epistemicPolicy.neutralResearchQuestion
+              ? judgmentModelId()
+              : selectedChatModel;
+            const handoff = buildResearchHandoff({
+              researchDraft: candidateText,
+              trace: researchTrace,
+              evidence: state,
+              missing: [
+                ...gaps,
+                ...(finalCitationMissing ? ['inline_citations'] : []),
+              ],
+              truncated,
+            });
+            try {
+              const finalSpeakerModel = finalSpeakerModelId.startsWith(
+                'openai/gpt-5.6-',
+              )
+                ? getPinnedOpenAIModel(finalSpeakerModelId)
+                : getLanguageModel(finalSpeakerModelId);
+              const synthesize = (activeHandoff: string) =>
+                synthesizeSophieAnswer({
+                  model: finalSpeakerModel,
+                  conversation: textConversation(presignedMessages),
+                  policy: epistemicPolicy,
+                  handoff: activeHandoff,
+                  signal: agentSignal,
+                  maxOutputTokens: outputTokenBudget(
+                    epistemicPolicy.researchDepth,
+                  ),
+                });
+              const synthesisIsValid = (text: string) =>
+                text.trim().length > 0 &&
+                hasOnlyGroundedCitations(text, researchTrace) &&
+                (!requiresInlineCitations(epistemicPolicy) ||
+                  hasMaterialClaimCitationCoverage(text, researchTrace));
+
+              let synthesis = await synthesize(handoff);
+              if (!synthesisIsValid(synthesis.text)) {
+                console.warn(
+                  '[chat] Sophie synthesis citation repair required',
+                );
+                synthesis = await synthesize(
+                  `${handoff}\n\n[FINAL CITATION REPAIR]\nRewrite once. Every paragraph or bullet containing a material researched fact must include an exact supporting Markdown URL from SOURCES ACTUALLY RETRIEVED. Remove unsupported precision. Do not add or alter URLs. Opinions need no citation.`,
+                );
+              }
+
+              if (synthesisIsValid(synthesis.text)) {
+                finalText = synthesis.text;
+              } else if (
+                candidateText.trim() &&
+                hasOnlyGroundedCitations(candidateText, researchTrace) &&
+                (!requiresInlineCitations(epistemicPolicy) ||
+                  hasMaterialClaimCitationCoverage(
+                    candidateText,
+                    researchTrace,
+                  ))
+              ) {
+                console.warn(
+                  '[chat] Sophie synthesis remained ungrounded; returning grounded research draft',
+                );
+                finalText = candidateText;
+              } else {
+                finalText =
+                  "I found relevant evidence, but I couldn't separate the supported claims from the unsupported ones cleanly enough to give you a trustworthy answer yet.";
+              }
+              if (synthesis.finishReason === 'length') {
+                console.warn('[chat] Sophie synthesis reached output limit');
+              }
+            } catch (error) {
+              if (agentSignal.aborted) throw error;
+              if (
+                candidateText.trim() &&
+                hasOnlyGroundedCitations(candidateText, researchTrace) &&
+                (!requiresInlineCitations(epistemicPolicy) ||
+                  hasMaterialClaimCitationCoverage(
+                    candidateText,
+                    researchTrace,
+                  ))
+              ) {
+                console.warn(
+                  '[chat] Sophie synthesis failed; returning grounded research draft',
+                );
+                finalText = candidateText;
+              } else {
+                finalText =
+                  "I found relevant evidence, but I couldn't separate the supported claims from the unsupported ones cleanly enough to give you a trustworthy answer yet.";
+              }
+            }
+          } else if (truncated) {
+            finalText =
+              "I couldn't complete that answer within the response limit, and I don't want to show you a cut-off version. Please try again in a moment.";
+          } else {
             finalText = candidateText;
           }
-        } else if (truncated) {
-          finalText =
-            "I couldn't complete that answer within the response limit, and I don't want to show you a cut-off version. Please try again in a moment.";
-        } else {
-          finalText = candidateText;
         }
       } catch (error) {
         logAIError('chat-agent', error);
@@ -532,6 +619,18 @@ export async function POST(request: Request) {
 
       if (!finalText) {
         finalText = 'I could not generate a response.';
+      }
+      if (!userProfile?.rpLocation) {
+        const resolvedWeatherLocation = researchTrace.activities.find(
+          (activity) =>
+            activity.kind === 'weather' && activity.status !== 'failed',
+        )?.query;
+        if (resolvedWeatherLocation) {
+          await saveUserDefaultLocationIfMissing({
+            userId: session.user.id,
+            location: resolvedWeatherLocation,
+          });
+        }
       }
       researchTrace = markCitedSources(researchTrace, finalText);
 

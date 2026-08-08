@@ -19,6 +19,17 @@ export const epistemicAssessmentSchema = z
       'verification',
       'investigation',
     ]),
+    capabilityRoute: z.enum(['reply', 'read_tools', 'live_data']).optional(),
+    interactionMode: z
+      .enum([
+        'social',
+        'celebration',
+        'judgment',
+        'emotional',
+        'practical',
+        'safety',
+      ])
+      .optional(),
     neutralResearchQuestion: z.string().trim().max(300).nullable().optional(),
     reason: z.string().trim().min(1).max(180),
     confidence: z.number().min(0).max(1),
@@ -55,6 +66,8 @@ const NO_RESEARCH: EpistemicAssessment = {
   sourceSensitivity: 'low',
   stakes: 'low',
   questionMode: 'conversation',
+  capabilityRoute: 'reply',
+  interactionMode: 'social',
   reason: 'Ordinary conversation or stable explanation.',
   confidence: 0.8,
 };
@@ -66,16 +79,6 @@ const DECLINES_RESEARCH =
 
 const CURRENT_EXTERNAL_FACT =
   /\b(?:latest|currently|current|today|this (?:week|month|year)|recent(?:ly)?|breaking|live|price|weather|score|schedule|release date|who is (?:the )?(?:current|new))\b/iu;
-const ASKS_FOR_JUDGMENT =
-  /(?:\b(?:what do you think|what's your (?:view|take)|what is your (?:view|take)|do you agree|don't you think|dont you think|how do you see it)\b|\bright\s*\?)/iu;
-const FRAMED_CONCLUSION =
-  /(?:\bI think\b.{0,120}\b(?:that|because|proves?|means?)\b|\b(?:clearly|obviously|probably just|must mean|proves? (?:that )?|means nothing)\b)/isu;
-
-export function isFramedJudgmentRequest(currentTurn: string): boolean {
-  return (
-    ASKS_FOR_JUDGMENT.test(currentTurn) || FRAMED_CONCLUSION.test(currentTurn)
-  );
-}
 
 function fallbackAssessment(currentTurn: string): EpistemicAssessment {
   if (EXPLICIT_RESEARCH.test(currentTurn)) {
@@ -115,6 +118,22 @@ Distinguish stable explanation from claims that depend on current external facts
 
 This assessment governs public external research. Requests answerable through the app's trusted private Gmail or Calendar tools, or its trusted server clock, should not require public research merely because they concern the user's current email, schedule, date, or time.
 
+Also choose capabilityRoute. Use read_tools only when answering the turn requires the signed-in user's private Gmail or Calendar data. Use live_data when answering an actual question, decision, or uncertainty materially depends on current local weather, an hourly forecast, sunrise, or sunset. Do not call live data merely because the user mentions heat, clothing, a walk, or sunset while chatting or confirming what they already know. Use reply for ordinary conversation, judgment, stable knowledge, and server-clock questions. Structured live data is preferable to public web research for weather. This is capability routing, not a research-depth signal.
+
+Route by meaning in context, never by isolated words. “I might walk later; I’ve been working all day” is companionship unless the user actually asks for weather-dependent advice. “Will I need a jacket later?” is live_data. Meteor showers, visible planets, flights, and other sky questions are not weather requests: current visibility claims need focused public research unless a dedicated structured capability can answer them. A correction such as “I meant planets” inherits the conversational subject and should be classified from the corrected meaning.
+
+Preserve compound intent. If one turn asks for structured live data and also asks a separate public-research question, do not classify the whole turn as live_data with researchDepth=none. Keep the public evidence requirement represented in researchDepth, freshnessNeed, authorityNeed, and neutralResearchQuestion so orchestration can see that another subtask remains. The reason should briefly name both needs.
+
+Choose interactionMode independently from research needs:
+- social: greetings, banter, low-signal companionship
+- celebration: the user shares a meaningful win or completed effort
+- judgment: the user wants a view, interpretation, decision, or challenge
+- emotional: vulnerability, grief, fear, exhaustion, conflict, or a need for presence
+- practical: ordinary information, planning, creation, or task help
+- safety: dangerous, abusive, illegal, self-harm, medical-emergency, or similarly high-risk guidance
+Choose the mode that should most shape Sophie's response; do not turn ordinary emotion into crisis language.
+The current user's words are the primary evidence for interactionMode. Recent assistant messages may provide topic continuity, but an assistant's earlier interpretation of the user's mood is not evidence that the interpretation was correct. Do not carry an emotional mode forward merely because the assistant speculated about hidden weight; require support from what the user actually says now or previously said themselves.
+
 Research depth:
 - none: ordinary conversation or stable explanation
 - light: a few targeted retrievals
@@ -131,6 +150,8 @@ Freshness need asks whether current external evidence is needed. Authority need 
 If the user asks not to search, classify the evidence the question would objectively require anyway; runtime policy handles the refusal. Keep reason brief and machine-auditable. Do not include private details unnecessarily.
 
 For a framed, disputed, or judgment-seeking question, provide neutralResearchQuestion as a concise, conclusion-neutral formulation of the issue Sophie should decide, even when researchDepth is none. Remove leading or loaded assumptions from the user's wording. If research is needed, the same formulation becomes the research question: ask about effects, strength, conditions, alternatives, and meaningful counterevidence rather than searching to prove or disprove the user's preferred conclusion. Oppositely framed versions of the same substantive question should yield materially equivalent neutral questions. Use null only when no neutralisation is useful, such as casual chat or a simple direct fact.
+
+When researchDepth is none, this neutral formulation is only a private reasoning anchor, not a request for a scientific consensus or literature review. Keep it in ordinary language (for example, “What role does X play in Y, and what else matters?”) unless the user explicitly asked about evidence or consensus.
 
 RECENT CONTEXT (bounded; may be empty):
 ${recentContext || '(none)'}
@@ -150,7 +171,7 @@ async function classifyWithModel(
     model: getLanguageModel(modelId),
     schema: epistemicAssessmentSchema,
     temperature: 0,
-    maxOutputTokens: 280,
+    maxOutputTokens: 340,
     prompt: policyPrompt(input),
     abortSignal: signal,
   });
@@ -188,32 +209,6 @@ function applyConservativeEscalation(
   return assessment;
 }
 
-function applyConversationalJudgmentDefault(
-  assessment: EpistemicAssessment,
-  currentTurn: string,
-): EpistemicAssessment {
-  if (
-    !isFramedJudgmentRequest(currentTurn) ||
-    EXPLICIT_RESEARCH.test(currentTurn) ||
-    CURRENT_EXTERNAL_FACT.test(currentTurn) ||
-    assessment.freshnessNeed === 'required' ||
-    assessment.authorityNeed === 'required' ||
-    assessment.stakes === 'high'
-  ) {
-    return assessment;
-  }
-
-  return {
-    ...assessment,
-    researchDepth: 'none',
-    freshnessNeed: 'none',
-    authorityNeed: 'none',
-    questionMode: 'conversation',
-    reason:
-      'Ordinary judgment request; Sophie can reason naturally without defaulting to public research.',
-  };
-}
-
 export async function assessEpistemicPolicy({
   currentTurn,
   recentContext = '',
@@ -243,9 +238,8 @@ export async function assessEpistemicPolicy({
             { currentTurn: normalized, recentContext },
             signal,
           );
-    const assessment = applyConversationalJudgmentDefault(
-      applyConservativeEscalation(epistemicAssessmentSchema.parse(raw)),
-      normalized,
+    const assessment = applyConservativeEscalation(
+      epistemicAssessmentSchema.parse(raw),
     );
     return {
       ...assessment,
@@ -278,15 +272,12 @@ export function shouldUseResearchModel(policy: EpistemicPolicy): boolean {
   return requiresResearch(policy);
 }
 
-export function shouldUseJudgmentModel(
-  policy: EpistemicPolicy,
-  currentTurn = '',
-): boolean {
+export function shouldUseJudgmentModel(policy: EpistemicPolicy): boolean {
   return (
     !requiresResearch(policy) &&
     policy.questionMode === 'conversation' &&
-    (Boolean(policy.neutralResearchQuestion) ||
-      isFramedJudgmentRequest(currentTurn))
+    (policy.interactionMode === 'judgment' ||
+      Boolean(policy.neutralResearchQuestion))
   );
 }
 
@@ -295,7 +286,9 @@ function succeeded(activity: ResearchActivity): boolean {
 }
 
 export function evidenceState(trace: ResearchTrace): EvidenceState {
-  const searches = trace.activities.filter(({ kind }) => kind !== 'page');
+  const searches = trace.activities.filter(
+    ({ kind }) => kind !== 'page' && kind !== 'weather',
+  );
   const pages = trace.activities.filter(({ kind }) => kind === 'page');
   const successfulPageReads = pages.filter(succeeded);
   const successfulSearches = searches.filter(
@@ -358,7 +351,10 @@ export function requiresInlineCitations(policy: EpistemicPolicy): boolean {
   return (
     !policy.userDeclinedResearch &&
     (policy.authorityNeed === 'required' ||
-      policy.questionMode === 'verification')
+      policy.questionMode === 'verification' ||
+      (policy.researchDepth !== 'none' &&
+        policy.sourceSensitivity === 'high' &&
+        policy.questionMode === 'investigation'))
   );
 }
 
@@ -411,10 +407,10 @@ export function hasOnlyGroundedCitations(
 
 function hasMaterialFactualClaim(paragraph: string): boolean {
   return (
-    /(?:\b(?:18|19|20)\d{2}\b|\b\d[\d,.]*\s*%|\b\d[\d,.]*\s+(?:people|users|participants|studies|weeks?|months?|years?)\b)/iu.test(
+    /(?:\b(?:18|19|20)\d{2}\b|\b\d[\d,.]*\s*%|\b\d[\d,.]*\s+(?:people|users|participants|studies|weeks?|months?|years?)\b|\b(?:[01]?\d|2[0-3]):[0-5]\d\b|\b\d{1,2}(?::\d{2})?\s*(?:am|pm)\b)/iu.test(
       paragraph,
     ) ||
-    /\b(?:study|studies|paper|researchers?|court|judge|ruled|ruling|held|ordered|published|report(?:ed)?|dataset|trial|experiment|survey|review found|evidence shows)\b/iu.test(
+    /\b(?:study|studies|paper|researchers?|court|judge|ruled|ruling|held|ordered|published|report(?:ed)?|dataset|trial|experiment|survey|review found|evidence shows|sunrise|sunset|rises?|sets?)\b/iu.test(
       paragraph,
     )
   );
@@ -463,5 +459,13 @@ export function researchFallbackModelId(): string {
 }
 
 export function judgmentModelId(): string {
-  return process.env.SOPHIE_JUDGMENT_MODEL?.trim() || 'openai/gpt-5.6-luna-pro';
+  return (
+    process.env.SOPHIE_JUDGMENT_MODEL?.trim() || 'google/gemini-3.5-flash-lite'
+  );
+}
+
+export function celebrationModelId(): string {
+  return (
+    process.env.SOPHIE_CELEBRATION_MODEL?.trim() || 'openai/gpt-5.6-luna-pro'
+  );
 }

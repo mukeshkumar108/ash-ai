@@ -11,6 +11,7 @@ interface UserProfile {
   id: string;
   email: string;
   displayName: string | null;
+  rpLocation: string | null;
 }
 
 interface UserStats {
@@ -76,6 +77,7 @@ export default function ProfilePage() {
       const formData = new FormData(e.currentTarget);
       const updates = {
         displayName: formData.get('displayName') as string,
+        rpLocation: formData.get('rpLocation') as string,
       };
 
       const response = await fetch('/api/profile', {
@@ -124,7 +126,9 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-background p-4 pb-24 md:pb-4">
       <div className="mx-auto max-w-2xl">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Profile & Settings</h1>
+          <h1 className="text-3xl font-bold text-foreground">
+            Profile & Settings
+          </h1>
           <p className="text-muted-foreground mt-2">
             Customize your experience and manage your preferences.
           </p>
@@ -156,6 +160,29 @@ export default function ProfilePage() {
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none"
                   maxLength={100}
                 />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="rpLocation"
+                  className="block text-sm font-medium mb-2"
+                >
+                  Default location
+                </label>
+                <input
+                  type="text"
+                  id="rpLocation"
+                  name="rpLocation"
+                  defaultValue={profile.rpLocation || ''}
+                  placeholder="Burwell, Cambridgeshire"
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none"
+                  maxLength={120}
+                  autoComplete="address-level2"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Used for local weather and daylight when you don&apos;t name
+                  another location in chat.
+                </p>
               </div>
 
               <div>

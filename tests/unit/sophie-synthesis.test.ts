@@ -27,6 +27,9 @@ test('final synthesis separates independent judgment from research notes', () =>
   expect(prompt).toContain('does not choose your conclusion');
   expect(prompt).toContain('If retrieval was partial');
   expect(prompt).toContain(
+    'Never turn an empty or failed retrieval into an absence claim',
+  );
+  expect(prompt).toContain(
     'Opinions and interpretations do not need citations',
   );
 });

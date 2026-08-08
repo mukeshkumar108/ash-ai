@@ -14,7 +14,7 @@ export type MessageMetadata = z.infer<typeof messageMetadataSchema>;
 export type ChatTools = Record<string, never>;
 
 export type ResearchActivity = {
-  kind: 'web' | 'news' | 'video' | 'image' | 'place' | 'page';
+  kind: 'web' | 'news' | 'video' | 'image' | 'place' | 'page' | 'weather';
   query: string;
   resultCount?: number;
   status?: 'success' | 'failed';

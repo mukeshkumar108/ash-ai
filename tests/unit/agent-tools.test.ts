@@ -145,6 +145,30 @@ test('the model-visible Google tool surface is read-only until approvals exist',
   expect(names.some((name) => /send/i.test(name))).toBe(false);
 });
 
+test('private and public capabilities are isolated by execution lane', () => {
+  const privateNames = buildAshModelTools(
+    'user-42',
+    {},
+    undefined,
+    'read_tools',
+  ).map((tool) => tool.name);
+  const researchNames = buildAshModelTools(
+    'user-42',
+    {},
+    undefined,
+    'research',
+  ).map((tool) => tool.name);
+
+  expect(privateNames.some((name) => name.startsWith('gmail_'))).toBe(true);
+  expect(privateNames.some((name) => name.includes('search'))).toBe(false);
+  expect(privateNames).not.toContain('fetch_web_page');
+
+  expect(researchNames.some((name) => name.startsWith('gmail_'))).toBe(false);
+  expect(researchNames.some((name) => name.includes('search'))).toBe(true);
+  expect(researchNames).toContain('fetch_web_page');
+  expect(researchNames).toContain('get_weather');
+});
+
 test('gmail_list_messages is bounded, forwards the query, and binds the user identity', async () => {
   const { calls, restore } = mockFetch(() => jsonResponse({ messages: [] }));
 

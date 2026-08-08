@@ -37,7 +37,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { displayName, themePreference } = body;
+    const { displayName, rpLocation, themePreference } = body;
 
     // Validate input
     if (typeof displayName !== 'string' || displayName.length > 100) {
@@ -46,9 +46,16 @@ export async function PUT(request: NextRequest) {
         { status: 400 },
       );
     }
+    if (typeof rpLocation !== 'string' || rpLocation.length > 120) {
+      return NextResponse.json(
+        { error: 'Invalid default location' },
+        { status: 400 },
+      );
+    }
 
     const updates: Record<string, string | null> = {
       displayName: displayName.trim() || null,
+      rpLocation: rpLocation.trim() || null,
     };
 
     if (themePreference != null) {
@@ -66,7 +73,10 @@ export async function PUT(request: NextRequest) {
     } catch (error) {
       await db
         .update(user)
-        .set({ displayName: updates.displayName })
+        .set({
+          displayName: updates.displayName,
+          rpLocation: updates.rpLocation,
+        })
         .where(eq(user.id, session.user.id));
     }
 

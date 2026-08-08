@@ -105,24 +105,23 @@ const requestedIds = new Set(
     .map((value) => value.trim())
     .filter(Boolean),
 );
+const requestedModelId = process.argv
+  .find((argument) => argument.startsWith('--model='))
+  ?.slice('--model='.length);
 
 async function main() {
-  const {
-    assessEpistemicPolicy,
-    judgmentModelId,
-    shouldUseJudgmentModel,
-    shouldUseResearchModel,
-  } = await import('@/lib/agent/research-policy');
-  const { buildAshAgentSystemPrompt } = await import(
+  const { assessEpistemicPolicy } = await import('@/lib/agent/research-policy');
+  const { buildSophieReplySystemPrompt } = await import(
     '@/lib/agent/system-prompt'
   );
+  const { decideTurn } = await import('@/lib/agent/turn-runtime');
   const { getLanguageModel, getPinnedOpenAIModel } = await import(
     '@/lib/ai/providers'
   );
 
   const results: Array<{
     scenario: Scenario;
-    route: 'conversation' | 'research';
+    route: 'reply_only' | 'read_tools' | 'live_data' | 'research';
     neutralQuestion: string | null;
     model?: string;
     answer?: string;
@@ -136,10 +135,19 @@ async function main() {
       recentContext: '',
       signal: AbortSignal.timeout(15_000),
     });
-    const research = shouldUseResearchModel(policy);
-    const modelId = shouldUseJudgmentModel(policy, scenario.prompt)
-      ? judgmentModelId()
-      : 'deepseek/deepseek-v4-flash';
+    const decision = decideTurn(
+      {
+        userId: 'eval-user',
+        chatId: 'eval-chat',
+        currentUserText: scenario.prompt,
+        selectedModelId: 'deepseek/deepseek-v4-flash',
+        hasImageParts: false,
+        ambient: { userLocation: null, timeZone: 'Europe/London' },
+      },
+      policy,
+    );
+    const research = decision.lane === 'research';
+    const modelId = requestedModelId ?? decision.modelId;
     let answer: string | undefined;
 
     if (!research) {
@@ -147,16 +155,8 @@ async function main() {
         model: modelId.startsWith('openai/gpt-5.6-')
           ? getPinnedOpenAIModel(modelId)
           : getLanguageModel(modelId),
-        system: buildAshAgentSystemPrompt({
-          researchRequirement: {
-            reason: policy.reason,
-            retry: false,
-            researchDepth: policy.researchDepth,
-            freshnessNeed: policy.freshnessNeed,
-            authorityNeed: policy.authorityNeed,
-            sourceSensitivity: policy.sourceSensitivity,
-            neutralResearchQuestion: policy.neutralResearchQuestion,
-          },
+        system: buildSophieReplySystemPrompt({
+          neutralQuestion: policy.neutralResearchQuestion,
         }),
         prompt: scenario.prompt,
         maxOutputTokens: 900,
@@ -166,7 +166,7 @@ async function main() {
 
     results.push({
       scenario,
-      route: research ? 'research' : 'conversation',
+      route: decision.lane,
       neutralQuestion: policy.neutralResearchQuestion ?? null,
       ...(answer ? { model: modelId, answer } : {}),
     });

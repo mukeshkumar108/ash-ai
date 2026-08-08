@@ -13,6 +13,7 @@ import {
 } from '@/lib/agent/brave-search';
 import { buildAshAgentSystemPrompt } from '@/lib/agent/system-prompt';
 import { buildTinyFishFetchTool } from '@/lib/agent/tinyfish-fetch';
+import { getWeather } from '@/lib/agent/weather';
 import { getLanguageModel, getPinnedOpenAIModel } from '@/lib/ai/providers';
 import {
   describeIntegrationFailure,
@@ -515,6 +516,8 @@ export function buildAshModelTools(
   userId: string,
   temporalContext: { now?: Date; timeZone?: string } = {},
   researchSession: ResearchSession = createResearchSession(),
+  capabilityMode: 'all' | 'read_tools' | 'research' = 'all',
+  userLocation?: string | null,
 ) {
   const canonicalUrl = (url: URL | string) => {
     const parsed = new URL(url);
@@ -522,20 +525,73 @@ export function buildAshModelTools(
     return parsed.toString();
   };
 
-  return [
-    ...buildAshAgentTools(userId, temporalContext).filter(
-      (candidate) => !MODEL_BLOCKED_WRITE_TOOLS.has(candidate.name),
-    ),
-    ...buildBraveResearchTools({
-      session: researchSession,
-      onDiscoveredUrl: (url) =>
-        researchSession.discoveredUrls.add(canonicalUrl(url)),
-    }),
-    buildTinyFishFetchTool({
-      isUrlAllowed: (url) =>
-        researchSession.discoveredUrls.has(canonicalUrl(url)),
-    }),
-  ];
+  const privateReadTools =
+    capabilityMode === 'research'
+      ? []
+      : buildAshAgentTools(userId, temporalContext).filter(
+          (candidate) => !MODEL_BLOCKED_WRITE_TOOLS.has(candidate.name),
+        );
+  const publicResearchTools =
+    capabilityMode === 'read_tools'
+      ? []
+      : [
+          tool(
+            async (
+              {
+                location,
+                timeRange,
+              }: {
+                location?: string;
+                timeRange: 'now' | 'today' | 'this_evening' | 'tomorrow';
+              },
+              runtime,
+            ) => {
+              const requestedLocation =
+                location?.trim() || userLocation?.trim();
+              if (!requestedLocation) {
+                return {
+                  query: 'saved default location',
+                  error: 'A location is needed to check live weather.',
+                };
+              }
+              try {
+                const weather = await getWeather(requestedLocation, timeRange, {
+                  signal: runtime?.signal,
+                });
+                return { query: weather.location, ...weather };
+              } catch {
+                return {
+                  query: requestedLocation,
+                  error: 'Live weather is temporarily unavailable.',
+                };
+              }
+            },
+            {
+              name: 'get_weather',
+              description:
+                'Get bounded current/hourly weather and sunrise/sunset for a public location. Use this structured source instead of web search for weather.',
+              schema: z
+                .object({
+                  location: z.string().trim().min(2).max(120).optional(),
+                  timeRange: z
+                    .enum(['now', 'today', 'this_evening', 'tomorrow'])
+                    .default('today'),
+                })
+                .strict(),
+            },
+          ),
+          ...buildBraveResearchTools({
+            session: researchSession,
+            onDiscoveredUrl: (url) =>
+              researchSession.discoveredUrls.add(canonicalUrl(url)),
+          }),
+          buildTinyFishFetchTool({
+            isUrlAllowed: (url) =>
+              researchSession.discoveredUrls.has(canonicalUrl(url)),
+          }),
+        ];
+
+  return [...privateReadTools, ...publicResearchTools];
 }
 
 export function createAshAgent({
@@ -544,14 +600,17 @@ export function createAshAgent({
   model,
   now = new Date(),
   timeZone = process.env.ASH_TIME_ZONE?.trim() || 'Europe/London',
+  userLocation,
   researchRequirement,
   researchSession,
+  capabilityMode = 'all',
 }: {
   userId: string;
   modelId: string;
   model?: BaseChatModel;
   now?: Date;
   timeZone?: string;
+  userLocation?: string | null;
   researchRequirement?: {
     reason: string;
     retry: boolean;
@@ -564,6 +623,7 @@ export function createAshAgent({
     missing?: string[];
   };
   researchSession?: ResearchSession;
+  capabilityMode?: 'all' | 'read_tools' | 'research';
 }) {
   assertPrivateTracingPolicy();
 
@@ -581,15 +641,24 @@ export function createAshAgent({
 
   return createDeepAgent({
     model: chatModel as BaseChatModel,
-    systemPrompt: buildAshAgentSystemPrompt({
+    systemPrompt: `${buildAshAgentSystemPrompt({
       now,
       timeZone,
+      userLocation,
       researchRequirement,
-    }),
+    })}\n\n[TURN CAPABILITY SCOPE]\n${
+      capabilityMode === 'research'
+        ? 'Only public research tools are available for this turn. Private Gmail and Calendar tools are unavailable.'
+        : capabilityMode === 'read_tools'
+          ? 'Only private read-only Gmail and Calendar tools are available for this turn. Public web research tools are unavailable.'
+          : 'Private read-only tools and public research tools are available when relevant.'
+    }`,
     tools: buildAshModelTools(
       userId,
       { now, timeZone },
       researchSession ?? createResearchSession(),
+      capabilityMode,
+      userLocation,
     ),
   });
 }
