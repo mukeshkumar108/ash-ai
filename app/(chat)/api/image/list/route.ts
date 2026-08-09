@@ -1,4 +1,3 @@
-import { list } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 
 import { auth } from '@/app/(auth)/auth';
@@ -42,27 +41,11 @@ export async function GET() {
       createdAt: row.createdAt.toISOString(),
     }));
 
-    // Orphaned blobs (generated before metadata persisted, or not yet saved)
-    // are returned separately so older images stay visible.
-    const ownedPathnames = new Set(
-      generations.flatMap((gen) => gen.images.map((img) => img.pathname)),
-    );
-
-    const { blobs } = await list({
-      prefix: 'image-gen/',
-      token: process.env.BLOB_READ_WRITE_TOKEN,
-      limit: 500,
-    });
-
-    const orphans = blobs
-      .filter((blob) => !ownedPathnames.has(blob.pathname))
-      .map((blob) => ({
-        pathname: blob.pathname,
-        url: blob.url,
-        uploadedAt: blob.uploadedAt.toISOString(),
-      }));
-
-    return NextResponse.json({ generations, orphans });
+    // Blob storage is shared by the deployment and does not carry trustworthy
+    // ownership metadata. Only return database rows explicitly owned by the
+    // authenticated user; globally listing "orphaned" blobs leaks images
+    // across accounts.
+    return NextResponse.json({ generations, orphans: [] });
   } catch (error) {
     console.error('[image-list] failed', error);
     return NextResponse.json(

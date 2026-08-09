@@ -568,6 +568,11 @@ export default function ImageStudioPage() {
           g.id === id
             ? {
                 ...g,
+                id:
+                  typeof payload.generationId === 'string' &&
+                  payload.generationId.length > 0
+                    ? payload.generationId
+                    : g.id,
                 status: 'done',
                 prompt: payload.prompt ?? g.prompt,
                 images: payload.results,
@@ -1020,7 +1025,7 @@ export default function ImageStudioPage() {
                       <div
                         key={gen.id}
                         className={cn(
-                          'rounded-xl border p-3 text-sm',
+                          'flex items-start justify-between gap-3 rounded-xl border p-3 text-sm',
                           gen.status === 'failed'
                             ? 'border-red-500/30 bg-red-500/10 text-red-600'
                             : 'border-border bg-muted/30 text-muted-foreground',
@@ -1029,11 +1034,25 @@ export default function ImageStudioPage() {
                         {gen.status === 'loading' ? (
                           <span className="flex items-center gap-2">
                             <Loader2 size={14} className="animate-spin" />
-                            {gen.parentGenerationId ? 'Remixing' : 'Generating'} “
-                            {gen.prompt}”…
+                            {gen.parentGenerationId ? 'Remixing' : 'Generating'}{' '}
+                            “{gen.prompt}”…
                           </span>
                         ) : (
-                          (gen.error ?? 'Generation failed')
+                          <>
+                            <span>{gen.error ?? 'Generation failed'}</span>
+                            <button
+                              type="button"
+                              aria-label="Dismiss failed generation"
+                              onClick={() =>
+                                setGenerations((current) =>
+                                  current.filter((item) => item.id !== gen.id),
+                                )
+                              }
+                              className="flex size-6 shrink-0 items-center justify-center rounded-full text-red-600/70 hover:bg-red-500/10 hover:text-red-700"
+                            >
+                              <X size={14} />
+                            </button>
+                          </>
                         )}
                       </div>
                     ))}

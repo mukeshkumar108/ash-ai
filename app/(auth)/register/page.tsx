@@ -2,14 +2,13 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useActionState, useEffect, useState } from 'react';
+import { useActionState, useEffect, useRef, useState } from 'react';
 
 import { AuthForm } from '@/components/auth-form';
 import { SubmitButton } from '@/components/submit-button';
 
 import { register, type RegisterActionState } from '../actions';
 import { toast } from '@/components/toast';
-import { useSession } from 'next-auth/react';
 
 export default function Page() {
   const router = useRouter();
@@ -24,9 +23,13 @@ export default function Page() {
     },
   );
 
-  const { update: updateSession } = useSession();
+  const handledStatus = useRef<RegisterActionState['status']>('idle');
 
   useEffect(() => {
+    if (state.status === 'idle' || state.status === 'in_progress') return;
+    if (handledStatus.current === state.status) return;
+    handledStatus.current = state.status;
+
     if (state.status === 'user_exists') {
       toast({ type: 'error', description: 'Account already exists!' });
     } else if (state.status === 'failed') {
@@ -40,10 +43,10 @@ export default function Page() {
       toast({ type: 'success', description: 'Account created successfully!' });
 
       setIsSuccessful(true);
-      updateSession();
       router.replace('/');
+      router.refresh();
     }
-  }, [state, updateSession, router]);
+  }, [state.status, router]);
 
   const handleSubmit = (formData: FormData) => {
     setEmail(formData.get('email') as string);

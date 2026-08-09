@@ -204,7 +204,7 @@ export default function ProfilePage() {
                 </p>
               </div>
 
-              <SubmitButton isSuccessful={!saving}>
+              <SubmitButton isSuccessful={false}>
                 {saving ? 'Saving...' : 'Save Changes'}
               </SubmitButton>
             </form>

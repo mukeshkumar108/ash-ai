@@ -22,7 +22,7 @@ import {
 
 export function AppSidebar() {
   const router = useRouter();
-  const { setOpenMobile, state } = useSidebar();
+  const { setOpenMobile, state, isMobile } = useSidebar();
   const { data: session } = useSession();
   const user = session?.user;
 
@@ -63,7 +63,7 @@ export function AppSidebar() {
         <SidebarTrigger className="mt-2" />
       </SidebarHeader>
       <SidebarContent>
-        {state === 'expanded' && <SidebarHistory user={user} />}
+        {(isMobile || state === 'expanded') && <SidebarHistory user={user} />}
       </SidebarContent>
       <SidebarFooter>
         <div className="flex flex-col gap-2 p-2">
