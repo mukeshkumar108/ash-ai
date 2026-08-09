@@ -351,7 +351,7 @@ export function Chat({
           </div>
         ) : null}
 
-        <form className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+4.75rem)] z-30 flex w-full gap-2 border-t border-white/50 bg-background/80 px-4 pb-4 pt-2 backdrop-blur md:sticky md:bottom-0 md:mx-auto md:max-w-3xl md:pb-6 dark:border-white/5 dark:bg-zinc-950/70">
+        <form className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+4.75rem)] z-30 flex w-full gap-2 px-4 pb-4 pt-2 md:sticky md:bottom-0 md:mx-auto md:max-w-3xl md:pb-6">
           {!isReadonly && (
             <MultimodalInput
               chatId={id}

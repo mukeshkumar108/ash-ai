@@ -239,6 +239,37 @@
     outline: none;
 }
 
+@keyframes image-shimmer-sweep {
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.image-shimmer {
+    position: relative;
+    overflow: hidden;
+}
+
+.image-shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        hsl(var(--foreground) / 0.07),
+        transparent
+    );
+    animation: image-shimmer-sweep 1.8s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .image-shimmer::after {
+        animation: none;
+    }
+}
+
 .cm-editor,
 .cm-gutters {
     @apply bg-background dark:bg-zinc-800 outline-none selection:bg-zinc-900!

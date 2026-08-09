@@ -57,6 +57,8 @@ type Generation = {
   parentGenerationId?: string | null;
   parentOutputPathname?: string | null;
   instruction?: string | null;
+  aspectRatio?: string | null;
+  expectedOutputs?: number;
   inputImages?: Array<{
     pathname: string;
     mediaType: string;
@@ -515,6 +517,8 @@ export default function ImageStudioPage() {
       parentGenerationId: remixTarget?.gen.id ?? null,
       parentOutputPathname: remixTarget?.img.pathname ?? null,
       instruction: isRemix ? prompt.trim() : null,
+      aspectRatio,
+      expectedOutputs: numOutputs,
     };
 
     setGenerations((current) => [gen, ...current]);
@@ -627,6 +631,31 @@ export default function ImageStudioPage() {
     return flat;
   }, [generations]);
 
+  // Grid slots, newest-first: in-flight generations first (one reserved,
+  // aspect-ratio slot per expected output so the layout never shifts), then
+  // completed images.
+  const gridItems = useMemo(() => {
+    const items: Array<{
+      key: string;
+      gen: Generation;
+      img?: GeneratedImage;
+    }> = [];
+    for (const gen of generations) {
+      if (gen.status === 'loading') {
+        const slots = gen.expectedOutputs ?? 1;
+        for (let slot = 0; slot < slots; slot += 1) {
+          items.push({ key: `${gen.id}-slot-${slot}`, gen });
+        }
+      }
+    }
+    for (const gen of generations) {
+      if (gen.status === 'done') {
+        for (const img of gen.images) items.push({ key: img.pathname, gen, img });
+      }
+    }
+    return items;
+  }, [generations]);
+
   // Bucket newest-first items into columns (item i -> column i % count) so the
   // gallery reads left-to-right, top-to-bottom, with the latest image at the
   // top-left, while keeping the masonry look.
@@ -634,19 +663,19 @@ export default function ImageStudioPage() {
   const gridColumns = useMemo(() => {
     const cols: Array<{
       id: string;
-      items: Array<{ gen: Generation; img: GeneratedImage }>;
+      items: Array<{ key: string; gen: Generation; img?: GeneratedImage }>;
     }> = Array.from({ length: columnCount }, (_, i) => ({
       id: `col-${i}`,
       items: [],
     }));
     let index = 0;
-    for (const item of images) {
-      if (showFavsOnly && !favs[item.img.pathname]) continue;
+    for (const item of gridItems) {
+      if (item.img && showFavsOnly && !favs[item.img.pathname]) continue;
       cols[index % columnCount].items.push(item);
       index += 1;
     }
     return cols;
-  }, [images, columnCount, showFavsOnly, favs]);
+  }, [gridItems, columnCount, showFavsOnly, favs]);
 
   return (
     <div className="flex min-h-dvh w-full flex-col gap-6 p-4 md:p-6">
@@ -1017,43 +1046,28 @@ export default function ImageStudioPage() {
                 )}
               </div>
 
-              {generations.some((gen) => gen.status !== 'done') && (
+              {generations.some((gen) => gen.status === 'failed') && (
                 <div className="mb-4 flex flex-col gap-2">
                   {generations
-                    .filter((gen) => gen.status !== 'done')
+                    .filter((gen) => gen.status === 'failed')
                     .map((gen) => (
                       <div
                         key={gen.id}
-                        className={cn(
-                          'flex items-start justify-between gap-3 rounded-xl border p-3 text-sm',
-                          gen.status === 'failed'
-                            ? 'border-red-500/30 bg-red-500/10 text-red-600'
-                            : 'border-border bg-muted/30 text-muted-foreground',
-                        )}
+                        className="flex items-start justify-between gap-3 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-600"
                       >
-                        {gen.status === 'loading' ? (
-                          <span className="flex items-center gap-2">
-                            <Loader2 size={14} className="animate-spin" />
-                            {gen.parentGenerationId ? 'Remixing' : 'Generating'}{' '}
-                            “{gen.prompt}”…
-                          </span>
-                        ) : (
-                          <>
-                            <span>{gen.error ?? 'Generation failed'}</span>
-                            <button
-                              type="button"
-                              aria-label="Dismiss failed generation"
-                              onClick={() =>
-                                setGenerations((current) =>
-                                  current.filter((item) => item.id !== gen.id),
-                                )
-                              }
-                              className="flex size-6 shrink-0 items-center justify-center rounded-full text-red-600/70 hover:bg-red-500/10 hover:text-red-700"
-                            >
-                              <X size={14} />
-                            </button>
-                          </>
-                        )}
+                        <span>{gen.error ?? 'Generation failed'}</span>
+                        <button
+                          type="button"
+                          aria-label="Dismiss failed generation"
+                          onClick={() =>
+                            setGenerations((current) =>
+                              current.filter((item) => item.id !== gen.id),
+                            )
+                          }
+                          className="flex size-6 shrink-0 items-center justify-center rounded-full text-red-600/70 hover:bg-red-500/10 hover:text-red-700"
+                        >
+                          <X size={14} />
+                        </button>
                       </div>
                     ))}
                 </div>
@@ -1065,97 +1079,154 @@ export default function ImageStudioPage() {
                     key={col.id}
                     className="flex min-w-0 flex-1 flex-col gap-4"
                   >
-                    {col.items.map(({ gen, img }) => (
-                      <div
-                        key={img.pathname}
-                        className="group overflow-hidden rounded-xl border"
-                      >
-                        <div className="relative">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={getBlobDisplayUrl(img.url)}
-                            alt={gen.prompt}
-                            className="w-full object-cover"
-                          />
-                          <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                            {!gen.id.startsWith('recovered-') && (
+                    {col.items.map(({ key, gen, img }) =>
+                      img ? (
+                        <div
+                          key={key}
+                          className="group overflow-hidden rounded-xl border"
+                        >
+                          <div className="relative">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={getBlobDisplayUrl(img.url)}
+                              alt={gen.prompt}
+                              className="w-full object-cover"
+                              style={
+                                gen.aspectRatio
+                                  ? { aspectRatio: gen.aspectRatio }
+                                  : undefined
+                              }
+                            />
+                            <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                              {!gen.id.startsWith('recovered-') && (
+                                <button
+                                  type="button"
+                                  aria-label="Remix image"
+                                  title="Remix this image"
+                                  onClick={() => startRemix(gen, img)}
+                                  className="rounded-md bg-zinc-900/70 p-1.5 text-white hover:bg-zinc-900"
+                                >
+                                  <RefreshCw size={13} />
+                                </button>
+                              )}
                               <button
                                 type="button"
-                                aria-label="Remix image"
-                                title="Remix this image"
-                                onClick={() => startRemix(gen, img)}
+                                aria-label={
+                                  favs[img.pathname]
+                                    ? 'Unfavorite'
+                                    : 'Favorite'
+                                }
+                                onClick={() => toggleFav(img, gen)}
+                                className={cn(
+                                  'rounded-md bg-zinc-900/70 p-1.5 text-white hover:bg-zinc-900',
+                                  favs[img.pathname] && 'text-pink-400',
+                                )}
+                              >
+                                <Heart
+                                  size={13}
+                                  className={
+                                    favs[img.pathname] ? 'fill-current' : ''
+                                  }
+                                />
+                              </button>
+                              <button
+                                type="button"
+                                aria-label="Copy prompt"
+                                onClick={() => copyPrompt(gen.prompt)}
                                 className="rounded-md bg-zinc-900/70 p-1.5 text-white hover:bg-zinc-900"
                               >
-                                <RefreshCw size={13} />
+                                <Copy size={13} />
                               </button>
-                            )}
-                            <button
-                              type="button"
-                              aria-label={
-                                favs[img.pathname] ? 'Unfavorite' : 'Favorite'
-                              }
-                              onClick={() => toggleFav(img, gen)}
-                              className={cn(
-                                'rounded-md bg-zinc-900/70 p-1.5 text-white hover:bg-zinc-900',
-                                favs[img.pathname] && 'text-pink-400',
-                              )}
-                            >
-                              <Heart
-                                size={13}
-                                className={
-                                  favs[img.pathname] ? 'fill-current' : ''
+                              <button
+                                type="button"
+                                aria-label="Download image"
+                                onClick={() => downloadImage(img)}
+                                className="rounded-md bg-zinc-900/70 p-1.5 text-white hover:bg-zinc-900"
+                              >
+                                <Download size={13} />
+                              </button>
+                              <button
+                                type="button"
+                                aria-label="Delete image"
+                                onClick={() => deleteImage(img, gen)}
+                                className="rounded-md bg-zinc-900/70 p-1.5 text-white hover:bg-zinc-900"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
+                          </div>
+                          <div className="p-2">
+                            <div className="flex items-center gap-2">
+                              <span className="truncate text-xs text-muted-foreground">
+                                {imageModels.find(
+                                  (m) => m.id === gen.modelId,
+                                )?.name ?? gen.modelId}
+                              </span>
+                              <span
+                                title={
+                                  gen.generationIndex === 1
+                                    ? 'Original generation'
+                                    : `Remix of a generation ${
+                                        gen.generationIndex - 1
+                                      } image`
                                 }
+                                className="shrink-0 rounded border border-border/70 bg-muted/60 px-1 py-px text-[10px] font-medium uppercase tracking-wide text-muted-foreground"
+                              >
+                                Gen {gen.generationIndex}
+                              </span>
+                            </div>
+                            <div className="line-clamp-2 text-xs">
+                              {gen.prompt}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div
+                          key={key}
+                          data-testid="image-skeleton"
+                          className="overflow-hidden rounded-xl border"
+                        >
+                          <div
+                            className="image-shimmer relative bg-muted/60"
+                            style={{
+                              aspectRatio: gen.aspectRatio || '1/1',
+                            }}
+                          >
+                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4 text-center">
+                              <Loader2
+                                size={20}
+                                className="animate-spin text-muted-foreground"
                               />
-                            </button>
-                            <button
-                              type="button"
-                              aria-label="Copy prompt"
-                              onClick={() => copyPrompt(gen.prompt)}
-                              className="rounded-md bg-zinc-900/70 p-1.5 text-white hover:bg-zinc-900"
-                            >
-                              <Copy size={13} />
-                            </button>
-                            <button
-                              type="button"
-                              aria-label="Download image"
-                              onClick={() => downloadImage(img)}
-                              className="rounded-md bg-zinc-900/70 p-1.5 text-white hover:bg-zinc-900"
-                            >
-                              <Download size={13} />
-                            </button>
-                            <button
-                              type="button"
-                              aria-label="Delete image"
-                              onClick={() => deleteImage(img, gen)}
-                              className="rounded-md bg-zinc-900/70 p-1.5 text-white hover:bg-zinc-900"
-                            >
-                              <Trash2 size={13} />
-                            </button>
+                              <span className="text-xs font-medium text-muted-foreground">
+                                {gen.parentGenerationId
+                                  ? 'Remixing'
+                                  : 'Generating'}
+                              </span>
+                              <span className="line-clamp-2 text-xs text-muted-foreground/80">
+                                {gen.prompt}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="p-2">
+                            <div className="flex items-center gap-2">
+                              <span className="truncate text-xs text-muted-foreground">
+                                {imageModels.find(
+                                  (m) => m.id === gen.modelId,
+                                )?.name ?? gen.modelId}
+                              </span>
+                              {gen.parentGenerationId && (
+                                <span className="shrink-0 rounded border border-border/70 bg-muted/60 px-1 py-px text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                                  Gen {gen.generationIndex}
+                                </span>
+                              )}
+                            </div>
+                            <div className="line-clamp-2 text-xs">
+                              {gen.prompt}
+                            </div>
                           </div>
                         </div>
-                        <div className="p-2">
-                          <div className="flex items-center gap-2">
-                            <span className="truncate text-xs text-muted-foreground">
-                              {imageModels.find((m) => m.id === gen.modelId)
-                                ?.name ?? gen.modelId}
-                            </span>
-                            <span
-                              title={
-                                gen.generationIndex === 1
-                                  ? 'Original generation'
-                                  : `Remix of a generation ${gen.generationIndex - 1} image`
-                              }
-                              className="shrink-0 rounded border border-border/70 bg-muted/60 px-1 py-px text-[10px] font-medium uppercase tracking-wide text-muted-foreground"
-                            >
-                              Gen {gen.generationIndex}
-                            </span>
-                          </div>
-                          <div className="line-clamp-2 text-xs">
-                            {gen.prompt}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                      ),
+                    )}
                   </div>
                 ))}
               </div>
