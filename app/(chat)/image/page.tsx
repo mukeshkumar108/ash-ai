@@ -420,6 +420,7 @@ export default function ImageStudioPage() {
       if (!response.ok) {
         throw new Error('Download failed');
       }
+
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement('a');
@@ -532,6 +533,7 @@ export default function ImageStudioPage() {
           body: JSON.stringify(
             isRemix
               ? {
+                  requestId: id,
                   modelId: model.id,
                   parentGenerationId: remixTarget.gen.id,
                   parentOutputPathname: remixTarget.img.pathname,
@@ -549,6 +551,7 @@ export default function ImageStudioPage() {
                   quality,
                 }
               : {
+                  requestId: id,
                   modelId: model.id,
                   prompt: prompt.trim(),
                   aspectRatio,
@@ -592,6 +595,7 @@ export default function ImageStudioPage() {
       ) {
         toast.warning(payload.warnings[0]);
       }
+      window.dispatchEvent(new Event('gems:changed'));
     } catch (error) {
       setGenerations((current) =>
         current.map((g) =>
@@ -606,6 +610,7 @@ export default function ImageStudioPage() {
         ),
       );
       toast.error(error instanceof Error ? error.message : 'Generation failed');
+      window.dispatchEvent(new Event('gems:changed'));
     }
   }, [
     prompt,
@@ -650,7 +655,8 @@ export default function ImageStudioPage() {
     }
     for (const gen of generations) {
       if (gen.status === 'done') {
-        for (const img of gen.images) items.push({ key: img.pathname, gen, img });
+        for (const img of gen.images)
+          items.push({ key: img.pathname, gen, img });
       }
     }
     return items;
@@ -1005,10 +1011,10 @@ export default function ImageStudioPage() {
               ) : remixTarget ? (
                 <>
                   <RefreshCw size={14} className="mr-1" />
-                  Remix
+                  Remix · {model.gemCost * numOutputs} gems
                 </>
               ) : (
-                'Generate'
+                `Generate · ${model.gemCost * numOutputs} gems`
               )}
             </Button>
           </div>
@@ -1112,9 +1118,7 @@ export default function ImageStudioPage() {
                               <button
                                 type="button"
                                 aria-label={
-                                  favs[img.pathname]
-                                    ? 'Unfavorite'
-                                    : 'Favorite'
+                                  favs[img.pathname] ? 'Unfavorite' : 'Favorite'
                                 }
                                 onClick={() => toggleFav(img, gen)}
                                 className={cn(
@@ -1158,9 +1162,8 @@ export default function ImageStudioPage() {
                           <div className="p-2">
                             <div className="flex items-center gap-2">
                               <span className="truncate text-xs text-muted-foreground">
-                                {imageModels.find(
-                                  (m) => m.id === gen.modelId,
-                                )?.name ?? gen.modelId}
+                                {imageModels.find((m) => m.id === gen.modelId)
+                                  ?.name ?? gen.modelId}
                               </span>
                               <span
                                 title={
@@ -1210,9 +1213,8 @@ export default function ImageStudioPage() {
                           <div className="p-2">
                             <div className="flex items-center gap-2">
                               <span className="truncate text-xs text-muted-foreground">
-                                {imageModels.find(
-                                  (m) => m.id === gen.modelId,
-                                )?.name ?? gen.modelId}
+                                {imageModels.find((m) => m.id === gen.modelId)
+                                  ?.name ?? gen.modelId}
                               </span>
                               {gen.parentGenerationId && (
                                 <span className="shrink-0 rounded border border-border/70 bg-muted/60 px-1 py-px text-[10px] font-medium uppercase tracking-wide text-muted-foreground">

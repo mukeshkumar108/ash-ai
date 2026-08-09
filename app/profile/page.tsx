@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { SubmitButton } from '@/components/submit-button';
 import { MobileBottomNav } from '@/components/mobile-bottom-nav';
 import { toast } from '@/components/toast';
+import { GemWallet } from '@/components/gem-wallet';
 
 interface UserProfile {
   id: string;
@@ -141,6 +142,7 @@ export default function ProfilePage() {
           </button>
         </div>
         <div className="space-y-8">
+          <GemWallet expanded />
           <div className="rounded-lg border bg-card p-6 shadow-sm">
             <h2 className="text-xl font-semibold mb-4">Account</h2>
             <form onSubmit={handleSubmit} className="space-y-4">

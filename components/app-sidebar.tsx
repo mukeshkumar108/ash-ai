@@ -8,6 +8,7 @@ import { ImageIcon, MessagesSquare } from 'lucide-react';
 import { PlusIcon } from '@/components/icons';
 import { SidebarHistory } from '@/components/sidebar-history';
 import { SidebarUserNav } from '@/components/sidebar-user-nav';
+import { GemWallet } from '@/components/gem-wallet';
 import {
   Sidebar,
   SidebarContent,
@@ -67,6 +68,7 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <div className="flex flex-col gap-2 p-2">
+          {user && <GemWallet />}
           {user && <SidebarUserNav user={user} />}
         </div>
       </SidebarFooter>

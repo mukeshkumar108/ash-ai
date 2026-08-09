@@ -24,6 +24,9 @@ because another approach is more fashionable.
   reasoning or memory path.
 - Image generation metadata belongs in `Generation`. Blob storage is shared and
   has no trustworthy owner index; never globally list blobs to users.
+- Gems use the append-only ledger documented in `docs/GEMS_SYSTEM.md`. Every
+  balance change must be atomic, auditable, and idempotent; billable provider
+  failures must refund the matching spend.
 
 ## Image remix invariants
 

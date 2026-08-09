@@ -18,6 +18,8 @@ import type {
 import { runReplicatePrediction } from '@/lib/ai/replicate';
 import { getGenerationById, saveGeneration } from '@/lib/db/queries';
 import type { Generation, RemixInputImage, RemixState } from '@/lib/db/schema';
+import { calculateGemCost } from '@/lib/gems/catalog';
+import { refundGems, spendGems } from '@/lib/gems/service';
 
 export const maxDuration = 300;
 
@@ -32,6 +34,7 @@ const ALLOWED_ROLES: RemixInputImage['role'][] = [
 ];
 
 type RemixRequestBody = {
+  requestId?: string;
   modelId?: string;
   parentGenerationId?: string;
   parentOutputPathname?: string;
@@ -110,6 +113,16 @@ export async function POST(request: Request) {
 
   if (!body) {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+  }
+
+  if (
+    typeof body.requestId !== 'string' ||
+    !/^[a-zA-Z0-9_-]{8,100}$/.test(body.requestId)
+  ) {
+    return NextResponse.json(
+      { error: 'Missing generation request ID' },
+      { status: 400 },
+    );
   }
 
   const { modelId, parentGenerationId, parentOutputPathname, instruction } =
@@ -290,19 +303,49 @@ export async function POST(request: Request) {
     Object.assign(input, model.fixedInput);
   }
 
-  let outputUrls: string[];
-  try {
-    outputUrls = await runReplicatePrediction(model.version, input);
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : 'Generation failed';
-    return NextResponse.json({ error: message }, { status: 502 });
+  const outputCount = model.capabilities.numOutputs
+    ? Math.max(
+        1,
+        Math.min(
+          model.capabilities.numOutputs.max,
+          Number.isInteger(body.numOutputs)
+            ? (body.numOutputs as number)
+            : model.capabilities.numOutputs.default,
+        ),
+      )
+    : 1;
+  const gemCost = calculateGemCost(model.gemCost, outputCount);
+  const spendReferenceKey = `image:${body.requestId}`;
+  const spend = await spendGems({
+    userId: session.user.id,
+    amount: gemCost,
+    kind: 'image_remix',
+    referenceKey: spendReferenceKey,
+    metadata: { modelId: model.id, outputCount, parentGenerationId },
+  });
+  if (!spend.ok) {
+    return NextResponse.json(
+      {
+        error: `You need ${gemCost} gems, but have ${spend.balance}.`,
+        code: 'insufficient_gems',
+        required: gemCost,
+        balance: spend.balance,
+      },
+      { status: 402 },
+    );
+  }
+  if (spend.duplicate) {
+    return NextResponse.json(
+      { error: 'This generation request was already submitted.' },
+      { status: 409 },
+    );
   }
 
-  const results: Array<{ url: string; pathname: string; mediaType: string }> =
-    [];
-
+  let succeeded = false;
   try {
+    const outputUrls = await runReplicatePrediction(model.version, input);
+    const results: Array<{ url: string; pathname: string; mediaType: string }> =
+      [];
     for (const outputUrl of outputUrls) {
       const download = await fetch(outputUrl);
 
@@ -352,6 +395,7 @@ export async function POST(request: Request) {
       remixState: plan.nextState,
     });
 
+    succeeded = true;
     return NextResponse.json({
       modelId: model.id,
       generationId: generationRow?.[0]?.id ?? null,
@@ -359,12 +403,22 @@ export async function POST(request: Request) {
       compiled: plan.compiled,
       warnings: plan.warnings,
       results,
+      gemCost,
+      gemBalance: spend.balance,
     });
   } catch (error) {
     console.error('[image-remix] failed', error);
-    return NextResponse.json(
-      { error: 'Failed to generate image' },
-      { status: 500 },
-    );
+    const message =
+      error instanceof Error ? error.message : 'Failed to generate image';
+    return NextResponse.json({ error: message }, { status: 502 });
+  } finally {
+    if (!succeeded) {
+      await refundGems({
+        userId: session.user.id,
+        amount: gemCost,
+        spendReferenceKey,
+        reason: 'image_remix_failed',
+      });
+    }
   }
 }

@@ -4,6 +4,8 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/app/(auth)/auth';
 import { getImageModelById } from '@/lib/ai/image-models';
 import { saveGeneration } from '@/lib/db/queries';
+import { calculateGemCost } from '@/lib/gems/catalog';
+import { refundGems, spendGems } from '@/lib/gems/service';
 
 export const maxDuration = 300;
 const POLL_INTERVAL_MS = 1500;
@@ -45,6 +47,7 @@ export async function POST(request: Request) {
     refImages,
     numOutputs,
     quality,
+    requestId,
   } = body as {
     modelId?: string;
     prompt?: string;
@@ -53,12 +56,23 @@ export async function POST(request: Request) {
     refImages?: string[];
     numOutputs?: number;
     quality?: string;
+    requestId?: string;
   };
 
   const model = getImageModelById(modelId ?? '');
 
   if (!model) {
     return NextResponse.json({ error: 'Unknown model' }, { status: 400 });
+  }
+
+  if (
+    typeof requestId !== 'string' ||
+    !/^[a-zA-Z0-9_-]{8,100}$/.test(requestId)
+  ) {
+    return NextResponse.json(
+      { error: 'Missing generation request ID' },
+      { status: 400 },
+    );
   }
 
   if (
@@ -113,6 +127,18 @@ export async function POST(request: Request) {
     input[model.outputFormatField] = outputFormat;
   }
 
+  const outputCount = model.capabilities.numOutputs
+    ? Math.max(
+        1,
+        Math.min(
+          model.capabilities.numOutputs.max,
+          Number.isInteger(numOutputs)
+            ? (numOutputs as number)
+            : model.capabilities.numOutputs.default,
+        ),
+      )
+    : 1;
+
   if (model.numOutputsField && model.capabilities.numOutputs) {
     const count = Number.isInteger(numOutputs)
       ? (numOutputs as number)
@@ -135,6 +161,35 @@ export async function POST(request: Request) {
   if (model.fixedInput) {
     Object.assign(input, model.fixedInput);
   }
+
+  const gemCost = calculateGemCost(model.gemCost, outputCount);
+  const spendReferenceKey = `image:${requestId}`;
+  const spend = await spendGems({
+    userId: session.user.id,
+    amount: gemCost,
+    kind: 'image_generation',
+    referenceKey: spendReferenceKey,
+    metadata: { modelId: model.id, outputCount },
+  });
+  if (!spend.ok) {
+    return NextResponse.json(
+      {
+        error: `You need ${gemCost} gems, but have ${spend.balance}.`,
+        code: 'insufficient_gems',
+        required: gemCost,
+        balance: spend.balance,
+      },
+      { status: 402 },
+    );
+  }
+  if (spend.duplicate) {
+    return NextResponse.json(
+      { error: 'This generation request was already submitted.' },
+      { status: 409 },
+    );
+  }
+
+  let succeeded = false;
 
   try {
     const created = await replicateJson(
@@ -253,10 +308,13 @@ export async function POST(request: Request) {
       parentGenerationId: null,
     });
 
+    succeeded = true;
     return NextResponse.json({
       modelId: model.id,
       generationId: generationRow?.[0]?.id ?? null,
       results,
+      gemCost,
+      gemBalance: spend.balance,
     });
   } catch (error) {
     console.error('[image-gen] failed', error);
@@ -264,5 +322,14 @@ export async function POST(request: Request) {
       { error: 'Failed to generate image' },
       { status: 500 },
     );
+  } finally {
+    if (!succeeded) {
+      await refundGems({
+        userId: session.user.id,
+        amount: gemCost,
+        spendReferenceKey,
+        reason: 'image_generation_failed',
+      });
+    }
   }
 }

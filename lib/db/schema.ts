@@ -11,6 +11,8 @@ import {
   foreignKey,
   boolean,
   index,
+  date,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('User', {
@@ -224,6 +226,101 @@ export const generation = pgTable(
 );
 
 export type Generation = InferSelectModel<typeof generation>;
+
+export const gemAccount = pgTable('GemAccount', {
+  userId: uuid('userId')
+    .primaryKey()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  balance: integer('balance').notNull().default(20),
+  dailyGrantCount: integer('dailyGrantCount').notNull().default(0),
+  lastDailyGrantOn: date('lastDailyGrantOn'),
+  devMode: boolean('devMode').notNull().default(false),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+});
+
+export const gemTransaction = pgTable(
+  'GemTransaction',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    amount: integer('amount').notNull(),
+    kind: varchar('kind', { length: 40 }).notNull(),
+    referenceKey: varchar('referenceKey', { length: 240 }).notNull(),
+    metadata: json('metadata'),
+    createdAt: timestamp('createdAt').notNull().defaultNow(),
+  },
+  (table) => ({
+    referenceKeyIdx: uniqueIndex('GemTransaction_referenceKey_idx').on(
+      table.referenceKey,
+    ),
+    userCreatedIdx: index('GemTransaction_user_created_idx').on(
+      table.userId,
+      table.createdAt,
+    ),
+  }),
+);
+
+export const gemPromoCode = pgTable(
+  'GemPromoCode',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    codeHash: varchar('codeHash', { length: 64 }).notNull(),
+    label: varchar('label', { length: 120 }).notNull(),
+    gems: integer('gems').notNull(),
+    maxRedemptions: integer('maxRedemptions'),
+    redemptionCount: integer('redemptionCount').notNull().default(0),
+    active: boolean('active').notNull().default(true),
+    expiresAt: timestamp('expiresAt'),
+    createdAt: timestamp('createdAt').notNull().defaultNow(),
+  },
+  (table) => ({
+    codeHashIdx: uniqueIndex('GemPromoCode_codeHash_idx').on(table.codeHash),
+  }),
+);
+
+export const gemPromoRedemption = pgTable(
+  'GemPromoRedemption',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    promoCodeId: uuid('promoCodeId')
+      .notNull()
+      .references(() => gemPromoCode.id, { onDelete: 'cascade' }),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('createdAt').notNull().defaultNow(),
+  },
+  (table) => ({
+    onePerUserIdx: uniqueIndex('GemPromoRedemption_code_user_idx').on(
+      table.promoCodeId,
+      table.userId,
+    ),
+  }),
+);
+
+export const gemPurchase = pgTable(
+  'GemPurchase',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    checkoutSessionId: varchar('checkoutSessionId', { length: 255 }).notNull(),
+    bundleId: varchar('bundleId', { length: 40 }).notNull(),
+    gems: integer('gems').notNull(),
+    amountPaidCents: integer('amountPaidCents').notNull(),
+    currency: varchar('currency', { length: 10 }).notNull(),
+    createdAt: timestamp('createdAt').notNull().defaultNow(),
+  },
+  (table) => ({
+    checkoutIdx: uniqueIndex('GemPurchase_checkout_idx').on(
+      table.checkoutSessionId,
+    ),
+  }),
+);
 
 /** Role an image plays in a remix. The baseline is the image being edited. */
 export type RemixInputImage = {

@@ -16,6 +16,8 @@ export interface ImageModel {
   name: string;
   description: string;
   provider: 'replicate';
+  /** Price per generated output in the platform gem currency. */
+  gemCost: number;
   /** Replicate prediction version hash for this model. */
   version: string;
   /** Field name for the text prompt in the model's Replicate input schema. */
@@ -41,6 +43,7 @@ export const imageModels: ImageModel[] = [
     name: 'Nano Banana 2 Lite',
     description: 'Google Nano Banana 2 Lite — up to 10 reference images.',
     provider: 'replicate',
+    gemCost: 1,
     version: '8bd4298c0f1887a53a351a0b01d46c92ac8aceff14a16c743f958b291d5e5b40',
     promptField: 'prompt',
     imageField: 'image_input',
@@ -75,6 +78,7 @@ export const imageModels: ImageModel[] = [
     name: 'Nano Banana 2',
     description: 'Google Nano Banana 2 — editing, resolution locked to 1K.',
     provider: 'replicate',
+    gemCost: 2,
     version: 'd1be8b5fc0931a253d417e12a484ac01ee9ccbc6daffd4792151377d5e5ff55f',
     promptField: 'prompt',
     imageField: 'image_input',
@@ -111,6 +115,7 @@ export const imageModels: ImageModel[] = [
     description:
       'OpenAI GPT Image 2 — editing, up to 10 refs, 4 outputs, quality presets.',
     provider: 'replicate',
+    gemCost: 2,
     version: '225c978a7f938acc350564c4548ddc2476bfb33364bec6b5422227f55ce56bd3',
     promptField: 'prompt',
     imageField: 'input_images',
@@ -135,6 +140,7 @@ export const imageModels: ImageModel[] = [
     description:
       'ByteDance Seedream 5 Pro — editing, up to 10 refs, output locked to 1K.',
     provider: 'replicate',
+    gemCost: 2,
     version: '483a47c41bddf60948994a640032ecace13da4c5e8aab9f9702008532895f951',
     promptField: 'prompt',
     imageField: 'image_input',
@@ -156,6 +162,7 @@ export const imageModels: ImageModel[] = [
     description:
       'ByteDance Seedream 5 Lite — editing, up to 10 refs, 4 outputs, locked to 2K.',
     provider: 'replicate',
+    gemCost: 1,
     version: 'eeb2857d94c49a5bcbc9d6c6057416e1d3b1a2735a16e08e4def9bf7ee22ec71',
     promptField: 'prompt',
     imageField: 'image_input',
@@ -179,6 +186,7 @@ export const imageModels: ImageModel[] = [
     description:
       'Wan 2.7 Image — editing, up to 9 refs, 4 outputs, locked to 2K.',
     provider: 'replicate',
+    gemCost: 1,
     version: '2e9f097d4acc02be2d0d86ea8034402c9913488309db62dd8b7dbca3f810326c',
     promptField: 'prompt',
     imageField: 'images',
@@ -200,6 +208,7 @@ export const imageModels: ImageModel[] = [
     description:
       'Wan 2.7 Image Pro — editing, up to 9 refs, 4 outputs, locked to 2K.',
     provider: 'replicate',
+    gemCost: 2,
     version: 'd880bad3fb109170221d7c233c4665bab6ba83d01936f3c9b1389de6ed2a82ed',
     promptField: 'prompt',
     imageField: 'images',
@@ -221,6 +230,7 @@ export const imageModels: ImageModel[] = [
     description:
       'Black Forest Labs Flux 2 Max — editing, up to 8 refs, output locked to 1MP.',
     provider: 'replicate',
+    gemCost: 2,
     version: '9c23b0aaa98765a9676dbdda58b9c9915627751300747bad54cb1c11b135d3ca',
     promptField: 'prompt',
     imageField: 'input_images',
