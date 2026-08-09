@@ -4,12 +4,22 @@ import { z } from 'zod';
 
 import { auth } from '@/app/(auth)/auth';
 
-const ACCEPTED_IMAGE_TYPES = [
+const ACCEPTED_FILE_TYPES = [
   'image/jpeg',
   'image/png',
   'image/webp',
   'image/heic',
   'image/heif',
+  'video/mp4',
+  'video/webm',
+  'video/quicktime',
+  'application/pdf',
+  'text/plain',
+  'text/markdown',
+  'text/csv',
+  'application/json',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 ];
 
 // Use Blob instead of File since File is not available in Node.js environment
@@ -19,8 +29,9 @@ const FileSchema = z.object({
     .refine((file) => file.size <= 20 * 1024 * 1024, {
       message: 'File size should be less than 20MB',
     })
-    .refine((file) => ACCEPTED_IMAGE_TYPES.includes(file.type), {
-      message: 'File type should be JPEG, PNG, WebP or HEIC/HEIF',
+    .refine((file) => ACCEPTED_FILE_TYPES.includes(file.type), {
+      message:
+        'File type should be a supported image, video, or document type',
     }),
 });
 

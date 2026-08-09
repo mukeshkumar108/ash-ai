@@ -16,10 +16,16 @@ import {
 import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 
-import { ArrowUpIcon, PaperclipIcon, StopIcon } from './icons';
+import { ArrowUpIcon, PlusIcon, StopIcon } from './icons';
 import { PreviewAttachment } from './preview-attachment';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 import { getBlobPathname } from '@/lib/blob';
 import {
   FILE_ACCEPT_ATTR,
@@ -30,11 +36,15 @@ import {
 import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowDown, FileText, X } from 'lucide-react';
+import { ArrowDown, Clapperboard, FileText, ImagePlus, X } from 'lucide-react';
 import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom';
 import type { VisibilityType } from './visibility-selector';
 import type { Attachment, ChatMessage } from '@/lib/types';
 import { VoiceRecorder } from './voice-recorder';
+
+const VIDEO_ACCEPT = 'video/mp4,video/webm,video/quicktime,video/x-m4v';
+const DOCUMENT_ACCEPT =
+  'application/pdf,text/plain,text/markdown,text/csv,application/json,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/html';
 
 function PureMultimodalInput({
   chatId,
@@ -116,6 +126,8 @@ function PureMultimodalInput({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const replaceTargetRef = useRef<string | null>(null);
+  const composerRef = useRef<HTMLDivElement>(null);
+  const [fileAccept, setFileAccept] = useState(FILE_ACCEPT_ATTR);
 
   type PendingAttachment = {
     id: string;
@@ -208,17 +220,21 @@ function PureMultimodalInput({
 
       try {
         let processed: ProcessedImage;
-        try {
-          processed = await processImageFile(file, controller.signal);
-        } catch (error) {
-          if (cancelledRef.current.has(id)) return;
-          const message =
-            error instanceof ImageProcessingError
-              ? error.message
-              : 'This image could not be processed.';
-          updatePending(id, { state: 'failed', error: message });
-          toast.error(message);
-          return;
+        if (file.type.startsWith('image/')) {
+          try {
+            processed = await processImageFile(file, controller.signal);
+          } catch (error) {
+            if (cancelledRef.current.has(id)) return;
+            const message =
+              error instanceof ImageProcessingError
+                ? error.message
+                : 'This image could not be processed.';
+            updatePending(id, { state: 'failed', error: message });
+            toast.error(message);
+            return;
+          }
+        } else {
+          processed = { file, sourceType: file.type, outputType: file.type };
         }
 
         if (cancelledRef.current.has(id)) return;
@@ -269,7 +285,7 @@ function PureMultimodalInput({
       } catch (error) {
         if (cancelledRef.current.has(id)) return;
         const message =
-          error instanceof Error ? error.message : 'Failed to upload image.';
+          error instanceof Error ? error.message : 'Failed to upload file.';
         updatePending(id, { state: 'failed', error: message });
         toast.error(message);
       } finally {
@@ -386,7 +402,7 @@ function PureMultimodalInput({
   }, [status, scrollToBottom]);
 
   return (
-    <div className="relative w-full flex flex-col gap-4">
+    <div ref={composerRef} className="relative w-full flex flex-col gap-4">
       <AnimatePresence>
         {!isAtBottom && (
           <motion.div
@@ -414,7 +430,7 @@ function PureMultimodalInput({
 
       <input
         type="file"
-        accept={FILE_ACCEPT_ATTR}
+        accept={fileAccept}
         className="fixed -top-4 -left-4 size-0.5 opacity-0 pointer-events-none"
         ref={fileInputRef}
         multiple
@@ -522,17 +538,65 @@ function PureMultimodalInput({
         }}
       />
 
-      <div className="absolute bottom-0 p-2 w-fit flex flex-row items-center justify-start gap-1">
-        <AttachmentsButton fileInputRef={fileInputRef} status={status} />
+      <div className="absolute bottom-0 left-0 p-2 w-fit flex flex-row items-center gap-1">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              data-testid="attachments-button"
+              className="rounded-md rounded-bl-lg p-[7px] h-fit dark:border-zinc-700 hover:dark:bg-zinc-900 hover:bg-zinc-200"
+              onClick={(event) => {
+                event.preventDefault();
+              }}
+              disabled={status !== 'ready'}
+              variant="ghost"
+              aria-label="Attach files"
+            >
+              <PlusIcon size={14} />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="min-w-44">
+            <DropdownMenuItem
+              data-testid="attach-image-option"
+              onSelect={() => {
+                setFileAccept(FILE_ACCEPT_ATTR);
+                fileInputRef.current?.click();
+              }}
+            >
+              <ImagePlus size={14} className="mr-2" />
+              Attach image
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              data-testid="attach-video-option"
+              onSelect={() => {
+                setFileAccept(VIDEO_ACCEPT);
+                fileInputRef.current?.click();
+              }}
+            >
+              <Clapperboard size={14} className="mr-2" />
+              Attach video
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              data-testid="attach-document-option"
+              onSelect={() => {
+                setFileAccept(DOCUMENT_ACCEPT);
+                fileInputRef.current?.click();
+              }}
+            >
+              <FileText size={14} className="mr-2" />
+              Attach document
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      <div className="absolute bottom-0 right-0 p-2 w-fit flex flex-row items-center justify-end gap-1">
         {onVoiceTranscript ? (
           <VoiceRecorder
             disabled={status !== 'ready'}
             onTranscript={onVoiceTranscript}
+            containerRef={composerRef}
           />
         ) : null}
-      </div>
-
-      <div className="absolute bottom-0 right-0 p-2 w-fit flex flex-row justify-end gap-2">
         {status === 'submitted' ? (
           <StopButton stop={stop} setMessages={setMessages} />
         ) : (
@@ -562,31 +626,6 @@ export const MultimodalInput = memo(
     return true;
   },
 );
-
-function PureAttachmentsButton({
-  fileInputRef,
-  status,
-}: {
-  fileInputRef: React.MutableRefObject<HTMLInputElement | null>;
-  status: UseChatHelpers<ChatMessage>['status'];
-}) {
-  return (
-    <Button
-      data-testid="attachments-button"
-      className="rounded-md rounded-bl-lg p-[7px] h-fit dark:border-zinc-700 hover:dark:bg-zinc-900 hover:bg-zinc-200"
-      onClick={(event) => {
-        event.preventDefault();
-        fileInputRef.current?.click();
-      }}
-      disabled={status !== 'ready'}
-      variant="ghost"
-    >
-      <PaperclipIcon size={14} />
-    </Button>
-  );
-}
-
-const AttachmentsButton = memo(PureAttachmentsButton);
 
 function PureStopButton({
   stop,

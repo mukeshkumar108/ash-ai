@@ -1,6 +1,6 @@
 import type { Attachment } from '@/lib/types';
 import { getBlobDisplayUrl } from '@/lib/blob';
-import { RefreshCw, X } from 'lucide-react';
+import { Clapperboard, FileText, RefreshCw, X } from 'lucide-react';
 import { LoaderIcon } from './icons';
 
 export type PendingAttachmentState = 'processing' | 'uploading' | 'failed';
@@ -24,8 +24,12 @@ export const PreviewAttachment = ({
 }) => {
   const name = pending?.name ?? attachment?.name ?? 'file';
   const url = attachment?.url;
+  const mediaType = attachment?.contentType ?? '';
 
   const state = pending?.state ?? (isUploading ? 'uploading' : 'ready');
+
+  const isImage = mediaType.startsWith('image/');
+  const FileIcon = mediaType.startsWith('video/') ? Clapperboard : FileText;
 
   return (
     <div
@@ -35,7 +39,7 @@ export const PreviewAttachment = ({
       className="flex flex-col gap-2 relative group"
     >
       <div className="w-20 h-16 aspect-video bg-muted rounded-md relative flex flex-col items-center justify-center overflow-hidden">
-        {state === 'ready' && url ? (
+        {state === 'ready' && url && isImage ? (
           // NOTE: it is recommended to use next/image for images
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -44,6 +48,16 @@ export const PreviewAttachment = ({
             alt={name ?? 'An image attachment'}
             className="rounded-md size-full object-cover"
           />
+        ) : state === 'ready' && url ? (
+          <div
+            className="size-full flex flex-col items-center justify-center gap-1 text-muted-foreground"
+            title={mediaType}
+          >
+            <FileIcon size={20} />
+            <span className="text-[10px] truncate px-1 max-w-full">
+              {name.split('/').pop()}
+            </span>
+          </div>
         ) : (
           <div
             className="rounded-md size-full object-cover flex flex-col items-center justify-center gap-1"

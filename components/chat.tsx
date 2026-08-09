@@ -25,7 +25,6 @@ import { ChatSDKError } from '@/lib/errors';
 import type { Attachment, ChatMessage } from '@/lib/types';
 import { saveChatModel } from '@/app/(chat)/actions';
 import type { UserType } from '@/app/(auth)/auth';
-import { voiceTranscriptParts } from '@/lib/voice-message';
 
 const MESSAGE_PAGE_SIZE = 40;
 
@@ -366,11 +365,7 @@ export function Chat({
               sendMessage={sendMessage}
               selectedVisibilityType={visibilityType}
               onVoiceTranscript={(transcript) => {
-                voiceTurnPendingRef.current = true;
-                sendMessage({
-                  role: 'user',
-                  parts: voiceTranscriptParts(transcript),
-                });
+                setInput(transcript);
               }}
             />
           )}

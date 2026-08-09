@@ -94,6 +94,7 @@ export class ChatPage {
     });
 
     await this.page.getByTestId('attachments-button').click();
+    await this.page.getByTestId('attach-image-option').click();
   }
 
   public async getSelectedModel() {
