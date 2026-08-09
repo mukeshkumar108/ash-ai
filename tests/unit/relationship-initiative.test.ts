@@ -6,9 +6,11 @@ import {
   canonicalInitiativeMessage,
   checkInitiativeEligibility,
   enforceSingleQuestion,
+  hasRecentDepartureSignal,
   initiativeDedupeKey,
   INITIATIVE_POLICY,
   mayUseDecision,
+  unansweredFollowUpDelayMs,
 } from '@/lib/ai/relationship/policy';
 
 const decision = {
@@ -91,12 +93,13 @@ test.describe('relationship initiative policy', () => {
         latestRole: 'user',
         idleForMs: INITIATIVE_POLICY.idleMs,
         dailyCount: 0,
-        hasRecentUnanswered: false,
+        unansweredCount: 0,
       }),
     ).toBe('conversation_changed');
   });
 
-  test('an unanswered recent initiative suppresses repetition', () => {
+  test('one unanswered initiative delays rather than freezes follow-up', () => {
+    const requiredGap = unansweredFollowUpDelayMs('m');
     expect(
       checkInitiativeEligibility({
         trigger: 'post_turn',
@@ -105,9 +108,51 @@ test.describe('relationship initiative policy', () => {
         latestRole: 'assistant',
         idleForMs: 0,
         dailyCount: 0,
-        hasRecentUnanswered: true,
+        unansweredCount: 1,
+        msSinceLatestUnanswered: requiredGap - 1,
+        requiredUnansweredGapMs: requiredGap,
       }),
-    ).toBe('recent_unanswered_initiative');
+    ).toBe('unanswered_followup_too_soon');
+    expect(
+      checkInitiativeEligibility({
+        trigger: 'post_turn',
+        anchorMessageId: 'm',
+        latestMessageId: 'm',
+        latestRole: 'assistant',
+        idleForMs: 0,
+        dailyCount: 0,
+        unansweredCount: 1,
+        msSinceLatestUnanswered: requiredGap,
+        requiredUnansweredGapMs: requiredGap,
+      }),
+    ).toBeNull();
+  });
+
+  test('two unanswered initiatives stop further outreach', () => {
+    expect(
+      checkInitiativeEligibility({
+        trigger: 'active_idle',
+        anchorMessageId: 'm',
+        latestMessageId: 'm',
+        latestRole: 'assistant',
+        idleForMs: INITIATIVE_POLICY.idleMs,
+        dailyCount: 2,
+        unansweredCount: 2,
+      }),
+    ).toBe('unanswered_limit');
+  });
+
+  test('departure closes initiative while an invitation to stay reopens it', () => {
+    expect(
+      hasRecentDepartureSignal(
+        'user: I have got to go, goodnight\nassistant: sleep well',
+      ),
+    ).toBe(true);
+    expect(
+      hasRecentDepartureSignal(
+        "user: no, don't leave — stay and talk to me\nassistant: okay",
+      ),
+    ).toBe(false);
   });
 
   test('initiative messages are ordinary canonical assistant messages', () => {

@@ -14,14 +14,17 @@ This in-repo runtime tests whether Sophie feels more alive when she can have a s
 
 After a normal streamed reply finishes, the client waits about 2.8 seconds and submits a `post_turn` trigger anchored to that assistant message. An open chat that remains idle for about five minutes submits `active_idle`. If the user sends anything or another message appears, the anchor is stale and the server suppresses the initiative.
 
-The server checks ownership, the latest canonical message, minimum idle duration, daily limit, recent unanswered initiative and a unique trigger/anchor key. It retrieves a compact Honcho evidence packet, evaluates a structured candidate, applies topic and sensitive-content policy, composes the message, rechecks the anchor in the insertion transaction and persists an ordinary `Message_v2` assistant message. The UI appends the returned canonical message; reloads retrieve it normally.
+The server checks ownership, the latest canonical message, minimum idle duration, daily limits, unanswered count and a unique trigger/anchor key. It retrieves a compact Honcho evidence packet, evaluates a structured candidate, applies topic, departure and sensitive-content policy, composes the message, rechecks the anchor in the insertion transaction and persists an ordinary `Message_v2` assistant message. The UI appends the returned canonical message; reloads retrieve it normally.
 
 `RelationshipInitiative` records sent, declined, suppressed and failed evaluations, including trigger, kind, reason, topic key, evidence, guidance, generated message and subsequent direct reply. This is enough to inspect why Sophie spoke and whether the user responded.
 
 ## Restraint defaults
 
-- Three sent initiatives per UTC database day
-- Twelve-hour suppression after an unanswered initiative
+- Eight total sent initiatives per UTC database day, of which at most four may be active-idle outreach
+- One unanswered initiative may receive one later follow-up after a stable per-conversation gap of roughly 25–75 minutes
+- Two unanswered initiatives stop further outreach until the user replies
+- Clear departures such as “going to bed” or “got to go” suppress another conversational beat; an explicit request to stay reopens conversation
+- Local time is supplied to the evaluator so social evening conversations can support warmer, more personal curiosity
 - Recent topic-key dedupe
 - Sensitive candidates require supporting memory evidence
 - One question maximum and 420 characters maximum

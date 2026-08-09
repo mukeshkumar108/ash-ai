@@ -164,6 +164,14 @@ export function Chat({
               : [...current, payload.message],
           );
           mutate(unstable_serialize(getChatHistoryPaginationKey));
+        } else if (
+          trigger === 'active_idle' &&
+          typeof payload.retryAfterMs === 'number' &&
+          payload.retryAfterMs > 0
+        ) {
+          initiativeTimerRef.current = window.setTimeout(() => {
+            void initiativeRequestRef.current('active_idle', anchorMessageId);
+          }, payload.retryAfterMs);
         }
       } catch (error) {
         console.warn('[chat] initiative request failed', error);

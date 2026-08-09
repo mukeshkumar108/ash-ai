@@ -3,10 +3,15 @@ import type { InitiativeDecision, InitiativeTrigger } from './types';
 export const INITIATIVE_POLICY = {
   idleMs: Number(process.env.RELATIONSHIP_IDLE_MS ?? 5 * 60_000),
   postTurnDelayMs: Number(process.env.RELATIONSHIP_POST_TURN_DELAY_MS ?? 2_800),
-  dailyLimit: Number(process.env.RELATIONSHIP_DAILY_LIMIT ?? 3),
-  unansweredCooldownMs: Number(
-    process.env.RELATIONSHIP_UNANSWERED_COOLDOWN_MS ?? 12 * 60 * 60_000,
+  dailyLimit: Number(process.env.RELATIONSHIP_DAILY_LIMIT ?? 8),
+  idleDailyLimit: Number(process.env.RELATIONSHIP_IDLE_DAILY_LIMIT ?? 4),
+  firstUnansweredFollowUpMinMs: Number(
+    process.env.RELATIONSHIP_FIRST_UNANSWERED_FOLLOWUP_MIN_MS ?? 25 * 60_000,
   ),
+  firstUnansweredFollowUpJitterMs: Number(
+    process.env.RELATIONSHIP_FIRST_UNANSWERED_FOLLOWUP_JITTER_MS ?? 50 * 60_000,
+  ),
+  maxUnanswered: Number(process.env.RELATIONSHIP_MAX_UNANSWERED ?? 2),
 } as const;
 
 export function mayUseDecision(input: {
@@ -45,7 +50,10 @@ export function checkInitiativeEligibility(input: {
   latestRole: string | null;
   idleForMs: number;
   dailyCount: number;
-  hasRecentUnanswered: boolean;
+  idleDailyCount?: number;
+  unansweredCount: number;
+  msSinceLatestUnanswered?: number | null;
+  requiredUnansweredGapMs?: number;
 }) {
   if (input.latestMessageId !== input.anchorMessageId)
     return 'conversation_changed';
@@ -56,8 +64,52 @@ export function checkInitiativeEligibility(input: {
   )
     return 'not_idle_long_enough';
   if (input.dailyCount >= INITIATIVE_POLICY.dailyLimit) return 'daily_limit';
-  if (input.hasRecentUnanswered) return 'recent_unanswered_initiative';
+  if (
+    input.trigger === 'active_idle' &&
+    (input.idleDailyCount ?? 0) >= INITIATIVE_POLICY.idleDailyLimit
+  )
+    return 'idle_daily_limit';
+  if (input.unansweredCount >= INITIATIVE_POLICY.maxUnanswered)
+    return 'unanswered_limit';
+  if (
+    input.unansweredCount === 1 &&
+    (input.msSinceLatestUnanswered ?? 0) <
+      (input.requiredUnansweredGapMs ??
+        INITIATIVE_POLICY.firstUnansweredFollowUpMinMs)
+  )
+    return 'unanswered_followup_too_soon';
   return null;
+}
+
+export function unansweredFollowUpDelayMs(anchorMessageId: string) {
+  let hash = 0;
+  for (const character of anchorMessageId) {
+    hash = (hash * 31 + character.charCodeAt(0)) >>> 0;
+  }
+  return (
+    INITIATIVE_POLICY.firstUnansweredFollowUpMinMs +
+    (hash % Math.max(1, INITIATIVE_POLICY.firstUnansweredFollowUpJitterMs))
+  );
+}
+
+export function hasRecentDepartureSignal(conversation: string) {
+  const latestUser = conversation
+    .split('\n')
+    .reverse()
+    .find((line) => line.startsWith('user:'))
+    ?.slice(5)
+    .trim()
+    .toLowerCase();
+  if (!latestUser) return false;
+  if (
+    /\b(?:no|don't)\s+(?:go|leave)|\b(?:stay|keep talking|talk to me|speak to me)\b/u.test(
+      latestUser,
+    )
+  )
+    return false;
+  return /\b(?:gotta go|got to go|have to go|going to bed|off to bed|good ?night|talk later|speak later|catch you later|i(?:'m| am) going to sleep)\b/u.test(
+    latestUser,
+  );
 }
 
 export function canonicalInitiativeMessage(input: {

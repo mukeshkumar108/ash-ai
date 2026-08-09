@@ -8,6 +8,7 @@ import {
   checkInitiativeEligibility,
   initiativeDedupeKey,
   INITIATIVE_POLICY,
+  unansweredFollowUpDelayMs,
 } from './policy';
 import type { InitiativeDecision, InitiativeTrigger } from './types';
 
@@ -17,7 +18,12 @@ const sql = () => (client ??= postgres(getDatabaseUrl(), { max: 5 }));
 
 export type InitiativeClaim =
   | { ok: true; eventId: string; recentTopicKeys: string[] }
-  | { ok: false; reason: string; duplicate?: boolean };
+  | {
+      ok: false;
+      reason: string;
+      duplicate?: boolean;
+      retryAfterMs?: number;
+    };
 
 export async function claimInitiative(input: {
   userId: string;
@@ -33,15 +39,22 @@ export async function claimInitiative(input: {
       ORDER BY m."createdAt" DESC, m.id DESC LIMIT 1
     `;
     const [daily] = await tx`
-      SELECT count(*)::int AS count FROM "RelationshipInitiative"
+      SELECT count(*)::int AS count,
+        count(*) FILTER (WHERE trigger = 'active_idle')::int AS "idleCount"
+      FROM "RelationshipInitiative"
       WHERE "userId" = ${input.userId} AND status = 'sent' AND "sentAt" >= date_trunc('day', now())
     `;
     const unanswered = await tx`
-      SELECT id FROM "RelationshipInitiative"
+      SELECT id, "sentAt" FROM "RelationshipInitiative"
       WHERE "userId" = ${input.userId} AND status = 'sent' AND "repliedAt" IS NULL
-        AND "sentAt" > now() - (${INITIATIVE_POLICY.unansweredCooldownMs} * interval '1 millisecond')
-      LIMIT 1
+      ORDER BY "sentAt" DESC LIMIT ${INITIATIVE_POLICY.maxUnanswered}
     `;
+    const msSinceLatestUnanswered = unanswered[0]?.sentAt
+      ? Date.now() - new Date(unanswered[0].sentAt).getTime()
+      : null;
+    const requiredUnansweredGapMs = unansweredFollowUpDelayMs(
+      input.anchorMessageId,
+    );
     const eligibility = checkInitiativeEligibility({
       trigger: input.trigger,
       anchorMessageId: input.anchorMessageId,
@@ -49,9 +62,19 @@ export async function claimInitiative(input: {
       latestRole: latest?.role ?? null,
       idleForMs: latest ? Date.now() - new Date(latest.createdAt).getTime() : 0,
       dailyCount: Number(daily.count),
-      hasRecentUnanswered: unanswered.length > 0,
+      idleDailyCount: Number(daily.idleCount),
+      unansweredCount: unanswered.length,
+      msSinceLatestUnanswered,
+      requiredUnansweredGapMs,
     });
-    if (eligibility) return { ok: false as const, reason: eligibility };
+    if (eligibility) {
+      const retryAfterMs =
+        eligibility === 'unanswered_followup_too_soon' &&
+        msSinceLatestUnanswered !== null
+          ? Math.max(1_000, requiredUnansweredGapMs - msSinceLatestUnanswered)
+          : undefined;
+      return { ok: false as const, reason: eligibility, retryAfterMs };
+    }
 
     const dedupeKey = initiativeDedupeKey(input);
     const claimed = await tx`
