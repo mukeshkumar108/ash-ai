@@ -67,6 +67,10 @@ function LiveWaveform({ stream }: { stream: MediaStream }) {
       const h = canvas.height;
       ctx.clearRect(0, 0, w, h);
 
+      if (analyser && data) {
+        analyser.getByteFrequencyData(data);
+      }
+
       const barCount = Math.max(16, Math.floor(w / (7 * dpr)));
       const gap = 2 * dpr;
       const barW = (w - gap * (barCount - 1)) / barCount;
@@ -112,6 +116,11 @@ function LiveWaveform({ stream }: { stream: MediaStream }) {
           (window as unknown as { webkitAudioContext: typeof AudioContext })
             .webkitAudioContext;
         audioCtx = new AudioCtx();
+        // Mobile Safari starts contexts suspended under autoplay policy; the
+        // analyser would otherwise read silence and the bars would stay flat.
+        if (audioCtx.state === 'suspended') {
+          await audioCtx.resume();
+        }
         const source = audioCtx.createMediaStreamSource(stream);
         analyser = audioCtx.createAnalyser();
         analyser.fftSize = 256;
