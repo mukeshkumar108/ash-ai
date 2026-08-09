@@ -57,6 +57,7 @@ export const initiativeDecisionSchema = z.object({
   posture: relationalPostureSchema,
   postureConfidence: z.number().min(0).max(1),
   postureReason: z.string().max(180),
+  holdJustification: z.string().max(240).nullable(),
   nudgeJustification: z.string().max(240).nullable(),
   relationalIntent: relationalIntentSchema,
   act: z.boolean(),

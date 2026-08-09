@@ -22,6 +22,7 @@ const decision = {
   posture: 'ask' as const,
   postureConfidence: 0.9,
   postureReason: 'The user is open to a little more conversation.',
+  holdJustification: null,
   nudgeJustification: null,
   relationalIntent: {
     kind: 'curiosity' as const,
@@ -254,6 +255,8 @@ test.describe('relationship initiative policy', () => {
           ...decision,
           posture: 'hold',
           postureReason: 'The moment needs presence rather than direction.',
+          holdJustification:
+            'The user is midway through an emotional story and needs room to continue it.',
           relationalIntent: {
             kind: 'presence',
             guidance: 'Stay with what the user shared.',
@@ -264,6 +267,23 @@ test.describe('relationship initiative policy', () => {
         hasSensitiveSupport: true,
       }),
     ).toBe(true);
+  });
+
+  test('unjustified hold is rejected rather than used as a fallback', () => {
+    expect(
+      mayUseDecision({
+        decision: {
+          ...decision,
+          posture: 'hold',
+          postureConfidence: 0.5,
+          postureReason: 'Uncertain what to do.',
+          holdJustification: null,
+        },
+        trigger: 'post_turn',
+        recentTopicKeys: [],
+        hasSensitiveSupport: true,
+      }),
+    ).toBe(false);
   });
 
   test('weakly justified nudge is rejected', () => {

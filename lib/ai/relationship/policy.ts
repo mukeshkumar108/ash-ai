@@ -30,6 +30,12 @@ export function mayUseDecision(input: {
     return false;
   if (!input.decision.guidance?.trim()) return false;
   if (
+    input.decision.posture === 'hold' &&
+    (!input.decision.holdJustification?.trim() ||
+      input.decision.postureConfidence < 0.7)
+  )
+    return false;
+  if (
     input.decision.posture === 'nudge' &&
     (input.decision.postureConfidence < 0.8 ||
       !input.decision.nudgeJustification?.trim() ||
