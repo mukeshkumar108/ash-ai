@@ -123,7 +123,7 @@ export async function completeNoAction(
   eventId: string,
   decision: InitiativeDecision,
 ) {
-  await sql()`UPDATE "RelationshipInitiative" SET status = 'no_action', "candidateKind" = ${decision.kind}, "topicKey" = ${decision.topicKey}, reason = ${decision.reason}, evidence = ${sql().json(decision.evidence)}, guidance = ${decision.guidance}, "decidedAt" = now() WHERE id = ${eventId}`;
+  await sql()`UPDATE "RelationshipInitiative" SET status = 'no_action', "candidateKind" = ${decision.kind}, "topicKey" = ${decision.topicKey}, reason = ${decision.reason}, evidence = ${sql().json({ items: decision.evidence, conversationState: decision.conversationState })}, guidance = ${decision.guidance}, "decidedAt" = now() WHERE id = ${eventId}`;
 }
 
 export async function completeSuppressed(
@@ -131,7 +131,7 @@ export async function completeSuppressed(
   decision: InitiativeDecision,
   reason: string,
 ) {
-  await sql()`UPDATE "RelationshipInitiative" SET status = 'suppressed', "candidateKind" = ${decision.kind}, "topicKey" = ${decision.topicKey}, reason = ${reason}, evidence = ${sql().json(decision.evidence)}, guidance = ${decision.guidance}, "decidedAt" = now() WHERE id = ${eventId}`;
+  await sql()`UPDATE "RelationshipInitiative" SET status = 'suppressed', "candidateKind" = ${decision.kind}, "topicKey" = ${decision.topicKey}, reason = ${reason}, evidence = ${sql().json({ items: decision.evidence, conversationState: decision.conversationState })}, guidance = ${decision.guidance}, "decidedAt" = now() WHERE id = ${eventId}`;
 }
 
 export async function failInitiative(eventId: string, reason: string) {
@@ -170,7 +170,7 @@ export async function persistInitiativeMessage(input: {
     `;
     await tx`
       UPDATE "RelationshipInitiative" SET status = 'sent', "candidateKind" = ${input.decision.kind},
-        "topicKey" = ${input.decision.topicKey}, reason = ${input.decision.reason}, evidence = ${tx.json(input.decision.evidence)},
+        "topicKey" = ${input.decision.topicKey}, reason = ${input.decision.reason}, evidence = ${tx.json({ items: input.decision.evidence, conversationState: input.decision.conversationState })},
         guidance = ${input.decision.guidance}, "generatedMessageId" = ${input.messageId}, "decidedAt" = now(), "sentAt" = ${createdAt}
       WHERE id = ${input.eventId} AND status = 'evaluating'
     `;

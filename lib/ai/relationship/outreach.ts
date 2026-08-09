@@ -6,7 +6,7 @@ import { mirrorAssistantInitiative } from '@/lib/honcho';
 import { composeInitiative } from './composer';
 import { retrieveRelationshipEvidence } from './evidence';
 import { evaluateInitiative } from './evaluator';
-import { hasRecentDepartureSignal, mayUseDecision } from './policy';
+import { mayUseDecision } from './policy';
 import {
   claimInitiative,
   completeNoAction,
@@ -60,24 +60,6 @@ export async function runRelationshipInitiative(input: {
     const signal = AbortSignal.timeout(
       Number(process.env.RELATIONSHIP_EVALUATOR_TIMEOUT_MS ?? 15_000),
     );
-    if (hasRecentDepartureSignal(recentConversation)) {
-      const boundaryDecision = {
-        act: false,
-        kind: 'relationship_maintenance' as const,
-        reason:
-          'The user clearly signalled that they are leaving or going to sleep.',
-        guidance: null,
-        evidence: [],
-        topicKey: 'departure_boundary',
-        sensitive: false,
-      };
-      await completeSuppressed(
-        claim.eventId,
-        boundaryDecision,
-        'user_signalled_departure',
-      );
-      return { acted: false as const, reason: 'user_signalled_departure' };
-    }
     const timeZone = process.env.ASH_TIME_ZONE?.trim() || 'Europe/London';
     const localTime = new Intl.DateTimeFormat('en-GB', {
       dateStyle: 'full',

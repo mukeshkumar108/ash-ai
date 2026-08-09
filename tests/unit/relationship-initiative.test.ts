@@ -6,7 +6,6 @@ import {
   canonicalInitiativeMessage,
   checkInitiativeEligibility,
   enforceSingleQuestion,
-  hasRecentDepartureSignal,
   initiativeDedupeKey,
   INITIATIVE_POLICY,
   mayUseDecision,
@@ -14,6 +13,11 @@ import {
 } from '@/lib/ai/relationship/policy';
 
 const decision = {
+  conversationState: {
+    signal: 'open' as const,
+    confidence: 0.96,
+    reason: 'The user is actively engaged in conversation.',
+  },
   act: true,
   kind: 'curiosity' as const,
   reason: 'There is a natural gap worth exploring.',
@@ -59,6 +63,46 @@ test.describe('relationship initiative evaluator', () => {
         generate: async () => ({ act: true, kind: 'invented' }),
       }),
     ).rejects.toThrow();
+  });
+
+  test('accepts semantic multilingual and indirect boundary classifications', async () => {
+    const closing = await evaluateInitiative({
+      trigger: 'post_turn',
+      recentConversation: 'user: yaaaa me tengo q ir 😭',
+      memoryEvidence: null,
+      recentTopicKeys: [],
+      signal: AbortSignal.timeout(100),
+      generate: async () => ({
+        ...decision,
+        act: false,
+        guidance: null,
+        conversationState: {
+          signal: 'closing',
+          confidence: 0.98,
+          reason: 'The user says they have to leave.',
+        },
+      }),
+    });
+    expect(closing.conversationState.signal).toBe('closing');
+
+    const indirect = await evaluateInitiative({
+      trigger: 'post_turn',
+      recentConversation: 'user: mum is shouting at me to get off my phone 😂',
+      memoryEvidence: null,
+      recentTopicKeys: [],
+      signal: AbortSignal.timeout(100),
+      generate: async () => ({
+        ...decision,
+        act: false,
+        guidance: null,
+        conversationState: {
+          signal: 'closing',
+          confidence: 0.91,
+          reason: 'An external circumstance is ending availability.',
+        },
+      }),
+    });
+    expect(indirect.conversationState.signal).toBe('closing');
   });
 
   test('Honcho failure fails closed without throwing into chat', async () => {
@@ -142,17 +186,56 @@ test.describe('relationship initiative policy', () => {
     ).toBe('unanswered_limit');
   });
 
-  test('departure closes initiative while an invitation to stay reopens it', () => {
+  test('semantic closing is enforced while reported speech remains open', () => {
     expect(
-      hasRecentDepartureSignal(
-        'user: I have got to go, goodnight\nassistant: sleep well',
-      ),
-    ).toBe(true);
-    expect(
-      hasRecentDepartureSignal(
-        "user: no, don't leave — stay and talk to me\nassistant: okay",
-      ),
+      mayUseDecision({
+        decision: {
+          ...decision,
+          conversationState: {
+            signal: 'closing',
+            confidence: 0.96,
+            reason: 'The user is ending this conversation.',
+          },
+        },
+        trigger: 'post_turn',
+        recentTopicKeys: [],
+        hasSensitiveSupport: true,
+      }),
     ).toBe(false);
+    expect(
+      mayUseDecision({
+        decision: {
+          ...decision,
+          conversationState: {
+            signal: 'open',
+            confidence: 0.95,
+            reason:
+              'The user reported saying goodnight to someone else and continued this conversation.',
+          },
+        },
+        trigger: 'post_turn',
+        recentTopicKeys: [],
+        hasSensitiveSupport: true,
+      }),
+    ).toBe(true);
+  });
+
+  test('semantic seeking-company overrides generic busyness', () => {
+    expect(
+      mayUseDecision({
+        decision: {
+          ...decision,
+          conversationState: {
+            signal: 'seeking_company',
+            confidence: 0.97,
+            reason: 'The user is working but explicitly wants company.',
+          },
+        },
+        trigger: 'post_turn',
+        recentTopicKeys: [],
+        hasSensitiveSupport: true,
+      }),
+    ).toBe(true);
   });
 
   test('initiative messages are ordinary canonical assistant messages', () => {

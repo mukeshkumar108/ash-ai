@@ -21,6 +21,13 @@ export function mayUseDecision(input: {
   hasSensitiveSupport: boolean;
 }) {
   if (!input.decision.act) return false;
+  if (
+    input.decision.conversationState.confidence >= 0.7 &&
+    ['closing', 'paused', 'busy'].includes(
+      input.decision.conversationState.signal,
+    )
+  )
+    return false;
   if (!input.decision.guidance?.trim()) return false;
   if (input.recentTopicKeys.includes(input.decision.topicKey)) return false;
   if (input.decision.sensitive && !input.hasSensitiveSupport) return false;
@@ -89,26 +96,6 @@ export function unansweredFollowUpDelayMs(anchorMessageId: string) {
   return (
     INITIATIVE_POLICY.firstUnansweredFollowUpMinMs +
     (hash % Math.max(1, INITIATIVE_POLICY.firstUnansweredFollowUpJitterMs))
-  );
-}
-
-export function hasRecentDepartureSignal(conversation: string) {
-  const latestUser = conversation
-    .split('\n')
-    .reverse()
-    .find((line) => line.startsWith('user:'))
-    ?.slice(5)
-    .trim()
-    .toLowerCase();
-  if (!latestUser) return false;
-  if (
-    /\b(?:no|don't)\s+(?:go|leave)|\b(?:stay|keep talking|talk to me|speak to me)\b/u.test(
-      latestUser,
-    )
-  )
-    return false;
-  return /\b(?:gotta go|got to go|have to go|going to bed|off to bed|good ?night|talk later|speak later|catch you later|i(?:'m| am) going to sleep)\b/u.test(
-    latestUser,
   );
 }
 

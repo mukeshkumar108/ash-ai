@@ -23,7 +23,8 @@ The server checks ownership, the latest canonical message, minimum idle duration
 - Eight total sent initiatives per UTC database day, of which at most four may be active-idle outreach
 - One unanswered initiative may receive one later follow-up after a stable per-conversation gap of roughly 25–75 minutes
 - Two unanswered initiatives stop further outreach until the user replies
-- Clear departures such as “going to bed” or “got to go” suppress another conversational beat; an explicit request to stay reopens conversation
+- The existing evaluator semantically classifies conversational availability as `open`, `closing`, `reopened`, `paused`, `busy`, `seeking_company`, or `unclear`; deterministic policy suppresses sufficiently confident closing/paused/busy states
+- Boundary interpretation works on meaning in the original language—there is no goodbye phrase list, translation step or language-specific keyword matching
 - Local time is supplied to the evaluator so social evening conversations can support warmer, more personal curiosity
 - Recent topic-key dedupe
 - Sensitive candidates require supporting memory evidence

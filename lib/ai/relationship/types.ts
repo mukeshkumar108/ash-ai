@@ -11,7 +11,22 @@ export const initiativeKindSchema = z.enum([
 ]);
 export type InitiativeKind = z.infer<typeof initiativeKindSchema>;
 
+export const conversationSignalSchema = z.enum([
+  'open',
+  'closing',
+  'reopened',
+  'paused',
+  'busy',
+  'seeking_company',
+  'unclear',
+]);
+
 export const initiativeDecisionSchema = z.object({
+  conversationState: z.object({
+    signal: conversationSignalSchema,
+    confidence: z.number().min(0).max(1),
+    reason: z.string().max(180),
+  }),
   act: z.boolean(),
   kind: initiativeKindSchema,
   reason: z.string().max(240),
