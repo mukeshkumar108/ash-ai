@@ -11,7 +11,7 @@ export const Greeting = () => {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 10 }}
         transition={{ delay: 0.5 }}
-        className="text-2xl font-semibold"
+        className="bg-gradient-to-r from-fuchsia-500 via-purple-500 to-violet-500 bg-clip-text text-2xl font-semibold text-transparent"
       >
         How can I help?
       </motion.div>

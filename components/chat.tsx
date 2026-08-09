@@ -308,7 +308,7 @@ export function Chat({
 
   return (
     <>
-      <div className="flex h-dvh min-w-0 flex-col bg-[radial-gradient(circle_at_top,_rgba(192,132,252,0.12),_transparent_34%),linear-gradient(180deg,_rgba(255,255,255,0.98),_rgba(252,250,255,0.98))] pb-[calc(env(safe-area-inset-bottom)+9rem)] dark:bg-[radial-gradient(circle_at_top,_rgba(168,85,247,0.16),_transparent_30%),linear-gradient(180deg,_rgba(10,10,14,0.98),_rgba(16,14,24,0.98))] mobile-scroll md:pb-0">
+      <div className="flex h-dvh min-w-0 flex-col bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,_rgba(232,121,249,0.16),_transparent_60%),radial-gradient(ellipse_60%_40%_at_85%_5%,_rgba(167,139,250,0.12),_transparent_60%),linear-gradient(180deg,_rgba(255,255,255,0.98),_rgba(253,248,255,0.98))] pb-[calc(env(safe-area-inset-bottom)+9rem)] dark:bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,_rgba(217,70,239,0.22),_transparent_60%),radial-gradient(ellipse_60%_40%_at_85%_5%,_rgba(139,92,246,0.18),_transparent_60%),linear-gradient(180deg,_rgba(13,11,18,0.98),_rgba(19,15,27,0.98))] mobile-scroll md:pb-0">
         <ChatHeader
           chatId={id}
           selectedModelId={chatModel}
