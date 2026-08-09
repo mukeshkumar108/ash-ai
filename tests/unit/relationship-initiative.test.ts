@@ -18,6 +18,15 @@ const decision = {
     confidence: 0.96,
     reason: 'The user is actively engaged in conversation.',
   },
+  orientation: 'social' as const,
+  posture: 'ask' as const,
+  postureConfidence: 0.9,
+  postureReason: 'The user is open to a little more conversation.',
+  nudgeJustification: null,
+  relationalIntent: {
+    kind: 'curiosity' as const,
+    guidance: 'Create space for the user to talk about life outside work.',
+  },
   act: true,
   kind: 'curiosity' as const,
   reason: 'There is a natural gap worth exploring.',
@@ -229,6 +238,66 @@ test.describe('relationship initiative policy', () => {
             signal: 'seeking_company',
             confidence: 0.97,
             reason: 'The user is working but explicitly wants company.',
+          },
+        },
+        trigger: 'post_turn',
+        recentTopicKeys: [],
+        hasSensitiveSupport: true,
+      }),
+    ).toBe(true);
+  });
+
+  test('hold is a valid non-steering posture', () => {
+    expect(
+      mayUseDecision({
+        decision: {
+          ...decision,
+          posture: 'hold',
+          postureReason: 'The moment needs presence rather than direction.',
+          relationalIntent: {
+            kind: 'presence',
+            guidance: 'Stay with what the user shared.',
+          },
+        },
+        trigger: 'post_turn',
+        recentTopicKeys: [],
+        hasSensitiveSupport: true,
+      }),
+    ).toBe(true);
+  });
+
+  test('weakly justified nudge is rejected', () => {
+    expect(
+      mayUseDecision({
+        decision: {
+          ...decision,
+          posture: 'nudge',
+          postureConfidence: 0.6,
+          postureReason: 'Maybe intervention would help.',
+          nudgeJustification: null,
+          evidence: [],
+        },
+        trigger: 'post_turn',
+        recentTopicKeys: [],
+        hasSensitiveSupport: true,
+      }),
+    ).toBe(false);
+  });
+
+  test('well-supported nudge remains available but rare', () => {
+    expect(
+      mayUseDecision({
+        decision: {
+          ...decision,
+          posture: 'nudge',
+          postureConfidence: 0.91,
+          postureReason: 'A repeated concrete pattern merits one gentle move.',
+          nudgeJustification:
+            'The user explicitly described skipping dinner to work on three recent evenings.',
+          evidence: ['The user said they skipped dinner to keep working.'],
+          relationalIntent: {
+            kind: 'challenge',
+            guidance: 'Gently suggest eating before continuing.',
           },
         },
         trigger: 'post_turn',

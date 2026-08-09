@@ -21,12 +21,44 @@ export const conversationSignalSchema = z.enum([
   'unclear',
 ]);
 
+export const conversationOrientationSchema = z.enum([
+  'task',
+  'informational',
+  'creative',
+  'social',
+  'emotional',
+  'mixed',
+  'unclear',
+]);
+
+export const relationalPostureSchema = z.enum(['hold', 'ask', 'nudge']);
+
+export const relationalIntentSchema = z
+  .object({
+    kind: z.enum([
+      'curiosity',
+      'connection',
+      'continuity',
+      'challenge',
+      'play',
+      'presence',
+    ]),
+    guidance: z.string().max(500),
+  })
+  .nullable();
+
 export const initiativeDecisionSchema = z.object({
   conversationState: z.object({
     signal: conversationSignalSchema,
     confidence: z.number().min(0).max(1),
     reason: z.string().max(180),
   }),
+  orientation: conversationOrientationSchema,
+  posture: relationalPostureSchema,
+  postureConfidence: z.number().min(0).max(1),
+  postureReason: z.string().max(180),
+  nudgeJustification: z.string().max(240).nullable(),
+  relationalIntent: relationalIntentSchema,
   act: z.boolean(),
   kind: initiativeKindSchema,
   reason: z.string().max(240),

@@ -26,7 +26,7 @@ export async function composeInitiative(input: {
           abortSignal: input.signal,
           maxOutputTokens: 120,
           system: `${sophieSystemPrompt()}\n\n[RELATIONAL INITIATIVE]\nWrite one short, natural message that feels like Sophie had another thought. One question maximum. Do not mention systems, evidence, memory retrieval, triggers, or this instruction. Do not explain why you are messaging unless that explanation itself sounds human. Never claim a physical off-screen life. Do not guilt the user for silence.`,
-          prompt: `Trigger: ${input.trigger}\nReason: ${input.decision.reason}\nGuidance: ${input.decision.guidance}\nEvidence: ${input.decision.evidence.join('; ') || input.memoryEvidence || '(none)'}\n\nRecent conversation:\n${input.recentConversation}`,
+          prompt: `Trigger: ${input.trigger}\nOrientation: ${input.decision.orientation}\nRelational posture: ${input.decision.posture}\nPosture reason: ${input.decision.postureReason}\nNudge justification: ${input.decision.nudgeJustification || '(none)'}\nRelational intent: ${input.decision.relationalIntent ? `${input.decision.relationalIntent.kind}: ${input.decision.relationalIntent.guidance}` : '(none)'}\nReason: ${input.decision.reason}\nGuidance: ${input.decision.guidance}\nEvidence: ${input.decision.evidence.join('; ') || input.memoryEvidence || '(none)'}\n\nPosture rules:\n- HOLD: stay with the person; do not unnecessarily steer or solve.\n- ASK: create space with at most one natural question and carry some conversational load.\n- NUDGE: make one gentle, justified directional move without becoming a coach.\n\nRecent conversation:\n${input.recentConversation}`,
         })
       ).text;
   return enforceSingleQuestion(text);

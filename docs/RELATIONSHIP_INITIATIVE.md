@@ -18,6 +18,8 @@ The server checks ownership, the latest canonical message, minimum idle duration
 
 `RelationshipInitiative` records sent, declined, suppressed and failed evaluations, including trigger, kind, reason, topic key, evidence, guidance, generated message and subsequent direct reply. This is enough to inspect why Sophie spoke and whether the user responded.
 
+Each evaluation also records a semantic conversational orientation and a relational posture: `hold`, `ask`, or `nudge`. Hold is the safe default, Ask creates conversational space, and Nudge requires high confidence, explicit justification and supporting evidence. The posture shapes composition but never overrides a user task. Social connection and company are valid orientations even when no task exists.
+
 ## Restraint defaults
 
 - Eight total sent initiatives per UTC database day, of which at most four may be active-idle outreach

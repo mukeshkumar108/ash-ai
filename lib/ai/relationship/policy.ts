@@ -29,6 +29,13 @@ export function mayUseDecision(input: {
   )
     return false;
   if (!input.decision.guidance?.trim()) return false;
+  if (
+    input.decision.posture === 'nudge' &&
+    (input.decision.postureConfidence < 0.8 ||
+      !input.decision.nudgeJustification?.trim() ||
+      input.decision.evidence.length === 0)
+  )
+    return false;
   if (input.recentTopicKeys.includes(input.decision.topicKey)) return false;
   if (input.decision.sensitive && !input.hasSensitiveSupport) return false;
   return true;
