@@ -1,6 +1,6 @@
 'use client';
 
-import { Loader2, Mic, Square, X } from 'lucide-react';
+import { Check, Loader2, Mic, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -164,17 +164,6 @@ export function VoiceRecorder({
       >
         {recording ? (
           <>
-            <Button
-              type="button"
-              size="icon"
-              variant="ghost"
-              className="size-8 shrink-0 rounded-full"
-              aria-label="Cancel recording"
-              onClick={() => stopRecording(true)}
-            >
-              <X size={18} />
-            </Button>
-
             <div className="min-w-0 flex-1">
               <LiveWaveform analyser={analyserRef.current} />
             </div>
@@ -186,11 +175,22 @@ export function VoiceRecorder({
             <Button
               type="button"
               size="icon"
-              className="size-8 shrink-0 rounded-full bg-red-500 text-white hover:bg-red-600"
-              aria-label="Stop recording"
+              variant="ghost"
+              className="size-8 shrink-0 rounded-full"
+              aria-label="Discard recording"
+              onClick={() => stopRecording(true)}
+            >
+              <X size={18} />
+            </Button>
+
+            <Button
+              type="button"
+              size="icon"
+              className="size-8 shrink-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
+              aria-label="Accept recording"
               onClick={() => stopRecording()}
             >
-              <Square size={13} fill="currentColor" />
+              <Check size={18} />
             </Button>
           </>
         ) : (

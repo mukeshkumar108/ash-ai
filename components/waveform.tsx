@@ -20,9 +20,47 @@ function roundRectPath(
   ctx.closePath();
 }
 
-// Live waveform for recording: time-domain amplitude, mirrored symmetrically
-// around the vertical centerline, smoothed with a peak follower so it reads as
-// a centered, gently bobbing voice waveform rather than a left-weighted EQ.
+// Draws symmetric bars mirrored around the vertical centerline. `values` are
+// 0..1 amplitudes; bars before `playedTo` (x pixels) render in the brand
+// accent, the rest in the muted tone.
+function drawCenteredBars(
+  ctx: CanvasRenderingContext2D,
+  dpr: number,
+  w: number,
+  h: number,
+  values: number[],
+  playedTo: number,
+  minHalf: number,
+) {
+  if (w <= 0 || h <= 0 || values.length === 0) return;
+  const gap = 2 * dpr;
+  const barCount = values.length;
+  const barW = (w - gap * (barCount - 1)) / barCount;
+  if (barW <= 0) return;
+  const midY = h / 2;
+  const maxH = h - 6 * dpr;
+  for (let i = 0; i < barCount; i++) {
+    const value = Math.min(1, Math.max(0, values[i]));
+    const half = Math.max(minHalf, (value * maxH) / 2);
+    const x = i * (barW + gap);
+    ctx.fillStyle =
+      x < playedTo ? '#d946ef' : 'hsl(var(--muted-foreground) / 0.35)';
+    roundRectPath(
+      ctx,
+      x,
+      midY - half,
+      barW,
+      half * 2,
+      Math.max(0, Math.min(barW / 2, 1.5 * dpr)),
+    );
+    ctx.fill();
+  }
+}
+
+// Live waveform while recording: frequency data mapped onto a log scale so the
+// voice energy spreads across the full width, smoothed with a slow
+// attack/release envelope so the bars swell and settle at a calm, human pace
+// rather than flickering frame-to-frame.
 export function LiveWaveform({
   analyser,
   className,
@@ -40,8 +78,9 @@ export function LiveWaveform({
 
     let data: Uint8Array | null = null;
     if (analyser) {
-      analyser.fftSize = 2048;
-      data = new Uint8Array(analyser.fftSize);
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.85;
+      data = new Uint8Array(analyser.frequencyBinCount);
     }
     const levels: number[] = [];
     let raf = 0;
@@ -56,44 +95,22 @@ export function LiveWaveform({
       ctx.clearRect(0, 0, w, h);
       if (!data) return;
 
-      if (analyser) analyser.getByteTimeDomainData(data);
+      if (analyser) analyser.getByteFrequencyData(data);
 
-      const barCount = Math.max(16, Math.floor(w / (7 * dpr)));
-      const gap = 2 * dpr;
-      const barW = (w - gap * (barCount - 1)) / barCount;
-      const midY = h / 2;
-      const maxH = h - 6 * dpr;
-
+      const barCount = Math.max(16, Math.floor(w / (8 * dpr)));
+      const values: number[] = [];
       for (let i = 0; i < barCount; i++) {
-        const index = Math.floor((i / barCount) * data.length);
-        const raw = Math.abs(data[index] - 128) / 128;
+        const t = i / (barCount - 1);
+        const index = Math.max(1, Math.floor(Math.pow(data.length - 1, t)));
+        const raw = data[Math.min(data.length - 1, index)] / 255;
         const previous = levels[i] ?? 0;
-        // Fast attack, slow release keeps the bars floating smoothly.
-        const level = raw > previous ? raw : Math.max(previous * 0.88, raw);
+        const factor = raw > previous ? 0.22 : 0.06;
+        const level = previous + (raw - previous) * factor;
         levels[i] = level;
-
-        const half = Math.max(2 * dpr, (level * maxH) / 2);
-        const x = i * (barW + gap);
-        const gradient = ctx.createLinearGradient(
-          0,
-          midY - half,
-          0,
-          midY + half,
-        );
-        gradient.addColorStop(0, 'rgba(168, 85, 247, 0.5)');
-        gradient.addColorStop(0.5, '#d946ef');
-        gradient.addColorStop(1, 'rgba(168, 85, 247, 0.5)');
-        ctx.fillStyle = gradient;
-        roundRectPath(
-          ctx,
-          x,
-          midY - half,
-          barW,
-          half * 2,
-          Math.max(0, Math.min(barW / 2, 2 * dpr)),
-        );
-        ctx.fill();
+        values.push(level);
       }
+
+      drawCenteredBars(ctx, dpr, w, h, values, Infinity, 2 * dpr);
     };
 
     const resize = () => {
@@ -122,9 +139,9 @@ export function LiveWaveform({
   );
 }
 
-// Static peaks for a recorded/clip audio with a played-portion highlight.
-// While `playing` with a `liveAnalyser`, the bars animate from the real
-// audio instead of the static shape.
+// Waveform for a recorded/loaded clip: static peaks with a played-portion
+// highlight. While `playing` with a `liveAnalyser`, the bars animate from the
+// real audio (same log-spaced, smoothed envelope as the recorder).
 export function PeakWaveform({
   peaks,
   progress,
@@ -144,6 +161,7 @@ export function PeakWaveform({
   const progressRef = useRef(progress);
   progressRef.current = progress;
   const drawRef = useRef<() => void>(() => {});
+  const liveLevelsRef = useRef<number[]>([]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -165,70 +183,42 @@ export function PeakWaveform({
 
       if (isLive) {
         if (!liveData) {
-          liveAnalyser.fftSize = 2048;
-          liveData = new Uint8Array(liveAnalyser.fftSize);
+          liveAnalyser.fftSize = 256;
+          liveAnalyser.smoothingTimeConstant = 0.85;
+          liveData = new Uint8Array(liveAnalyser.frequencyBinCount);
         }
-        liveAnalyser.getByteTimeDomainData(liveData);
-        const barCount = Math.min(
-          liveData.length,
-          Math.max(12, Math.floor(w / (7 * dpr))),
-        );
-        const gap = 2 * dpr;
-        const barW = (w - gap * (barCount - 1)) / barCount;
-        const midY = h / 2;
-        const maxH = h - 6 * dpr;
+        liveAnalyser.getByteFrequencyData(liveData);
+        const barCount = Math.max(12, Math.floor(w / (8 * dpr)));
+        const levels = liveLevelsRef.current;
+        const values: number[] = [];
         for (let i = 0; i < barCount; i++) {
-          const index = Math.floor((i / barCount) * liveData.length);
-          const raw = Math.abs(liveData[index] - 128) / 128;
-          const half = Math.max(1.5 * dpr, (raw * maxH) / 2);
-          const x = i * (barW + gap);
-          ctx.fillStyle =
-            x < playedTo
-              ? '#d946ef'
-              : 'hsl(var(--muted-foreground) / 0.35)';
-          roundRectPath(
-            ctx,
-            x,
-            midY - half,
-            barW,
-            half * 2,
-            Math.max(0, Math.min(barW / 2, 1.5 * dpr)),
-          );
-          ctx.fill();
+          const t = i / (barCount - 1);
+          const index = Math.max(1, Math.floor(Math.pow(liveData.length - 1, t)));
+          const raw = liveData[Math.min(liveData.length - 1, index)] / 255;
+          const previous = levels[i] ?? 0;
+          const factor = raw > previous ? 0.22 : 0.06;
+          const level = previous + (raw - previous) * factor;
+          levels[i] = level;
+          values.push(level);
         }
+        drawCenteredBars(ctx, dpr, w, h, values, playedTo, 1.5 * dpr);
         return;
       }
 
       if (peaks.length === 0) return;
       const barCount = Math.min(
         peaks.length,
-        Math.max(12, Math.floor(w / (7 * dpr))),
+        Math.max(12, Math.floor(w / (8 * dpr))),
       );
-      const gap = 2 * dpr;
-      const barW = (w - gap * (barCount - 1)) / barCount;
+      const values: number[] = [];
       for (let i = 0; i < barCount; i++) {
         const sourceIndex = Math.min(
           peaks.length - 1,
           Math.floor((i / barCount) * peaks.length),
         );
-        const value = Math.min(1, Math.max(0, peaks[sourceIndex]));
-        const barHeight = Math.max(3 * dpr, value * (h - 6 * dpr));
-        const x = i * (barW + gap);
-        const y = (h - barHeight) / 2;
-        ctx.fillStyle =
-          x < playedTo
-            ? '#d946ef'
-            : 'hsl(var(--muted-foreground) / 0.35)';
-        roundRectPath(
-          ctx,
-          x,
-          y,
-          barW,
-          barHeight,
-          Math.max(0, Math.min(barW / 2, 2 * dpr)),
-        );
-        ctx.fill();
+        values.push(peaks[sourceIndex]);
       }
+      drawCenteredBars(ctx, dpr, w, h, values, playedTo, 1.5 * dpr);
     };
     drawRef.current = draw;
 
