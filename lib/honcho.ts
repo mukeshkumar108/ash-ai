@@ -107,6 +107,48 @@ export async function mirrorCompletedTurn(turn: CompletedHonchoTurn) {
   }
 }
 
+export async function mirrorAssistantInitiative(input: {
+  userId: string;
+  chatId: string;
+  message: { id: string; text: string; createdAt?: Date | string };
+}) {
+  if (!isHonchoConfigured())
+    return { mirrored: false as const, reason: 'disabled' };
+  try {
+    const { sophiePeer, session } = await mappedEntities(
+      input.userId,
+      input.chatId,
+    );
+    const recent = await session.messages({ size: 50, reverse: true });
+    if (
+      recent.items.some(
+        (item) => item.metadata.app_message_id === input.message.id,
+      )
+    ) {
+      return { mirrored: true as const, duplicate: true };
+    }
+    await session.addMessages([
+      sophiePeer.message(input.message.text, {
+        createdAt: messageTime(input.message.createdAt),
+        metadata: {
+          source: 'llm-test-agent',
+          app_message_id: input.message.id,
+          app_role: 'assistant',
+          initiative: true,
+        },
+      }),
+    ]);
+    return { mirrored: true as const, duplicate: false };
+  } catch (error) {
+    console.warn('[honcho] initiative mirror failed', {
+      chatId: input.chatId,
+      messageId: input.message.id,
+      error: error instanceof Error ? error.message : 'Unknown Honcho error',
+    });
+    return { mirrored: false as const, reason: 'error' };
+  }
+}
+
 function serializeMessage(message: Message) {
   return {
     id: message.id,

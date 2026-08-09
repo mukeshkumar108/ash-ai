@@ -87,6 +87,58 @@ export const message = pgTable('Message_v2', {
 
 export type DBMessage = InferSelectModel<typeof message>;
 
+export const relationshipInitiative = pgTable(
+  'RelationshipInitiative',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    chatId: uuid('chatId')
+      .notNull()
+      .references(() => chat.id, { onDelete: 'cascade' }),
+    trigger: varchar('trigger', { length: 24 }).notNull(),
+    triggerMessageId: uuid('triggerMessageId')
+      .notNull()
+      .references(() => message.id, { onDelete: 'cascade' }),
+    dedupeKey: varchar('dedupeKey', { length: 180 }).notNull(),
+    status: varchar('status', { length: 24 }).notNull().default('evaluating'),
+    candidateKind: varchar('candidateKind', { length: 40 }),
+    topicKey: varchar('topicKey', { length: 80 }),
+    reason: text('reason'),
+    evidence: json('evidence'),
+    guidance: text('guidance'),
+    generatedMessageId: uuid('generatedMessageId').references(
+      () => message.id,
+      { onDelete: 'set null' },
+    ),
+    createdAt: timestamp('createdAt').notNull().defaultNow(),
+    decidedAt: timestamp('decidedAt'),
+    sentAt: timestamp('sentAt'),
+    repliedAt: timestamp('repliedAt'),
+    replyMessageId: uuid('replyMessageId').references(() => message.id, {
+      onDelete: 'set null',
+    }),
+  },
+  (table) => ({
+    dedupeIdx: uniqueIndex('RelationshipInitiative_dedupe_idx').on(
+      table.dedupeKey,
+    ),
+    userCreatedIdx: index('RelationshipInitiative_user_created_idx').on(
+      table.userId,
+      table.createdAt,
+    ),
+    chatCreatedIdx: index('RelationshipInitiative_chat_created_idx').on(
+      table.chatId,
+      table.createdAt,
+    ),
+  }),
+);
+
+export type RelationshipInitiative = InferSelectModel<
+  typeof relationshipInitiative
+>;
+
 // DEPRECATED: The following schema is deprecated and will be removed in the future.
 // Read the migration guide at https://chat-sdk.dev/docs/migration-guides/message-parts
 export const voteDeprecated = pgTable(

@@ -27,6 +27,10 @@ because another approach is more fashionable.
 - Gems use the append-only ledger documented in `docs/GEMS_SYSTEM.md`. Every
   balance change must be atomic, auditable, and idempotent; billable provider
   failures must refund the matching spend.
+- Relational initiative is documented in `docs/RELATIONSHIP_INITIATIVE.md`.
+  PostgreSQL owns triggers, decisions, dedupe, and proactive messages; Honcho
+  supplies fallible evidence and receives a best-effort message mirror. A
+  relationship-runtime failure must never fail or delay the normal chat turn.
 
 ## Image remix invariants
 
@@ -67,6 +71,12 @@ because another approach is more fashionable.
   warning during `next build`; distinguish it from an actual build failure.
 
 ## Change discipline
+
+- Substantial features should be developed on a dedicated agent branch using
+  the `codex/` prefix for Codex. Commit validated checkpoints on that branch;
+  merge and push to `main` deliberately after concurrent work is reconciled.
+- Never switch another active agent's shared checkout out from underneath it.
+  Confirm the worktree is clean and coordinate branch ownership first.
 
 - Preserve unrelated working-tree changes. Do not reset or overwrite other
   agents' work.

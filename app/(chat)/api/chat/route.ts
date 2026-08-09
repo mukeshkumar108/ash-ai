@@ -69,6 +69,7 @@ import type { ChatModel } from '@/lib/ai/models';
 import type { VisibilityType } from '@/components/visibility-selector';
 import { mirrorCompletedTurn } from '@/lib/honcho';
 import { prepareTurnMemory, recordMemoryTrace } from '@/lib/agent/memory';
+import { markLatestInitiativeReplied } from '@/lib/ai/relationship/store';
 
 export const maxDuration = 300;
 const CHAT_AGENT_TIMEOUT_MS = Number(
@@ -297,6 +298,20 @@ export async function POST(request: Request) {
           createdAt: userCreatedAt,
         })
         .onConflictDoNothing();
+
+      // If the user is replying after a proactive Sophie message, connect the
+      // reply to that initiative for simple acceptance/latency inspection.
+      await markLatestInitiativeReplied({
+        userId: session.user.id,
+        chatId: id,
+        replyMessageId: message.id,
+        repliedAt: userCreatedAt,
+      }).catch((error) => {
+        console.warn('[relationship] failed to record initiative reply', {
+          chatId: id,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+      });
 
       const currentUserText = sanitizedMessage.parts
         .filter((part) => part.type === 'text')
