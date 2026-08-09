@@ -1,9 +1,46 @@
 import 'server-only';
 
+import { get } from '@vercel/blob';
+
 const POLL_INTERVAL_MS = 1500;
 const POLL_TIMEOUT_MS = 90_000;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Read a private Vercel blob back as a base64 data URI. Replicate cannot fetch
+ * our private blob URLs directly, so inputs are resolved server-side first.
+ */
+export async function readPrivateBlobDataUri(
+  pathname: string,
+): Promise<string | null> {
+  try {
+    const result = await get(pathname, {
+      access: 'private',
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+    });
+    if (result?.statusCode !== 200 || !result.stream) return null;
+    const chunks: Uint8Array[] = [];
+    const reader = result.stream.getReader();
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (value) chunks.push(value);
+    }
+    const bytes = new Uint8Array(
+      chunks.reduce((total, chunk) => total + chunk.length, 0),
+    );
+    let offset = 0;
+    for (const chunk of chunks) {
+      bytes.set(chunk, offset);
+      offset += chunk.length;
+    }
+    const mediaType = result.blob.contentType || 'image/png';
+    return `data:${mediaType};base64,${Buffer.from(bytes).toString('base64')}`;
+  } catch {
+    return null;
+  }
+}
 
 async function replicateJson(url: string, init?: RequestInit) {
   const response = await fetch(url, {
@@ -25,6 +62,7 @@ async function replicateJson(url: string, init?: RequestInit) {
 export async function runReplicatePrediction(
   version: string,
   input: Record<string, unknown>,
+  timeoutMs = POLL_TIMEOUT_MS,
 ): Promise<string[]> {
   const created = await replicateJson(
     'https://api.replicate.com/v1/predictions',
@@ -53,7 +91,7 @@ export async function runReplicatePrediction(
     throw new Error('Replicate did not return a prediction');
   }
 
-  const deadline = Date.now() + POLL_TIMEOUT_MS;
+  const deadline = Date.now() + timeoutMs;
 
   while (
     !['succeeded', 'failed', 'canceled'].includes(prediction.status) &&
@@ -86,3 +124,4 @@ export async function runReplicatePrediction(
 
   return outputs;
 }
+

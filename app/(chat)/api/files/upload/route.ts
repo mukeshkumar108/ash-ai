@@ -20,6 +20,11 @@ const ACCEPTED_FILE_TYPES = [
   'application/json',
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'audio/mpeg',
+  'audio/mp4',
+  'audio/wav',
+  'audio/x-wav',
+  'audio/flac',
 ];
 
 // Use Blob instead of File since File is not available in Node.js environment

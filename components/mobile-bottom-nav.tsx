@@ -1,6 +1,6 @@
 'use client';
 
-import { Compass, Image as ImageIcon, MessagesSquare, UserRound } from 'lucide-react';
+import { Clapperboard, Compass, Image as ImageIcon, MessagesSquare, UserRound } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
@@ -40,6 +40,13 @@ export function MobileBottomNav({ onChatsPress }: MobileBottomNavProps) {
       icon: ImageIcon,
       active: pathname.startsWith('/image'),
       onClick: () => router.push('/image'),
+    },
+    {
+      key: 'video',
+      label: 'Video',
+      icon: Clapperboard,
+      active: pathname.startsWith('/video'),
+      onClick: () => router.push('/video'),
     },
     {
       key: 'profile',

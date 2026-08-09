@@ -1453,6 +1453,27 @@ export async function getGenerationsByUserId(userId: string) {
   }
 }
 
+export async function getVideoGenerationsByUserId(
+  userId: string,
+  modelIds: string[],
+) {
+  try {
+    return await db
+      .select()
+      .from(generation)
+      .where(
+        and(eq(generation.userId, userId), inArray(generation.modelId, modelIds)),
+      )
+      .orderBy(desc(generation.createdAt));
+  } catch (error) {
+    logDatabaseError('get video generations by user id', error);
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to get video generations',
+    );
+  }
+}
+
 export async function getGenerationById({
   id,
   userId,

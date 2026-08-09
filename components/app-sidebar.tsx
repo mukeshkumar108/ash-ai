@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { ImageIcon, MessagesSquare } from 'lucide-react';
+import { Clapperboard, ImageIcon, MessagesSquare } from 'lucide-react';
 
 import { PlusIcon } from '@/components/icons';
 import { SidebarHistory } from '@/components/sidebar-history';
@@ -44,6 +44,14 @@ export function AppSidebar() {
               <Link href="/image" onClick={() => setOpenMobile(false)}>
                 <ImageIcon />
                 <span>Image Studio</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Video Studio">
+              <Link href="/video" onClick={() => setOpenMobile(false)}>
+                <Clapperboard />
+                <span>Video Studio</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
