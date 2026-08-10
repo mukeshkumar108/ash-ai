@@ -7,7 +7,7 @@ This in-repo runtime tests whether Sophie feels more alive when she can have a s
 - PostgreSQL is canonical for initiative attempts, decisions, messages, dedupe state and reply attribution.
 - Honcho provides targeted, fallible evidence about the user. It does not decide timing or schedule outreach.
 - The evaluator decides whether there is a reason to act and may return no action.
-- The composer expresses one short message in Sophie's voice with at most one question.
+- The composer expresses one short message in Sophie's voice. Curiosity is judged by conversational coherence, not question-mark count.
 - The browser supplies `post_turn` and `active_idle` triggers only. The server revalidates every condition.
 
 ## Behaviour
@@ -18,7 +18,7 @@ The server checks ownership, the latest canonical message, minimum idle duration
 
 `RelationshipInitiative` records sent, declined, suppressed and failed evaluations, including trigger, kind, reason, topic key, evidence, guidance, generated message and subsequent direct reply. This is enough to inspect why Sophie spoke and whether the user responded.
 
-Each evaluation also records a semantic conversational orientation and a relational posture: `hold`, `ask`, or `nudge`. Ask and active conversational contribution are normal for social connection. Hold is a positive contextual decision—not a default—and requires explicit justification such as storytelling, emotional disclosure or a request for listening. Nudge requires high confidence, explicit justification and supporting evidence. The posture shapes composition but never overrides a user task. Social connection and company are valid orientations even when no task exists.
+Each evaluation also records a semantic conversational orientation and a relational posture: `hold`, `ask`, or `nudge`. Ask means active conversational expansion and is normal for social connection. It may be one question, several linked questions, an observation, playful provocation, remembered connection, new topic or invitation; it must not collapse into an interview or profile-extraction checklist. Hold is a positive contextual decision—not a default—and requires explicit justification such as storytelling, emotional disclosure or a request for listening. It can still be warm and substantive. Nudge requires high confidence, explicit justification and supporting evidence, but may be an observation rather than advice. The posture shapes composition but never overrides a user task. Social connection and company are valid orientations even when no task exists.
 
 ## Restraint defaults
 
@@ -30,7 +30,7 @@ Each evaluation also records a semantic conversational orientation and a relatio
 - Local time is supplied to the evaluator so social evening conversations can support warmer, more personal curiosity
 - Recent topic-key dedupe
 - Sensitive candidates require supporting memory evidence
-- One question maximum and 420 characters maximum
+- 420 characters maximum; no mechanical question-count cap
 - All model, Honcho and persistence errors fail closed
 
 ## Models and tuning

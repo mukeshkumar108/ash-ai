@@ -47,11 +47,10 @@ export function mayUseDecision(input: {
   return true;
 }
 
-export function enforceSingleQuestion(text: string) {
+export function validateInitiativeText(text: string) {
   const clean = text.replace(/\s+/gu, ' ').trim();
   if (!clean || clean.length > 420) return null;
-  const questionCount = (clean.match(/\?/gu) ?? []).length;
-  return questionCount <= 1 ? clean : null;
+  return clean;
 }
 
 export function initiativeDedupeKey(input: {

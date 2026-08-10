@@ -5,11 +5,11 @@ import { retrieveRelationshipEvidence } from '@/lib/ai/relationship/evidence';
 import {
   canonicalInitiativeMessage,
   checkInitiativeEligibility,
-  enforceSingleQuestion,
   initiativeDedupeKey,
   INITIATIVE_POLICY,
   mayUseDecision,
   unansweredFollowUpDelayMs,
+  validateInitiativeText,
 } from '@/lib/ai/relationship/policy';
 
 const decision = {
@@ -341,9 +341,12 @@ test.describe('relationship initiative policy', () => {
     });
   });
 
-  test('generated initiative contains at most one question', () => {
-    expect(enforceSingleQuestion('What do you do for fun?')).toBeTruthy();
-    expect(enforceSingleQuestion('What do you do? Why?')).toBeNull();
+  test('generated initiative permits one coherent burst of curiosity', () => {
+    const opening =
+      'Tell me about you. What do you dream about? What scares you? Do you want to take over the world?';
+    expect(validateInitiativeText(opening)).toBe(opening);
+    expect(validateInitiativeText('   ')).toBeNull();
+    expect(validateInitiativeText('x'.repeat(421))).toBeNull();
   });
 
   test('sensitive curiosity requires relationship evidence', () => {
