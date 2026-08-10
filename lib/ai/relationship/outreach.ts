@@ -6,7 +6,7 @@ import { mirrorAssistantInitiative } from '@/lib/honcho';
 import { composeInitiative } from './composer';
 import { retrieveRelationshipEvidence } from './evidence';
 import { evaluateInitiative } from './evaluator';
-import { mayUseDecision } from './policy';
+import { decisionPolicyRejection } from './policy';
 import {
   claimInitiative,
   completeNoAction,
@@ -79,22 +79,17 @@ export async function runRelationshipInitiative(input: {
       await completeNoAction(claim.eventId, decision);
       return { acted: false as const, reason: decision.reason };
     }
-    if (
-      !mayUseDecision({
-        decision,
-        trigger: input.trigger,
-        recentTopicKeys: claim.recentTopicKeys,
-        hasSensitiveSupport: Boolean(
-          memory.packet && decision.evidence.length > 0,
-        ),
-      })
-    ) {
-      await completeSuppressed(
-        claim.eventId,
-        decision,
-        'policy_rejected_candidate',
-      );
-      return { acted: false as const, reason: 'policy_rejected_candidate' };
+    const policyRejection = decisionPolicyRejection({
+      decision,
+      trigger: input.trigger,
+      recentTopicKeys: claim.recentTopicKeys,
+      hasSensitiveSupport: Boolean(
+        memory.packet && decision.evidence.length > 0,
+      ),
+    });
+    if (policyRejection) {
+      await completeSuppressed(claim.eventId, decision, policyRejection);
+      return { acted: false as const, reason: policyRejection };
     }
 
     const text = await composeInitiative({
@@ -110,7 +105,7 @@ export async function runRelationshipInitiative(input: {
       await completeSuppressed(
         claim.eventId,
         decision,
-        'composer_failed_single_question_policy',
+        'composer_failed_message_policy',
       );
       return { acted: false as const, reason: 'composer_failed_policy' };
     }

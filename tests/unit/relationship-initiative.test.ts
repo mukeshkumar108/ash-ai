@@ -5,6 +5,7 @@ import { retrieveRelationshipEvidence } from '@/lib/ai/relationship/evidence';
 import {
   canonicalInitiativeMessage,
   checkInitiativeEligibility,
+  decisionPolicyRejection,
   initiativeDedupeKey,
   INITIATIVE_POLICY,
   mayUseDecision,
@@ -27,6 +28,18 @@ const decision = {
   relationalIntent: {
     kind: 'curiosity' as const,
     guidance: 'Create space for the user to talk about life outside work.',
+  },
+  beatAssessment: {
+    previousBeat: {
+      summary: 'Sophie opened a conversation about life outside work.',
+      awaitingResponse: false,
+    },
+    proposedBeat: {
+      summary: 'Playfully ask what the user actually enjoys outside work.',
+      relationToPrevious: 'new' as const,
+      addsNewValue: true,
+      reason: 'It opens a genuinely different part of the conversation.',
+    },
   },
   act: true,
   kind: 'curiosity' as const,
@@ -128,6 +141,99 @@ test.describe('relationship initiative evaluator', () => {
 });
 
 test.describe('relationship initiative policy', () => {
+  test('suppresses a paraphrase of an unanswered conversational beat', () => {
+    const repeated = {
+      ...decision,
+      beatAssessment: {
+        previousBeat: {
+          summary: 'Asked what the user accomplished tonight.',
+          awaitingResponse: true,
+        },
+        proposedBeat: {
+          summary: 'Say Sophie is genuinely curious what they got done.',
+          relationToPrevious: 'repeats' as const,
+          addsNewValue: false,
+          reason: 'It asks for the same information in different words.',
+        },
+      },
+    };
+    expect(
+      decisionPolicyRejection({
+        decision: repeated,
+        trigger: 'post_turn',
+        recentTopicKeys: [],
+        hasSensitiveSupport: false,
+      }),
+    ).toBe('repeated_unanswered_beat');
+  });
+
+  test('permits a fast double-text that contributes a genuinely new aside', () => {
+    const newAside = {
+      ...decision,
+      beatAssessment: {
+        previousBeat: {
+          summary: 'Asked what the user accomplished tonight.',
+          awaitingResponse: true,
+        },
+        proposedBeat: {
+          summary:
+            'Affectionately notice that they closed the laptop to check in.',
+          relationToPrevious: 'extends' as const,
+          addsNewValue: true,
+          reason: 'It contributes affection rather than retrying the question.',
+        },
+      },
+    };
+    expect(
+      decisionPolicyRejection({
+        decision: newAside,
+        trigger: 'post_turn',
+        recentTopicKeys: [],
+        hasSensitiveSupport: false,
+      }),
+    ).toBeNull();
+  });
+
+  test('rejects an alleged new angle when it adds no conversational value', () => {
+    const emptyVariation = {
+      ...decision,
+      beatAssessment: {
+        previousBeat: {
+          summary: 'Asked what is keeping the user awake.',
+          awaitingResponse: true,
+        },
+        proposedBeat: {
+          summary: 'Ask whether something specific is keeping them awake.',
+          relationToPrevious: 'extends' as const,
+          addsNewValue: false,
+          reason: 'It narrows wording but still requests the same answer.',
+        },
+      },
+    };
+    expect(
+      decisionPolicyRejection({
+        decision: emptyVariation,
+        trigger: 'active_idle',
+        recentTopicKeys: [],
+        hasSensitiveSupport: false,
+      }),
+    ).toBe('repeated_unanswered_beat');
+  });
+
+  test('does not reject an initial post-turn beat merely because it is fast', () => {
+    expect(
+      checkInitiativeEligibility({
+        trigger: 'post_turn',
+        anchorMessageId: 'assistant-message',
+        latestMessageId: 'assistant-message',
+        latestRole: 'assistant',
+        idleForMs: 2_800,
+        dailyCount: 0,
+        unansweredCount: 0,
+      }),
+    ).toBeNull();
+  });
+
   test('a retry has the same dedupe key', () => {
     const input = {
       userId: 'u',

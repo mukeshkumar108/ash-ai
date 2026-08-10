@@ -18,6 +18,8 @@ The server checks ownership, the latest canonical message, minimum idle duration
 
 `RelationshipInitiative` records sent, declined, suppressed and failed evaluations, including trigger, kind, reason, topic key, evidence, guidance, generated message and subsequent direct reply. This is enough to inspect why Sophie spoke and whether the user responded.
 
+The evaluator also derives an active conversational beat from the latest ordinary or proactive assistant message. It records a compact summary, whether that beat is awaiting a user response, the proposed next beat, whether it is new, extending or repetitive, and why it adds new value. An unanswered beat may receive a fast double-text only when the new message contributes something genuinely different; semantic paraphrases and intensified retries are suppressed. This judgment is model-based and does not use keyword lists, regexes or text-similarity thresholds.
+
 Each evaluation also records a semantic conversational orientation and a relational posture: `hold`, `ask`, or `nudge`. Ask means active conversational expansion and is normal for social connection. It may be one question, several linked questions, an observation, playful provocation, remembered connection, new topic or invitation; it must not collapse into an interview or profile-extraction checklist. Hold is a positive contextual decision—not a default—and requires explicit justification such as storytelling, emotional disclosure or a request for listening. It can still be warm and substantive. Nudge requires high confidence, explicit justification and supporting evidence, but may be an observation rather than advice. The posture shapes composition but never overrides a user task. Social connection and company are valid orientations even when no task exists.
 
 ## Restraint defaults
@@ -31,6 +33,7 @@ Each evaluation also records a semantic conversational orientation and a relatio
 - Recent topic-key dedupe
 - Sensitive candidates require supporting memory evidence
 - 420 characters maximum; no mechanical question-count cap
+- Turn-tail initiatives are biased toward a quick aside that is shorter than the preceding message; this is guidance rather than a truncation limit
 - All model, Honcho and persistence errors fail closed
 
 ## Models and tuning

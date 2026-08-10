@@ -33,6 +33,19 @@ export const conversationOrientationSchema = z.enum([
 
 export const relationalPostureSchema = z.enum(['hold', 'ask', 'nudge']);
 
+export const conversationalBeatAssessmentSchema = z.object({
+  previousBeat: z.object({
+    summary: z.string().max(240),
+    awaitingResponse: z.boolean(),
+  }),
+  proposedBeat: z.object({
+    summary: z.string().max(240),
+    relationToPrevious: z.enum(['new', 'extends', 'repeats']),
+    addsNewValue: z.boolean(),
+    reason: z.string().max(240),
+  }),
+});
+
 export const relationalIntentSchema = z
   .object({
     kind: z.enum([
@@ -60,6 +73,7 @@ export const initiativeDecisionSchema = z.object({
   holdJustification: z.string().max(240).nullable(),
   nudgeJustification: z.string().max(240).nullable(),
   relationalIntent: relationalIntentSchema,
+  beatAssessment: conversationalBeatAssessmentSchema,
   act: z.boolean(),
   kind: initiativeKindSchema,
   reason: z.string().max(240),

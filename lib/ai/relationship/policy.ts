@@ -20,31 +20,49 @@ export function mayUseDecision(input: {
   recentTopicKeys: string[];
   hasSensitiveSupport: boolean;
 }) {
-  if (!input.decision.act) return false;
+  return decisionPolicyRejection(input) === null;
+}
+
+export function decisionPolicyRejection(input: {
+  decision: InitiativeDecision;
+  trigger: InitiativeTrigger;
+  recentTopicKeys: string[];
+  hasSensitiveSupport: boolean;
+}) {
+  if (!input.decision.act) return 'no_action';
   if (
     input.decision.conversationState.confidence >= 0.7 &&
     ['closing', 'paused', 'busy'].includes(
       input.decision.conversationState.signal,
     )
   )
-    return false;
-  if (!input.decision.guidance?.trim()) return false;
+    return 'conversation_boundary';
+  if (!input.decision.guidance?.trim()) return 'missing_guidance';
+  if (
+    input.decision.beatAssessment.previousBeat.awaitingResponse &&
+    (input.decision.beatAssessment.proposedBeat.relationToPrevious ===
+      'repeats' ||
+      !input.decision.beatAssessment.proposedBeat.addsNewValue)
+  )
+    return 'repeated_unanswered_beat';
   if (
     input.decision.posture === 'hold' &&
     (!input.decision.holdJustification?.trim() ||
       input.decision.postureConfidence < 0.7)
   )
-    return false;
+    return 'unjustified_hold';
   if (
     input.decision.posture === 'nudge' &&
     (input.decision.postureConfidence < 0.8 ||
       !input.decision.nudgeJustification?.trim() ||
       input.decision.evidence.length === 0)
   )
-    return false;
-  if (input.recentTopicKeys.includes(input.decision.topicKey)) return false;
-  if (input.decision.sensitive && !input.hasSensitiveSupport) return false;
-  return true;
+    return 'unjustified_nudge';
+  if (input.recentTopicKeys.includes(input.decision.topicKey))
+    return 'repeated_topic';
+  if (input.decision.sensitive && !input.hasSensitiveSupport)
+    return 'unsupported_sensitive_topic';
+  return null;
 }
 
 export function validateInitiativeText(text: string) {

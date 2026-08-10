@@ -25,6 +25,21 @@ export type InitiativeClaim =
       retryAfterMs?: number;
     };
 
+function decisionEvidence(decision: InitiativeDecision) {
+  return {
+    items: decision.evidence,
+    conversationState: decision.conversationState,
+    orientation: decision.orientation,
+    posture: decision.posture,
+    postureConfidence: decision.postureConfidence,
+    postureReason: decision.postureReason,
+    holdJustification: decision.holdJustification,
+    nudgeJustification: decision.nudgeJustification,
+    relationalIntent: decision.relationalIntent,
+    beatAssessment: decision.beatAssessment,
+  };
+}
+
 export async function claimInitiative(input: {
   userId: string;
   chatId: string;
@@ -123,7 +138,7 @@ export async function completeNoAction(
   eventId: string,
   decision: InitiativeDecision,
 ) {
-  await sql()`UPDATE "RelationshipInitiative" SET status = 'no_action', "candidateKind" = ${decision.kind}, "topicKey" = ${decision.topicKey}, reason = ${decision.reason}, evidence = ${sql().json({ items: decision.evidence, conversationState: decision.conversationState, orientation: decision.orientation, posture: decision.posture, postureConfidence: decision.postureConfidence, postureReason: decision.postureReason, holdJustification: decision.holdJustification, nudgeJustification: decision.nudgeJustification, relationalIntent: decision.relationalIntent })}, guidance = ${decision.guidance}, "decidedAt" = now() WHERE id = ${eventId}`;
+  await sql()`UPDATE "RelationshipInitiative" SET status = 'no_action', "candidateKind" = ${decision.kind}, "topicKey" = ${decision.topicKey}, reason = ${decision.reason}, evidence = ${sql().json(decisionEvidence(decision))}, guidance = ${decision.guidance}, "decidedAt" = now() WHERE id = ${eventId}`;
 }
 
 export async function completeSuppressed(
@@ -131,7 +146,7 @@ export async function completeSuppressed(
   decision: InitiativeDecision,
   reason: string,
 ) {
-  await sql()`UPDATE "RelationshipInitiative" SET status = 'suppressed', "candidateKind" = ${decision.kind}, "topicKey" = ${decision.topicKey}, reason = ${reason}, evidence = ${sql().json({ items: decision.evidence, conversationState: decision.conversationState, orientation: decision.orientation, posture: decision.posture, postureConfidence: decision.postureConfidence, postureReason: decision.postureReason, holdJustification: decision.holdJustification, nudgeJustification: decision.nudgeJustification, relationalIntent: decision.relationalIntent })}, guidance = ${decision.guidance}, "decidedAt" = now() WHERE id = ${eventId}`;
+  await sql()`UPDATE "RelationshipInitiative" SET status = 'suppressed', "candidateKind" = ${decision.kind}, "topicKey" = ${decision.topicKey}, reason = ${reason}, evidence = ${sql().json(decisionEvidence(decision))}, guidance = ${decision.guidance}, "decidedAt" = now() WHERE id = ${eventId}`;
 }
 
 export async function failInitiative(eventId: string, reason: string) {
@@ -170,7 +185,7 @@ export async function persistInitiativeMessage(input: {
     `;
     await tx`
       UPDATE "RelationshipInitiative" SET status = 'sent', "candidateKind" = ${input.decision.kind},
-        "topicKey" = ${input.decision.topicKey}, reason = ${input.decision.reason}, evidence = ${tx.json({ items: input.decision.evidence, conversationState: input.decision.conversationState, orientation: input.decision.orientation, posture: input.decision.posture, postureConfidence: input.decision.postureConfidence, postureReason: input.decision.postureReason, holdJustification: input.decision.holdJustification, nudgeJustification: input.decision.nudgeJustification, relationalIntent: input.decision.relationalIntent })},
+        "topicKey" = ${input.decision.topicKey}, reason = ${input.decision.reason}, evidence = ${tx.json(decisionEvidence(input.decision))},
         guidance = ${input.decision.guidance}, "generatedMessageId" = ${input.messageId}, "decidedAt" = now(), "sentAt" = ${createdAt}
       WHERE id = ${input.eventId} AND status = 'evaluating'
     `;
