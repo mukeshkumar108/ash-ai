@@ -10,6 +10,7 @@ import {
 import { buildSophieReplySystemPrompt } from '@/lib/agent/system-prompt';
 import { chatModels } from '@/lib/ai/models';
 import type { ChatMessage } from '@/lib/types';
+import type { TranscriptReliability } from '@/lib/transcript-reliability';
 
 export type ExecutionLane =
   | 'reply_only'
@@ -30,6 +31,7 @@ export type TurnEvent = {
   };
   recentProvenance?: string | null;
   memoryPacket?: string | null;
+  transcriptReliability?: TranscriptReliability | null;
   handshake?: {
     chatsToday: number;
     lastInteractionAt?: Date | null;
@@ -204,6 +206,7 @@ export function createTurnPacket({
       ambient: event.ambient,
       recentProvenance: event.recentProvenance,
       memoryPacket: event.memoryPacket,
+      transcriptReliability: event.transcriptReliability,
     }),
   };
 }

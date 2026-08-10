@@ -4,6 +4,7 @@ import { Check, Loader2, Mic, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import type { TranscriptReliability } from '@/lib/transcript-reliability';
 import { motion } from 'framer-motion';
 import { Button } from './ui/button';
 import { LiveWaveform } from './waveform';
@@ -26,12 +27,17 @@ function formatTime(totalSeconds: number) {
 }
 
 export function VoiceRecorder({
+  chatId,
   disabled,
   onTranscript,
   containerRef,
 }: {
+  chatId: string;
   disabled: boolean;
-  onTranscript: (transcript: string) => void;
+  onTranscript: (result: {
+    transcript: string;
+    reliability: TranscriptReliability;
+  }) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
 }) {
   const recorderRef = useRef<MediaRecorder | null>(null);
@@ -135,7 +141,11 @@ export function VoiceRecorder({
         blob,
         blob.type.includes('mp4') ? 'voice-note.m4a' : 'voice-note.webm',
       );
-      body.append('durationMs', String(Math.max(1, Date.now() - startedAtRef.current)));
+      body.append(
+        'durationMs',
+        String(Math.max(1, Date.now() - startedAtRef.current)),
+      );
+      body.append('chatId', chatId);
       const response = await fetch('/api/voice/transcribe', {
         method: 'POST',
         body,
@@ -143,7 +153,10 @@ export function VoiceRecorder({
       const payload = await response.json().catch(() => ({}));
       if (!response.ok)
         throw new Error(payload.error || 'Transcription failed.');
-      onTranscript(payload.transcript);
+      onTranscript({
+        transcript: payload.transcript,
+        reliability: payload.reliability,
+      });
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : 'Transcription failed.',
@@ -159,7 +172,9 @@ export function VoiceRecorder({
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.18 }}
-        data-testid={recording ? 'voice-recording-state' : 'voice-transcribing-state'}
+        data-testid={
+          recording ? 'voice-recording-state' : 'voice-transcribing-state'
+        }
         className="absolute inset-0 z-20 flex items-center gap-2 rounded-2xl border border-fuchsia-500/20 bg-background/95 px-3 backdrop-blur"
       >
         {recording ? (

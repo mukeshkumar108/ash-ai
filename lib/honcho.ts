@@ -1,6 +1,10 @@
 import 'server-only';
 
 import { Honcho, type Message } from '@honcho-ai/sdk';
+import {
+  isTranscriptMemoryEligible,
+  type TranscriptReliability,
+} from '@/lib/transcript-reliability';
 
 const DEFAULT_WORKSPACE_ID = 'llm-test-agent';
 const SOPHIE_PEER_ID = 'sophie';
@@ -54,7 +58,13 @@ async function mappedEntities(userId: string, chatId: string) {
 export type CompletedHonchoTurn = {
   userId: string;
   chatId: string;
-  userMessage: { id: string; text: string; createdAt?: Date | string };
+  userMessage: {
+    id: string;
+    text: string;
+    createdAt?: Date | string;
+    inputSource?: 'typed' | 'audio_transcript' | 'voice_stream';
+    transcriptReliability?: TranscriptReliability | null;
+  };
   assistantMessage: { id: string; text: string; createdAt?: Date | string };
 };
 
@@ -76,15 +86,36 @@ export async function mirrorCompletedTurn(turn: CompletedHonchoTurn) {
         .map((item) => item.metadata.app_message_id)
         .filter((id): id is string => typeof id === 'string'),
     );
+    const memoryEligible = isTranscriptMemoryEligible(
+      turn.userMessage.transcriptReliability,
+    );
+    if (!memoryEligible) {
+      console.info('[honcho] user transcript excluded from memory mirror', {
+        chatId: turn.chatId,
+        userMessageId: turn.userMessage.id,
+        inputSource: turn.userMessage.inputSource,
+        status: turn.userMessage.transcriptReliability?.status,
+        confidence: turn.userMessage.transcriptReliability?.confidence,
+        signals: turn.userMessage.transcriptReliability?.signals,
+      });
+    }
     const messages = [
-      userPeer.message(turn.userMessage.text, {
-        createdAt: messageTime(turn.userMessage.createdAt),
-        metadata: {
-          source: 'llm-test-agent',
-          app_message_id: turn.userMessage.id,
-          app_role: 'user',
-        },
-      }),
+      ...(memoryEligible
+        ? [
+            userPeer.message(turn.userMessage.text, {
+              createdAt: messageTime(turn.userMessage.createdAt),
+              metadata: {
+                source: 'llm-test-agent',
+                app_message_id: turn.userMessage.id,
+                app_role: 'user',
+                input_source: turn.userMessage.inputSource ?? 'typed',
+                transcript_reliability:
+                  turn.userMessage.transcriptReliability?.status ??
+                  'not_applicable',
+              },
+            }),
+          ]
+        : []),
       sophiePeer.message(turn.assistantMessage.text, {
         createdAt: messageTime(turn.assistantMessage.createdAt),
         metadata: {

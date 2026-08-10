@@ -70,6 +70,7 @@ import type { VisibilityType } from '@/components/visibility-selector';
 import { mirrorCompletedTurn } from '@/lib/honcho';
 import { prepareTurnMemory, recordMemoryTrace } from '@/lib/agent/memory';
 import { markLatestInitiativeReplied } from '@/lib/ai/relationship/store';
+import { transcriptReliabilitySchema } from '@/lib/transcript-reliability';
 
 export const maxDuration = 300;
 const CHAT_AGENT_TIMEOUT_MS = Number(
@@ -317,8 +318,18 @@ export async function POST(request: Request) {
         .filter((part) => part.type === 'text')
         .map((part) => ('text' in part ? part.text : ''))
         .join('\n');
+      const transcriptReliabilityPart = sanitizedMessage.parts.find(
+        (part) => part.type === 'data-transcriptReliability',
+      );
+      const transcriptReliability = transcriptReliabilitySchema
+        .nullable()
+        .parse(
+          transcriptReliabilityPart?.type === 'data-transcriptReliability'
+            ? transcriptReliabilityPart.data
+            : null,
+        );
       const recentConversation = boundedEpistemicContext(uiMessages);
-      const [epistemicPolicy, turnMemory] = await Promise.all([
+      let [epistemicPolicy, turnMemory] = await Promise.all([
         assessEpistemicPolicy({
           currentTurn: currentUserText,
           recentContext: recentConversation,
@@ -342,6 +353,22 @@ export async function POST(request: Request) {
           ]),
         }),
       ]);
+      if (transcriptReliability?.status === 'likely_garbled') {
+        epistemicPolicy = {
+          ...epistemicPolicy,
+          researchDepth: 'none',
+          freshnessNeed: 'none',
+          authorityNeed: 'none',
+          sourceSensitivity: 'low',
+          stakes: 'low',
+          questionMode: 'conversation',
+          capabilityRoute: 'reply',
+          interactionMode: 'social',
+          neutralResearchQuestion: null,
+          reason: 'Clarify a likely garbled audio transcript before acting.',
+          confidence: Math.max(epistemicPolicy.confidence, 0.95),
+        };
+      }
       recordMemoryTrace({
         userId: session.user.id,
         chatId: id,
@@ -363,6 +390,7 @@ export async function POST(request: Request) {
         },
         recentProvenance: recentRetrievalProvenance(uiMessages),
         memoryPacket: turnMemory.packet,
+        transcriptReliability,
         handshake,
       };
       const turnDecision = decideTurn(turnEvent, epistemicPolicy);
@@ -372,6 +400,17 @@ export async function POST(request: Request) {
       console.info(
         `[chat] lane=${turnDecision.lane} role=${turnDecision.modelRole} interaction=${epistemicPolicy.interactionMode ?? 'unset'} classifier_ran=${epistemicPolicy.classifierRan} classifier_ok=${epistemicPolicy.classifierSucceeded} depth=${epistemicPolicy.researchDepth} freshness=${epistemicPolicy.freshnessNeed} authority=${epistemicPolicy.authorityNeed} sensitivity=${epistemicPolicy.sourceSensitivity} confidence=${epistemicPolicy.confidence.toFixed(2)} memory=${turnMemory.decision.needsMemory ? turnMemory.retrievalMode : 'no'} memory_ms=${turnMemory.decisionLatencyMs + (turnMemory.retrievalLatencyMs ?? 0)} model=${modelToUse}`,
       );
+      if (transcriptReliability) {
+        console.info('[chat] audio transcript reliability', {
+          chatId: id,
+          messageId: message.id,
+          source: transcriptReliability.source,
+          status: transcriptReliability.status,
+          confidence: transcriptReliability.confidence,
+          signals: transcriptReliability.signals,
+          memoryEligible: transcriptReliability.status === 'reliable',
+        });
+      }
 
       // Text-only models reject image parts anywhere in the context (including
       // history), so strip them before building the model messages.
@@ -705,6 +744,8 @@ export async function POST(request: Request) {
             id: message.id,
             text: currentUserText,
             createdAt: userCreatedAt,
+            inputSource: transcriptReliability?.source ?? 'typed',
+            transcriptReliability,
           },
           assistantMessage: {
             id: assistantId,

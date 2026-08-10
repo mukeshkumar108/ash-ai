@@ -1,0 +1,143 @@
+import { expect, test } from '@playwright/test';
+import { postRequestBodySchema } from '@/app/(chat)/api/chat/schema';
+import { assessTranscriptReliability } from '@/lib/ai/transcript-reliability';
+import {
+  isTranscriptMemoryEligible,
+  mechanicalTranscriptReliability,
+} from '@/lib/transcript-reliability';
+
+test.describe('audio transcript reliability', () => {
+  test('normal conversational audio is reliable', () => {
+    expect(
+      mechanicalTranscriptReliability({
+        transcript:
+          'I finally shut the laptop after a really productive evening, and I wanted to come and check in with you before bed.',
+        durationMs: 9_000,
+      }).status,
+    ).toBe('reliable');
+  });
+
+  test('natural rambling and repetition are not treated as garbling', () => {
+    expect(
+      mechanicalTranscriptReliability({
+        transcript:
+          "I mean, I was tired, and then I wasn't tired, if that makes sense. I kept thinking about work, then dinner, then whether I should call Mum. I'm rambling, but that's basically it.",
+        durationMs: 18_000,
+      }).status,
+    ).toBe('reliable');
+  });
+
+  test('repeated phrase loops are likely garbled', () => {
+    const loop = Array(8)
+      .fill('the companion relationship should be long term and meaningful')
+      .join('. ');
+    const result = mechanicalTranscriptReliability({
+      transcript: loop,
+      durationMs: 12_000,
+    });
+    expect(result.status).toBe('likely_garbled');
+    expect(result.signals).toContain('severe_phrase_looping');
+  });
+
+  test('long on-topic hallucinated expansion remains detectable', async () => {
+    const transcript = `${Array(5)
+      .fill('elderly companions need a long term companion relationship')
+      .join(', ')} and child companions also need companionship.`;
+    const result = await assessTranscriptReliability({
+      transcript,
+      durationMs: 10_000,
+      recentContext: 'We were discussing companion products.',
+      judge: async () => ({
+        status: 'likely_garbled',
+        confidence: 0.97,
+        reason:
+          'The on-topic wording loops rather than developing like speech.',
+        signals: ['semantic_phrase_fixation'],
+      }),
+    });
+    expect(result.status).toBe('likely_garbled');
+    expect(result.reason).toContain('loops');
+  });
+
+  test('an abrupt topic change is not itself garbling', () => {
+    expect(
+      mechanicalTranscriptReliability({
+        transcript:
+          'Anyway forget the meeting for a second, I just remembered the fox I saw beside the road yesterday and it was absolutely beautiful.',
+        durationMs: 11_000,
+      }).status,
+    ).toBe('reliable');
+  });
+
+  test('slang, typos and code-switching are not failure signals', () => {
+    expect(
+      mechanicalTranscriptReliability({
+        transcript:
+          "nah babes estoy bien, just knackered innit 😂 mañana we go again, pero tonight I'm fully done with work",
+        durationMs: 9_000,
+      }).status,
+    ).toBe('reliable');
+  });
+
+  test('typed messages contain no reliability part and bypass the layer', () => {
+    const parsed = postRequestBodySchema.parse({
+      id: '11111111-1111-4111-8111-111111111111',
+      message: {
+        id: '22222222-2222-4222-8222-222222222222',
+        role: 'user',
+        parts: [{ type: 'text', text: 'I am intentionally being weird.' }],
+      },
+      selectedChatModel: 'chat-model',
+      selectedVisibilityType: 'private',
+    });
+    expect(
+      parsed.message.parts.some(
+        (part) => part.type === 'data-transcriptReliability',
+      ),
+    ).toBe(false);
+  });
+
+  test('uncertain and likely-garbled transcripts are excluded from memory', () => {
+    const base = mechanicalTranscriptReliability({
+      transcript: 'ordinary voice note',
+      durationMs: 2_000,
+    });
+    expect(isTranscriptMemoryEligible(base)).toBe(true);
+    expect(isTranscriptMemoryEligible({ ...base, status: 'uncertain' })).toBe(
+      false,
+    );
+    expect(
+      isTranscriptMemoryEligible({ ...base, status: 'likely_garbled' }),
+    ).toBe(false);
+  });
+
+  test('judge failure falls back safely without breaking the turn', async () => {
+    const transcript = Array(5)
+      .fill('tell me about the companion and the long term relationship')
+      .join('. ');
+    await expect(
+      assessTranscriptReliability({
+        transcript,
+        durationMs: 8_000,
+        judge: async () => {
+          throw new Error('judge offline');
+        },
+      }),
+    ).resolves.toMatchObject({ status: 'likely_garbled' });
+  });
+
+  test('duplicated streaming segments receive the same protection', () => {
+    const duplicated = Array(7)
+      .fill('wait I was saying the meeting went really well today')
+      .join('. ');
+    const result = mechanicalTranscriptReliability({
+      transcript: duplicated,
+      durationMs: 11_000,
+      source: 'voice_stream',
+    });
+    expect(result).toMatchObject({
+      source: 'voice_stream',
+      status: 'likely_garbled',
+    });
+  });
+});

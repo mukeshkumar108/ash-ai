@@ -41,6 +41,7 @@ import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom';
 import type { VisibilityType } from './visibility-selector';
 import type { Attachment, ChatMessage } from '@/lib/types';
 import { VoiceRecorder } from './voice-recorder';
+import type { TranscriptReliability } from '@/lib/transcript-reliability';
 
 const VIDEO_ACCEPT = 'video/mp4,video/webm,video/quicktime,video/x-m4v';
 const DOCUMENT_ACCEPT =
@@ -128,6 +129,8 @@ function PureMultimodalInput({
   const replaceTargetRef = useRef<string | null>(null);
   const composerRef = useRef<HTMLDivElement>(null);
   const [fileAccept, setFileAccept] = useState(FILE_ACCEPT_ATTR);
+  const [transcriptReliability, setTranscriptReliability] =
+    useState<TranscriptReliability | null>(null);
 
   type PendingAttachment = {
     id: string;
@@ -364,6 +367,14 @@ function PureMultimodalInput({
           type: 'text' as const,
           text: `[Attached document: ${doc.name}]\n${doc.content}`,
         })),
+        ...(transcriptReliability
+          ? [
+              {
+                type: 'data-transcriptReliability' as const,
+                data: transcriptReliability,
+              },
+            ]
+          : []),
         {
           type: 'text',
           text: input,
@@ -376,6 +387,7 @@ function PureMultimodalInput({
     setLocalStorageInput('');
     resetHeight();
     setInput('');
+    setTranscriptReliability(null);
 
     if (width && width > 768) {
       textareaRef.current?.focus();
@@ -385,6 +397,7 @@ function PureMultimodalInput({
     setInput,
     attachments,
     textAttachments,
+    transcriptReliability,
     sendMessage,
     setAttachments,
     setTextAttachments,
@@ -592,8 +605,12 @@ function PureMultimodalInput({
       <div className="absolute bottom-0 right-0 p-2 w-fit flex flex-row items-center justify-end gap-1">
         {onVoiceTranscript ? (
           <VoiceRecorder
+            chatId={chatId}
             disabled={status !== 'ready'}
-            onTranscript={onVoiceTranscript}
+            onTranscript={(result) => {
+              setTranscriptReliability(result.reliability);
+              onVoiceTranscript(result.transcript);
+            }}
             containerRef={composerRef}
           />
         ) : null}

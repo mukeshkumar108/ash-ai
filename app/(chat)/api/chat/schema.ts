@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { transcriptReliabilitySchema } from '@/lib/transcript-reliability';
 
 const textPartSchema = z.object({
   type: z.enum(['text']),
@@ -18,7 +19,16 @@ const filePartSchema = z.object({
   url: z.string().url(),
 });
 
-const partSchema = z.union([textPartSchema, filePartSchema]);
+const transcriptReliabilityPartSchema = z.object({
+  type: z.literal('data-transcriptReliability'),
+  data: transcriptReliabilitySchema,
+});
+
+const partSchema = z.union([
+  textPartSchema,
+  filePartSchema,
+  transcriptReliabilityPartSchema,
+]);
 
 export const postRequestBodySchema = z.object({
   id: z.string().uuid(),

@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { UIMessage } from 'ai';
 import type { ArtifactKind } from '@/components/artifact';
 import type { Suggestion } from './db/schema';
+import type { TranscriptReliability } from './transcript-reliability';
 
 export type DataPart = { type: 'append-message'; message: string };
 
@@ -49,6 +50,7 @@ export type CustomUIDataTypes = {
   clear: null;
   finish: null;
   research: ResearchTrace;
+  transcriptReliability: TranscriptReliability;
 };
 
 export type ChatMessage = UIMessage<
