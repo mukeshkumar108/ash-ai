@@ -71,6 +71,7 @@ import { mirrorCompletedTurn } from '@/lib/honcho';
 import { prepareTurnMemory, recordMemoryTrace } from '@/lib/agent/memory';
 import { markLatestInitiativeReplied } from '@/lib/ai/relationship/store';
 import { transcriptReliabilitySchema } from '@/lib/transcript-reliability';
+import { applyTranscriptReliabilityGuard } from '@/lib/agent/transcript-reliability';
 
 export const maxDuration = 300;
 const CHAT_AGENT_TIMEOUT_MS = Number(
@@ -353,22 +354,10 @@ export async function POST(request: Request) {
           ]),
         }),
       ]);
-      if (transcriptReliability?.status === 'likely_garbled') {
-        epistemicPolicy = {
-          ...epistemicPolicy,
-          researchDepth: 'none',
-          freshnessNeed: 'none',
-          authorityNeed: 'none',
-          sourceSensitivity: 'low',
-          stakes: 'low',
-          questionMode: 'conversation',
-          capabilityRoute: 'reply',
-          interactionMode: 'social',
-          neutralResearchQuestion: null,
-          reason: 'Clarify a likely garbled audio transcript before acting.',
-          confidence: Math.max(epistemicPolicy.confidence, 0.95),
-        };
-      }
+      epistemicPolicy = applyTranscriptReliabilityGuard(
+        epistemicPolicy,
+        transcriptReliability,
+      );
       recordMemoryTrace({
         userId: session.user.id,
         chatId: id,

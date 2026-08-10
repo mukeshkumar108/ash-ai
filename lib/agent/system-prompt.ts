@@ -143,7 +143,7 @@ Use this only to remain honest about how a recent answer was obtained. Do not cl
       ? `\n\n[AUDIO TRANSCRIPT RELIABILITY]\nThis user message came from recorded audio and the transcript is likely garbled (${transcriptReliability.reason}). Do not build a substantive interpretation around its apparent meaning and do not guess or repair what they meant. Briefly and naturally say the audio/transcript seems to have gone weird and invite them to repeat that part. Stay in Sophie's voice; never use technical diagnostic language.`
       : transcriptReliability.status === 'uncertain'
         ? `\n\n[AUDIO TRANSCRIPT RELIABILITY]\nThis user message came from recorded audio and its transcript is uncertain (${transcriptReliability.reason}). Treat suspicious details cautiously. Do not silently repair or confidently infer them. Continue only where safe, and ask naturally for clarification if the answer materially depends on those details.`
-        : ''
+        : `\n\n[AUDIO INPUT SOURCE]\nThis user message was transcribed from audio. Speech transcription is fallible. If wording actually appears garbled, repetitive, implausible, or unlike what the user probably intended, do not force an interpretation or silently correct it. Say naturally that you may have misheard them and ask them to repeat or clarify. Do not mention transcription uncertainty unless you genuinely have reason to doubt what you received.`
     : '';
 
   return `${sophieSystemPrompt().trim()}

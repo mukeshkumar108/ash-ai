@@ -21,6 +21,7 @@ export async function assessTranscriptReliability(input: {
   durationMs?: number;
   recentContext?: string | null;
   source?: 'audio_transcript' | 'voice_stream';
+  mechanical?: TranscriptReliability;
   judge?: (input: {
     transcript: string;
     durationMs?: number;
@@ -28,7 +29,7 @@ export async function assessTranscriptReliability(input: {
     mechanical: TranscriptReliability;
   }) => Promise<unknown>;
 }): Promise<TranscriptReliability> {
-  const mechanical = mechanicalTranscriptReliability(input);
+  const mechanical = input.mechanical ?? mechanicalTranscriptReliability(input);
   if (mechanical.status === 'reliable') return mechanical;
 
   try {

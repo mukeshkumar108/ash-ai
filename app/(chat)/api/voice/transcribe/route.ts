@@ -6,6 +6,7 @@ import {
 } from '@/lib/voice';
 import { assessTranscriptReliability } from '@/lib/ai/transcript-reliability';
 import { getChatAccessById, getMessagesByChatId } from '@/lib/db/queries';
+import { mechanicalTranscriptReliability } from '@/lib/transcript-reliability';
 
 export const runtime = 'nodejs';
 
@@ -37,8 +38,14 @@ export async function POST(request: Request) {
       );
 
     const transcript = await transcribeWithLemonFox({ file, apiKey });
+    const mechanical = mechanicalTranscriptReliability({
+      transcript,
+      durationMs,
+      source: 'audio_transcript',
+    });
     let recentContext: string | null = null;
     if (
+      mechanical.status !== 'reliable' &&
       /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(
         chatId,
       )
@@ -69,6 +76,7 @@ export async function POST(request: Request) {
       durationMs,
       recentContext,
       source: 'audio_transcript',
+      mechanical,
     });
     console.info('[voice] transcript reliability', {
       userId: session.user.id,
