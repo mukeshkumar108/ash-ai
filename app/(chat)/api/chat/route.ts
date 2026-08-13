@@ -22,6 +22,7 @@ import {
   decideTurn,
   isTextOnlyModel,
 } from '@/lib/agent/turn-runtime';
+import { deriveSceneState } from '@/lib/agent/scene-state';
 import {
   executeDirectReply,
   executeLiveDataReply,
@@ -36,12 +37,14 @@ import {
   synthesizeSophieAnswer,
 } from '@/lib/agent/sophie-synthesis';
 import { getLanguageModel, getPinnedOpenAIModel } from '@/lib/ai/providers';
+import { fetchCortexContext } from '@/lib/synapse-cortex';
 import {
   createStreamId,
   deleteChatById,
   getChatAccessById,
   getChatById,
   getConversationHandshakeContext,
+  getMessageById,
   getMessagesByChatId,
   getUserById,
   saveUserDefaultLocationIfMissing,
@@ -69,14 +72,46 @@ import type { ChatModel } from '@/lib/ai/models';
 import type { VisibilityType } from '@/components/visibility-selector';
 import { mirrorCompletedTurn } from '@/lib/honcho';
 import { prepareTurnMemory, recordMemoryTrace } from '@/lib/agent/memory';
+import type { TurnMemory } from '@/lib/agent/memory';
 import { markLatestInitiativeReplied } from '@/lib/ai/relationship/store';
 import { transcriptReliabilitySchema } from '@/lib/transcript-reliability';
 import { applyTranscriptReliabilityGuard } from '@/lib/agent/transcript-reliability';
+import {
+  companionRuntimeAssistantMessageId,
+  companionRuntimeReplyOnlyEnabled,
+  executeCompanionRuntimeTurn,
+  legacyCompanionRuntimeAssistantMessageId,
+  type CompanionRuntimeResult,
+} from '@/lib/companion-runtime';
 
 export const maxDuration = 300;
 const CHAT_AGENT_TIMEOUT_MS = Number(
   process.env.CHAT_AGENT_TIMEOUT_MS ?? 240_000,
 );
+
+function runtimeMemoryPacket(
+  memory: Record<string, unknown> | null,
+): TurnMemory {
+  return {
+    decision: {
+      needsMemory: Boolean(memory?.needs_memory),
+      memoryQuestion:
+        typeof memory?.memory_question === 'string'
+          ? memory.memory_question
+          : null,
+      reason: 'Prepared by Companion Runtime.',
+      confidence: 1,
+    },
+    retrievalMode:
+      (memory?.retrieval_mode as TurnMemory['retrievalMode']) ?? null,
+    result: typeof memory?.result === 'string' ? memory.result : null,
+    packet: typeof memory?.packet === 'string' ? memory.packet : null,
+    decisionLatencyMs: 0,
+    retrievalLatencyMs: null,
+    failed: Boolean(memory?.failed),
+    empty: memory == null || Boolean(memory.empty),
+  };
+}
 
 function lastAssistantMessage(messages: unknown[]) {
   return [...messages]
@@ -255,16 +290,26 @@ export async function POST(request: Request) {
 
       const messagesFromDb = await getMessagesByChatId({ id });
       const timeZone = process.env.ASH_TIME_ZONE?.trim() || 'Europe/London';
-      const handshake =
-        messagesFromDb.length === 0
-          ? {
-              ...(await getConversationHandshakeContext({
-                userId: session.user.id,
-                currentChatId: id,
-                timeZone,
-              })),
-            }
-          : undefined;
+      const crossChatHandshake = await getConversationHandshakeContext({
+        userId: session.user.id,
+        currentChatId: id,
+        timeZone,
+      });
+      const currentChatLastInteraction =
+        messagesFromDb.at(-1)?.createdAt ?? null;
+      const candidates = [
+        currentChatLastInteraction,
+        crossChatHandshake.lastInteractionAt,
+      ].filter(
+        (value): value is Date =>
+          value instanceof Date && !Number.isNaN(value.getTime()),
+      );
+      const handshake = {
+        chatsToday: crossChatHandshake.chatsToday,
+        lastInteractionAt:
+          candidates.sort((a, b) => b.getTime() - a.getTime())[0] ?? null,
+        isNewChat: messagesFromDb.length === 0,
+      };
 
       // Apply input sanitization to user message before processing
       const sanitizedMessage = {
@@ -329,44 +374,180 @@ export async function POST(request: Request) {
             ? transcriptReliabilityPart.data
             : null,
         );
-      const recentConversation = boundedEpistemicContext(uiMessages);
-      let [epistemicPolicy, turnMemory] = await Promise.all([
-        assessEpistemicPolicy({
-          currentTurn: currentUserText,
-          recentContext: recentConversation,
-          signal: AbortSignal.any([
-            request.signal,
-            AbortSignal.timeout(
-              Number(process.env.EPISTEMIC_POLICY_TIMEOUT_MS ?? 8_000),
-            ),
-          ]),
-        }),
-        prepareTurnMemory({
-          userId: session.user.id,
-          chatId: id,
-          currentUserTurn: currentUserText,
-          recentConversation,
-          compilerSignal: AbortSignal.any([
-            request.signal,
-            AbortSignal.timeout(
-              Number(process.env.MEMORY_COMPILER_TIMEOUT_MS ?? 10_000),
-            ),
-          ]),
-        }),
-      ]);
-      epistemicPolicy = applyTranscriptReliabilityGuard(
-        epistemicPolicy,
-        transcriptReliability,
-      );
-      recordMemoryTrace({
-        userId: session.user.id,
-        chatId: id,
-        userTurn: currentUserText,
-        ...turnMemory,
-      });
       const hasImageParts = sanitizedMessage.parts.some(
         (part) => part.type === 'file',
       );
+      const recentProvenance = recentRetrievalProvenance(uiMessages);
+      let sceneState: ReturnType<typeof deriveSceneState>;
+      let epistemicPolicy: Awaited<ReturnType<typeof assessEpistemicPolicy>>;
+      let turnMemory: Awaited<ReturnType<typeof prepareTurnMemory>>;
+      let cortexContext: Awaited<ReturnType<typeof fetchCortexContext>>;
+      let turnDecision: ReturnType<typeof decideTurn>;
+      let runtimeCompleted: Extract<
+        CompanionRuntimeResult,
+        { status: 'completed' }
+      > | null = null;
+      let runtimeDeferred = false;
+
+      if (companionRuntimeReplyOnlyEnabled()) {
+        const runtimeMessages = await presignFilePartUrls(uiMessages);
+        const runtimeCurrent = runtimeMessages.at(-1);
+        const runtimeResult = await executeCompanionRuntimeTurn({
+          contract_version: 'v1',
+          turn_id: message.id,
+          conversation_id: id,
+          companion_id: 'sophie',
+          selected_model_id: selectedChatModel,
+          current_sanitized_message: currentUserText,
+          message_parts: runtimeCurrent?.parts ?? sanitizedMessage.parts,
+          canonical_history: runtimeMessages.slice(0, -1).map((entry) => ({
+            id: entry.id,
+            role: entry.role,
+            content: entry.parts
+              .filter((part) => part.type === 'text')
+              .map((part) => ('text' in part ? part.text : ''))
+              .join('\n'),
+            created_at: entry.metadata?.createdAt,
+            parts: entry.parts.filter(
+              (part) => part.type === 'text' || part.type === 'file',
+            ),
+          })),
+          trusted_user_context: {
+            user_id: session.user.id,
+            timezone: timeZone,
+            userLocation: userProfile?.rpLocation ?? null,
+            handshake: {
+              ...handshake,
+              lastInteractionAt:
+                handshake.lastInteractionAt?.toISOString() ?? null,
+            },
+          },
+          recent_provenance: { summary: recentProvenance },
+          capability_grant: {
+            allow_read_tools: true,
+            allow_live_data: true,
+            allow_research: true,
+            granted_scopes: ['read_tools', 'live_data', 'research'],
+          },
+          transcript_reliability: transcriptReliability,
+        });
+
+        if (runtimeResult.status === 'completed') {
+          runtimeCompleted = runtimeResult;
+          sceneState = runtimeResult.scene_state as typeof sceneState;
+          epistemicPolicy =
+            runtimeResult.epistemic_classification as typeof epistemicPolicy;
+          turnMemory = runtimeMemoryPacket(runtimeResult.honcho_memory_packet);
+          cortexContext =
+            runtimeResult.cortex_context_packet as typeof cortexContext;
+          turnDecision = {
+            lane: 'reply_only',
+            modelRole:
+              runtimeResult.execution_metadata.model_role === 'judgment'
+                ? 'judgment'
+                : 'conversation',
+            modelId: runtimeResult.model_used,
+            fallbackModelId: runtimeResult.model_used,
+            reason: 'Executed by Companion Runtime.',
+            policy: epistemicPolicy,
+          };
+        } else {
+          runtimeDeferred = true;
+          sceneState = runtimeResult.scene_state as typeof sceneState;
+          epistemicPolicy =
+            runtimeResult.epistemic_classification as typeof epistemicPolicy;
+          turnMemory = runtimeMemoryPacket(runtimeResult.honcho_memory_packet);
+          cortexContext =
+            runtimeResult.cortex_context_packet as typeof cortexContext;
+          turnDecision = {
+            lane: runtimeResult.execution_lane,
+            modelRole: runtimeResult.model_role,
+            modelId: runtimeResult.model_id,
+            fallbackModelId: runtimeResult.fallback_model_id,
+            reason: runtimeResult.reason,
+            policy: epistemicPolicy,
+          };
+        }
+      } else {
+        sceneState = deriveSceneState({
+          messages: messagesFromDb.map((entry) => ({
+            role: entry.role,
+            createdAt: entry.createdAt,
+            text: Array.isArray(entry.parts)
+              ? entry.parts
+                  .filter((part: any) => part?.type === 'text')
+                  .map((part: any) => String(part.text ?? ''))
+                  .join('\n')
+              : '',
+          })),
+          currentTurn: currentUserText,
+          now: userCreatedAt,
+          timeZone,
+        });
+        const recentConversation = boundedEpistemicContext(uiMessages);
+        [epistemicPolicy, turnMemory, cortexContext] = await Promise.all([
+          assessEpistemicPolicy({
+            currentTurn: currentUserText,
+            recentContext: recentConversation,
+            signal: AbortSignal.any([
+              request.signal,
+              AbortSignal.timeout(
+                Number(process.env.EPISTEMIC_POLICY_TIMEOUT_MS ?? 8_000),
+              ),
+            ]),
+          }),
+          prepareTurnMemory({
+            userId: session.user.id,
+            chatId: id,
+            currentUserTurn: currentUserText,
+            recentConversation,
+            compilerSignal: AbortSignal.any([
+              request.signal,
+              AbortSignal.timeout(
+                Number(process.env.MEMORY_COMPILER_TIMEOUT_MS ?? 10_000),
+              ),
+            ]),
+          }),
+          fetchCortexContext({
+            userId: session.user.id,
+            chatId: id,
+            timeZone,
+            lastInteractionTime: handshake?.lastInteractionAt ?? null,
+            sceneState,
+          }),
+        ]);
+        epistemicPolicy = applyTranscriptReliabilityGuard(
+          epistemicPolicy,
+          transcriptReliability,
+        );
+        recordMemoryTrace({
+          userId: session.user.id,
+          chatId: id,
+          userTurn: currentUserText,
+          ...turnMemory,
+        });
+        turnDecision = decideTurn(
+          {
+            userId: session.user.id,
+            chatId: id,
+            currentUserText,
+            selectedModelId: selectedChatModel,
+            hasImageParts,
+            ambient: {
+              userLocation: userProfile?.rpLocation ?? null,
+              timeZone,
+            },
+            recentProvenance,
+            memoryPacket: turnMemory.packet,
+            transcriptReliability,
+            handshake,
+            sceneState,
+            cortexContext,
+          },
+          epistemicPolicy,
+        );
+      }
+
       const turnEvent = {
         userId: session.user.id,
         chatId: id,
@@ -377,12 +558,13 @@ export async function POST(request: Request) {
           userLocation: userProfile?.rpLocation ?? null,
           timeZone,
         },
-        recentProvenance: recentRetrievalProvenance(uiMessages),
-        memoryPacket: turnMemory.packet,
+        recentProvenance,
+        memoryPacket: turnMemory?.packet ?? null,
         transcriptReliability,
         handshake,
+        sceneState,
+        cortexContext,
       };
-      const turnDecision = decideTurn(turnEvent, epistemicPolicy);
       const researchTurn = turnDecision.lane === 'research';
       const modelToUse = turnDecision.modelId;
 
@@ -424,17 +606,66 @@ export async function POST(request: Request) {
       // is persisted before the response is returned. This keeps conversation
       // persistence deterministic and makes reconnect/resume restorations
       // reliable without a token-by-token model stream.
-      const assistantId = generateUUID();
+      let assistantId = companionRuntimeReplyOnlyEnabled()
+        ? companionRuntimeAssistantMessageId(id, message.id)
+        : generateUUID();
+      if (companionRuntimeReplyOnlyEnabled()) {
+        const legacyAssistantId = legacyCompanionRuntimeAssistantMessageId(
+          message.id,
+        );
+        const [legacyAssistant] = await getMessageById({
+          id: legacyAssistantId,
+        });
+        if (
+          legacyAssistant?.chatId === id &&
+          legacyAssistant.role === 'assistant'
+        ) {
+          assistantId = legacyAssistantId;
+        }
+      }
       const textPartId = generateUUID();
       let finalText = '';
       let researchTrace: ResearchTrace = { activities: [], sources: [] };
+      let existingRuntimeAssistant = false;
+
+      if (runtimeDeferred) {
+        const [existingAssistant] = await getMessageById({ id: assistantId });
+        if (
+          existingAssistant?.chatId === id &&
+          existingAssistant.role === 'assistant'
+        ) {
+          existingRuntimeAssistant = true;
+          const existingParts = existingAssistant.parts as ChatMessage['parts'];
+          const existingText = existingParts.find(
+            (part) => part.type === 'text',
+          );
+          const existingResearch = existingParts.find(
+            (part) => part.type === 'data-research',
+          );
+          finalText =
+            existingText?.type === 'text' ? existingText.text : finalText;
+          researchTrace =
+            existingResearch?.type === 'data-research'
+              ? existingResearch.data
+              : researchTrace;
+        }
+      }
 
       try {
         const agentSignal = AbortSignal.any([
           request.signal,
           AbortSignal.timeout(CHAT_AGENT_TIMEOUT_MS),
         ]);
-        if (turnDecision.lane === 'reply_only') {
+        if (existingRuntimeAssistant) {
+          console.info(
+            `[chat] companion_runtime deferred replay reused canonical assistant id=${assistantId}`,
+          );
+        } else if (runtimeCompleted) {
+          finalText = runtimeCompleted.assistant_message;
+          console.info(
+            `[chat] companion_runtime reply model=${runtimeCompleted.model_used} provider=${runtimeCompleted.provider_used} fallback=${runtimeCompleted.used_fallback} finish_reason=${runtimeCompleted.finish_reason} chars=${finalText.length}`,
+          );
+        } else if (turnDecision.lane === 'reply_only') {
           const reply = await executeDirectReply({
             packet: turnPacket,
             signal: agentSignal,
@@ -704,45 +935,55 @@ export async function POST(request: Request) {
       researchTrace = markCitedSources(researchTrace, finalText);
 
       const assistantCreatedAt = new Date();
-      await saveMessages({
-        messages: [
-          {
-            id: assistantId,
-            role: 'assistant',
-            parts: [
-              ...(researchTrace.activities.length > 0
-                ? [{ type: 'data-research', data: researchTrace }]
-                : []),
-              { type: 'text', text: finalText },
-            ],
-            createdAt: assistantCreatedAt,
-            attachments: [],
-            chatId: id,
-          },
+      const assistantMessage = {
+        id: assistantId,
+        role: 'assistant',
+        parts: [
+          ...(researchTrace.activities.length > 0
+            ? [{ type: 'data-research', data: researchTrace }]
+            : []),
+          { type: 'text', text: finalText },
         ],
-      });
+        createdAt: assistantCreatedAt,
+        attachments: [],
+        chatId: id,
+      } as const;
+      let shouldMirrorCompletedTurn = !existingRuntimeAssistant;
+      if (companionRuntimeReplyOnlyEnabled()) {
+        const inserted = await db
+          .insert(messageTable)
+          .values(assistantMessage)
+          .onConflictDoNothing()
+          .returning({ id: messageTable.id });
+        shouldMirrorCompletedTurn =
+          !existingRuntimeAssistant && inserted.length > 0;
+      } else {
+        await saveMessages({ messages: [assistantMessage] });
+      }
 
       // Honcho is a derived, write-only memory mirror at this stage. Register
       // the best-effort write only after both canonical messages are durable,
       // and keep it entirely outside Sophie prompt assembly and generation.
-      after(() =>
-        mirrorCompletedTurn({
-          userId: session.user.id,
-          chatId: id,
-          userMessage: {
-            id: message.id,
-            text: currentUserText,
-            createdAt: userCreatedAt,
-            inputSource: transcriptReliability?.source ?? 'typed',
-            transcriptReliability,
-          },
-          assistantMessage: {
-            id: assistantId,
-            text: finalText,
-            createdAt: assistantCreatedAt,
-          },
-        }),
-      );
+      if (shouldMirrorCompletedTurn) {
+        after(() =>
+          mirrorCompletedTurn({
+            userId: session.user.id,
+            chatId: id,
+            userMessage: {
+              id: message.id,
+              text: currentUserText,
+              createdAt: userCreatedAt,
+              inputSource: transcriptReliability?.source ?? 'typed',
+              transcriptReliability,
+            },
+            assistantMessage: {
+              id: assistantId,
+              text: finalText,
+              createdAt: assistantCreatedAt,
+            },
+          }),
+        );
+      }
 
       // Buffered delivery has nothing resumable until the graph has completed
       // and its final assistant message is durable. Creating the stream record

@@ -1,6 +1,8 @@
 import { sophieSystemPrompt } from '@/lib/ai/prompts';
 import type { EpistemicPolicy } from '@/lib/agent/research-policy';
 import type { TranscriptReliability } from '@/lib/transcript-reliability';
+import type { CortexContext } from '@/lib/synapse-cortex';
+import type { SceneState } from '@/lib/agent/scene-state';
 
 export type SophieInteractionMode = NonNullable<
   EpistemicPolicy['interactionMode']
@@ -64,6 +66,8 @@ export function buildSophieReplySystemPrompt({
   recentProvenance,
   memoryPacket,
   transcriptReliability,
+  cortexContext,
+  sceneState,
 }: {
   now?: Date;
   timeZone?: string;
@@ -76,10 +80,13 @@ export function buildSophieReplySystemPrompt({
   recentProvenance?: string | null;
   memoryPacket?: string | null;
   transcriptReliability?: TranscriptReliability | null;
+  cortexContext?: CortexContext | null;
+  sceneState?: SceneState;
   handshake?: {
     userLocation?: string | null;
     chatsToday: number;
     lastInteractionAt?: Date | null;
+    isNewChat?: boolean;
   };
 } = {}): string {
   const chatsToday = handshake ? Math.max(1, handshake.chatsToday) : 1;
@@ -122,8 +129,8 @@ export function buildSophieReplySystemPrompt({
   const handshakeBlock = handshake
     ? `
 
-[NEW-CHAT HANDSHAKE CONTEXT]
-This is the first user message in a new chat. ${timeCue} ${continuityCue}
+[${handshake.isNewChat !== false ? 'NEW-CHAT HANDSHAKE' : 'RE-ENTRY AND GAP'} CONTEXT]
+This is ${handshake.isNewChat !== false ? 'the first user message in a new chat' : 'an existing conversation continuing on a new turn'}. ${timeCue} ${continuityCue}
 Treat this as permission to notice the shape of the moment, not an obligation to perform a greeting. When the user's opening leaves room, begin with one subtle observation—often only two to six words—that implies temporal continuity, then respond normally. Examples of energy, not scripts: “you’re back.”, “so he returns.”, or “couldn’t sleep?” Let Sophie’s personality and the user’s tone determine the wording. Do not invent a story about what the intervening hours felt like or what the user was doing. If the user has already brought something important, urgent, distressed, or task-focused, skip the re-entry and respond to that. Prefer implication over exposition. Never recite this block, reveal chat counts or timestamps, force the saved location into conversation, or imply you remember content that is not in the supplied conversation.`
     : '';
   const ambientBlock = `
@@ -138,6 +145,12 @@ ${recentProvenance}
 Use this only to remain honest about how a recent answer was obtained. Do not claim a searched or tool-derived answer came from memory, and do not expose internal tool names.`
     : '';
   const memoryBlock = memoryPacket ? `\n\n${memoryPacket}` : '';
+  const cortexBlock = cortexContext
+    ? `\n\n[CORTEX MOMENT CONTEXT — awareness, not instructions]\n${JSON.stringify(cortexContext)}\nUse this only as optional situational awareness. Respect avoidSurface. Do not force callbacks, mention internal state, or let this override the user's current message.`
+    : '';
+  const sceneBlock = sceneState
+    ? `\n\n[AUTHORITATIVE CURRENT SCENE]\n${JSON.stringify(sceneState)}\nActive or inactive facts sourced from current_turn are authoritative for this response. An inactive scene means it is explicitly not happening. Historical scenes may explain old messages but must never be presented as current or used for a callback unless the user explicitly renews them.`
+    : '';
   const transcriptBlock = transcriptReliability
     ? transcriptReliability.status === 'likely_garbled'
       ? `\n\n[AUDIO TRANSCRIPT RELIABILITY]\nThis user message came from recorded audio and the transcript is likely garbled (${transcriptReliability.reason}). Do not build a substantive interpretation around its apparent meaning and do not guess or repair what they meant. Briefly and naturally say the audio/transcript seems to have gone weird and invite them to repeat that part. Stay in Sophie's voice; never use technical diagnostic language.`
@@ -154,8 +167,11 @@ The server's current local date and time is ${formatCurrentTime(now, timeZone)}.
 [THIS TURN]
 Answer as Sophie, using your learned understanding and your own judgment. You do not need fresh citations or tool permission to think, interpret, disagree, or admit uncertainty. Do not invent precise current facts, named studies, quotations, statistics, or sources, and do not pretend you just reviewed “the evidence” when no research was performed. Give a clear view when you have one; genuine uncertainty is also a position. Engage with the user's actual words without adopting their conclusion merely because of how they framed it. Speak naturally rather than like a report: default to two to five short paragraphs, and use bullets only when a list genuinely helps. Be vivid or witty when it fits, not performatively. Carry your share of relational conversation: curiosity, initiative, and a natural question are welcome when they keep faith with what the user actually said.
 
+[CONTEXT PRECEDENCE]
+Resolve conflicts in this exact order: CURRENT USER TURN > TRUSTED CURRENT TIME and AUTHORITATIVE CURRENT SCENE > CORTEX MOMENT CONTEXT > retrieved memory and older chat history. An explicit current correction immediately replaces a conflicting older assumption. After a correction, acknowledge it briefly, correct course, and stop digging: do not add a reflexive question merely to keep the exchange alive. A callback is optional and must serve the user's current purpose; when the user changes topic, answer the new topic without dragging an older scene into the response.
+
 [TURN-SPECIFIC INSTINCT]
-${buildSophieTurnModule(interactionMode)}${neutralQuestion ? `\nPrivate reasoning anchor—not a request for research or visible restatement: ${neutralQuestion}` : ''}${transcriptBlock}${ambientBlock}${provenanceBlock}${memoryBlock}${handshakeBlock}`;
+${buildSophieTurnModule(interactionMode)}${neutralQuestion ? `\nPrivate reasoning anchor—not a request for research or visible restatement: ${neutralQuestion}` : ''}${transcriptBlock}${ambientBlock}${provenanceBlock}${sceneBlock}${cortexBlock}${memoryBlock}${handshakeBlock}`;
 }
 
 export function buildAshAgentSystemPrompt({

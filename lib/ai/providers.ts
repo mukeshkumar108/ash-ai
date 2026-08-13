@@ -71,12 +71,13 @@ const venice = process.env.VENICE_API_KEY
   : null;
 
 // NanoGPT API — OpenAI-compatible
-const nanoGPT = process.env.NANO_API_KEY
-  ? createOpenRouter({
-      baseURL: 'https://nano-gpt.com/api/v1',
-      apiKey: process.env.NANO_API_KEY,
-    } as any)
-  : null;
+const nanoGPT =
+  process.env.NANO_API_KEY && process.env.NANOGPT_ENABLED !== 'false'
+    ? createOpenRouter({
+        baseURL: 'https://nano-gpt.com/api/v1',
+        apiKey: process.env.NANO_API_KEY,
+      } as any)
+    : null;
 
 const summarizerModelId =
   process.env.SUMMARIZER_MODEL ?? 'deepseek/deepseek-v3.2';
@@ -111,10 +112,10 @@ export const myProvider = isTestEnvironment
         // Chat models — NanoGPT (if available), else OpenRouter
         'chat-model': nanoGPT
           ? (nanoGPT('Gemma-4-31B-Dark-Gemistry') as any)
-          : (openrouter('xiaomi/mimo-v2.5') as any),
+          : (openrouter('deepseek/deepseek-v4-flash') as any),
         'chat-model-fallback': nanoGPT
           ? (nanoGPT('deepseek/deepseek-v4-flash') as any)
-          : (openrouter('thedrummer/cydonia-24b-v4.1') as any),
+          : (openrouter('google/gemini-3.5-flash-lite') as any),
         'chat-model-reasoning': nanoGPT
           ? (nanoGPT('deepseek/deepseek-v4-flash') as any)
           : (wrapLanguageModel({

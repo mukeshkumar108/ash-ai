@@ -11,6 +11,8 @@ import { buildSophieReplySystemPrompt } from '@/lib/agent/system-prompt';
 import { chatModels } from '@/lib/ai/models';
 import type { ChatMessage } from '@/lib/types';
 import type { TranscriptReliability } from '@/lib/transcript-reliability';
+import type { CortexContext } from '@/lib/synapse-cortex';
+import type { SceneState } from '@/lib/agent/scene-state';
 
 export type ExecutionLane =
   | 'reply_only'
@@ -35,7 +37,10 @@ export type TurnEvent = {
   handshake?: {
     chatsToday: number;
     lastInteractionAt?: Date | null;
+    isNewChat?: boolean;
   };
+  sceneState?: SceneState;
+  cortexContext?: CortexContext | null;
 };
 
 export type TurnDecision = {
@@ -207,6 +212,8 @@ export function createTurnPacket({
       recentProvenance: event.recentProvenance,
       memoryPacket: event.memoryPacket,
       transcriptReliability: event.transcriptReliability,
+      cortexContext: event.cortexContext,
+      sceneState: event.sceneState,
     }),
   };
 }

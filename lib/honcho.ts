@@ -125,7 +125,28 @@ export async function mirrorCompletedTurn(turn: CompletedHonchoTurn) {
         },
       }),
     ].filter((item) => !mirroredIds.has(String(item.metadata?.app_message_id)));
-    if (messages.length > 0) await session.addMessages(messages);
+    if (messages.length > 0) {
+      await session.addMessages(messages);
+
+      // Shadow-mode mirror to synapse-cortex (fail-open, non-blocking)
+      try {
+        const recentSessionMessages = await session.messages({ size: 10, reverse: true });
+        const createdUserMsg = recentSessionMessages.items.find(
+          (m) => m.metadata?.app_message_id === turn.userMessage.id
+        );
+        if (createdUserMsg) {
+          await mirrorShadowTurnToSynapseCortex({
+            userId: turn.userId,
+            chatId: turn.chatId,
+            honchoMessageId: createdUserMsg.id,
+            text: turn.userMessage.text,
+            createdAt: turn.userMessage.createdAt,
+          });
+        }
+      } catch (shadowError) {
+        console.warn('[synapse-cortex] shadow mirror lookup failed (fail-open)', shadowError);
+      }
+    }
     return { mirrored: true as const };
   } catch (error) {
     console.error('[honcho] completed turn mirror failed', {
@@ -133,6 +154,73 @@ export async function mirrorCompletedTurn(turn: CompletedHonchoTurn) {
       userMessageId: turn.userMessage.id,
       assistantMessageId: turn.assistantMessage.id,
       error: error instanceof Error ? error.message : 'Unknown Honcho error',
+    });
+    return { mirrored: false as const, reason: 'error' };
+  }
+}
+
+export async function mirrorShadowTurnToSynapseCortex(input: {
+  userId: string;
+  chatId: string;
+  honchoMessageId: string;
+  text: string;
+  createdAt?: Date | string;
+  timezone?: string;
+}) {
+  const enabled = process.env.SYNAPSE_CORTEX_ENABLED === 'true';
+  const baseURL = process.env.SYNAPSE_CORTEX_URL?.trim();
+  if (!enabled) {
+    return { mirrored: false as const, reason: 'disabled' };
+  }
+
+  const sidecarURL = baseURL || 'http://localhost:8010';
+  const timeoutMs = Number(process.env.SYNAPSE_CORTEX_TIMEOUT_MS ?? 1500);
+  const ids = honchoIds(input.userId, input.chatId);
+
+  try {
+    const payload = {
+      workspace_id: ids.workspaceId,
+      session_id: ids.sessionId,
+      honcho_message_id: input.honchoMessageId,
+      peer_id: ids.userPeerId,
+      text: input.text,
+      now: input.createdAt ? new Date(input.createdAt).toISOString() : new Date().toISOString(),
+      timezone: input.timezone || process.env.ASH_TIME_ZONE || 'Europe/London',
+    };
+
+    const response = await fetch(`${sidecarURL.replace(/\/$/u, '')}/v1/events/turn`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(process.env.SYNAPSE_CORTEX_API_TOKEN?.trim()
+          ? { Authorization: `Bearer ${process.env.SYNAPSE_CORTEX_API_TOKEN.trim()}` }
+          : {}),
+      },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+
+    if (!response.ok) {
+      console.warn('[synapse-cortex] shadow mirror HTTP error (fail-open)', {
+        status: response.status,
+        chatId: input.chatId,
+        honchoMessageId: input.honchoMessageId,
+      });
+      return { mirrored: false as const, reason: 'http_error' };
+    }
+
+    const data = await response.json();
+    console.info('[synapse-cortex] shadow turn mirrored', {
+      chatId: input.chatId,
+      honchoMessageId: input.honchoMessageId,
+      expectationCreated: data.expectation_created,
+    });
+    return { mirrored: true as const, data };
+  } catch (error) {
+    console.warn('[synapse-cortex] shadow turn mirror failed (fail-open)', {
+      chatId: input.chatId,
+      honchoMessageId: input.honchoMessageId,
+      error: error instanceof Error ? error.message : 'Unknown shadow error',
     });
     return { mirrored: false as const, reason: 'error' };
   }
