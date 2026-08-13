@@ -1,6 +1,10 @@
 import { z } from 'zod';
 
-export const initiativeTriggerSchema = z.enum(['post_turn', 'active_idle']);
+export const initiativeTriggerSchema = z.enum([
+  'post_turn',
+  'active_idle',
+  'server_scan',
+]);
 export type InitiativeTrigger = z.infer<typeof initiativeTriggerSchema>;
 
 export const initiativeKindSchema = z.enum([

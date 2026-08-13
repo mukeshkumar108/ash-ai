@@ -75,10 +75,14 @@ export type CompanionRuntimeTurnInput = {
 };
 
 function configuration() {
+  const baseUrl = process.env.COMPANION_RUNTIME_URL?.trim().replace(/\/$/u, '');
+  const secret = process.env.COMPANION_RUNTIME_SECRET?.trim();
   return {
-    enabled: process.env.COMPANION_RUNTIME_REPLY_ONLY_ENABLED === 'true',
-    baseUrl: process.env.COMPANION_RUNTIME_URL?.trim().replace(/\/$/u, ''),
-    secret: process.env.COMPANION_RUNTIME_SECRET?.trim(),
+    enabled:
+      Boolean(baseUrl && secret) &&
+      process.env.COMPANION_RUNTIME_REPLY_ONLY_ENABLED !== 'false',
+    baseUrl,
+    secret,
   };
 }
 

@@ -26,6 +26,7 @@
     "eval:sophie-relational": "pnpm exec tsx scripts/sophie-relational-eval.ts",
     "eval:sophie-routing": "pnpm exec tsx scripts/sophie-routing-eval.ts",
     "eval:continuity": "pnpm exec tsx scripts/continuity-benchmark.ts",
+    "continuity:harness": "pnpm exec tsx scripts/continuity-scenario-harness.ts",
     "smoke:weather": "pnpm exec tsx scripts/weather-smoke.ts",
     "smoke:weather-agent": "pnpm exec tsx scripts/weather-agent-smoke.ts",
     "test": "export PLAYWRIGHT=True && pnpm exec playwright test"

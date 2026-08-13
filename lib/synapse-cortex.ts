@@ -15,6 +15,16 @@ export type CortexContext = {
   recentChanges: unknown[];
   avoidSurface: unknown[];
   memoryRefs: unknown[];
+  continuityContext: Record<string, unknown>;
+};
+
+export type CanonicalContinuityContext = {
+  now?: { local_time?: string; timezone?: string; daypart?: string };
+  continuity?: unknown[];
+  open_threads?: unknown[];
+  recent_resolutions?: unknown[];
+  avoid_repeating?: unknown[];
+  relevant_honcho_message_ids?: string[];
 };
 
 function list(value: unknown, limit: number): unknown[] {
@@ -29,6 +39,22 @@ export function compactCortexContext(
   interactionGapMinutes: number | null = null,
   currentScene: SceneState = { current: [], historical: [] },
 ): CortexContext {
+  const continuityContext =
+    attention.continuity_context &&
+    typeof attention.continuity_context === 'object' &&
+    !Array.isArray(attention.continuity_context)
+      ? (attention.continuity_context as Record<string, unknown>)
+      : {
+          now: { local_time: localDateTime, timeZone, daypart: handshake.daypart },
+          continuity: list(attention.followups, 3),
+          open_threads: list(attention.open_loops, 3),
+          recent_resolutions: list(attention.recent_resolutions, 3),
+          avoid_repeating: list(attention.suppressed_targets, 5),
+          relevant_honcho_message_ids: list(
+            attention.relevant_honcho_message_ids,
+            8,
+          ),
+        };
   return {
     localDateTime,
     timeZone,
@@ -49,14 +75,55 @@ export function compactCortexContext(
     recentChanges: list(attention.recent_resolutions, 2),
     avoidSurface: list(handshake.avoid_surface, 3),
     memoryRefs: list(handshake.relevant_memory_refs, 3),
+    continuityContext,
   };
 }
 
+export async function fetchCanonicalContinuityContext(input: {
+  userId: string;
+  chatId: string;
+  timeZone: string;
+  now?: Date;
+}): Promise<CanonicalContinuityContext | null> {
+  const config = configuration();
+  if (!config.enabled || !config.contextEnabled || !config.baseURL) return null;
+  const ids = honchoIds(input.userId, input.chatId);
+  const query = new URLSearchParams({
+    workspace_id: ids.workspaceId,
+    session_id: ids.sessionId,
+    now: (input.now ?? new Date()).toISOString(),
+    timezone: input.timeZone,
+  });
+  try {
+    const attention = await cortexFetch(
+      `/v1/cortex/attention-packet?${query.toString()}`,
+    );
+    if (!attention) return null;
+    const context = attention.continuity_context;
+    return context && typeof context === 'object' && !Array.isArray(context)
+      ? (context as CanonicalContinuityContext)
+      : (compactCortexContext(
+          attention,
+          {},
+          (input.now ?? new Date()).toISOString(),
+          input.timeZone,
+        ).continuityContext as CanonicalContinuityContext);
+  } catch (error) {
+    console.warn('[synapse-cortex] continuity fetch failed (fail-open)', {
+      chatId: input.chatId,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+    return null;
+  }
+}
+
 function configuration() {
+  const baseURL = process.env.SYNAPSE_CORTEX_URL?.trim().replace(/\/$/u, '');
   return {
-    enabled: process.env.SYNAPSE_CORTEX_ENABLED === 'true',
-    contextEnabled: process.env.SYNAPSE_CORTEX_CONTEXT_ENABLED === 'true',
-    baseURL: process.env.SYNAPSE_CORTEX_URL?.trim().replace(/\/$/u, ''),
+    enabled:
+      Boolean(baseURL) && process.env.SYNAPSE_CORTEX_ENABLED !== 'false',
+    contextEnabled: process.env.SYNAPSE_CORTEX_CONTEXT_ENABLED !== 'false',
+    baseURL,
     token: process.env.SYNAPSE_CORTEX_API_TOKEN?.trim(),
     timeoutMs: Number(process.env.SYNAPSE_CORTEX_TIMEOUT_MS ?? 1500),
   };

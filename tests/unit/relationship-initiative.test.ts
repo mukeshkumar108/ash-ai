@@ -3,6 +3,11 @@ import { expect, test } from '@playwright/test';
 import { evaluateInitiative } from '@/lib/ai/relationship/evaluator';
 import { retrieveRelationshipEvidence } from '@/lib/ai/relationship/evidence';
 import {
+  hasPlausibleContinuityCandidate,
+  repeatsRecentlyAddressedTopic,
+  retrieveInitiativeContinuity,
+} from '@/lib/ai/relationship/continuity';
+import {
   canonicalInitiativeMessage,
   checkInitiativeEligibility,
   decisionPolicyRejection,
@@ -51,6 +56,25 @@ const decision = {
 };
 
 test.describe('relationship initiative evaluator', () => {
+  test('initiative receives the canonical Cortex continuity context', async () => {
+    const context = await retrieveInitiativeContinuity({
+      userId: 'user',
+      chatId: 'chat',
+      timeZone: 'Europe/London',
+      recentlyAddressedTopics: ['We already discussed the appointment result.'],
+      fetchContext: async () => ({
+        now: { daypart: 'morning' },
+        continuity: [{ type: 'expectation_due', topic: 'Morning walk' }],
+        open_threads: [],
+      }),
+    });
+    expect(context?.continuity).toEqual([
+      { type: 'expectation_due', topic: 'Morning walk' },
+    ]);
+    expect(context?.recently_addressed_topics).toHaveLength(1);
+    expect(hasPlausibleContinuityCandidate(context)).toBe(true);
+  });
+
   test('can choose no action', async () => {
     const result = await evaluateInitiative({
       trigger: 'post_turn',
@@ -141,6 +165,81 @@ test.describe('relationship initiative evaluator', () => {
 });
 
 test.describe('relationship initiative policy', () => {
+  test('suppresses semantic overlap with the latest assistant topic', () => {
+    expect(
+      repeatsRecentlyAddressedTopic('How did the hospital appointment go?', [
+        'Tell me how your hospital appointment went when you know.',
+      ]),
+    ).toBe(true);
+    expect(
+      decisionPolicyRejection({
+        decision: {
+          ...decision,
+          topicKey: 'hospital_appointment_result',
+          guidance: 'Ask how the hospital appointment went.',
+          beatAssessment: {
+            ...decision.beatAssessment,
+            proposedBeat: {
+              ...decision.beatAssessment.proposedBeat,
+              summary: 'Ask how the hospital appointment went.',
+            },
+          },
+        },
+        trigger: 'server_scan',
+        recentTopicKeys: [],
+        recentlyAddressedTopics: [
+          'Tell me how your hospital appointment went when you know.',
+        ],
+        hasSensitiveSupport: true,
+      }),
+    ).toBe('recently_addressed_topic');
+  });
+
+  test('server scan uses idle eligibility without a browser trigger', () => {
+    expect(
+      checkInitiativeEligibility({
+        trigger: 'server_scan',
+        anchorMessageId: 'assistant-message',
+        latestMessageId: 'assistant-message',
+        latestRole: 'assistant',
+        idleForMs: INITIATIVE_POLICY.idleMs,
+        dailyCount: 0,
+        unansweredCount: 0,
+      }),
+    ).toBeNull();
+  });
+
+  test('active reciprocal days are not blocked by the former low quota', () => {
+    expect(
+      checkInitiativeEligibility({
+        trigger: 'server_scan',
+        anchorMessageId: 'assistant-message',
+        latestMessageId: 'assistant-message',
+        latestRole: 'assistant',
+        idleForMs: INITIATIVE_POLICY.idleMs,
+        dailyCount: 8,
+        idleDailyCount: 4,
+        unansweredCount: 0,
+      }),
+    ).toBeNull();
+    expect(INITIATIVE_POLICY.dailyLimit).toBeGreaterThan(8);
+    expect(INITIATIVE_POLICY.idleDailyLimit).toBeGreaterThan(4);
+  });
+
+  test('runaway ceilings still stop excessive answered outreach', () => {
+    expect(
+      checkInitiativeEligibility({
+        trigger: 'server_scan',
+        anchorMessageId: 'assistant-message',
+        latestMessageId: 'assistant-message',
+        latestRole: 'assistant',
+        idleForMs: INITIATIVE_POLICY.idleMs,
+        dailyCount: INITIATIVE_POLICY.dailyLimit,
+        idleDailyCount: 0,
+        unansweredCount: 0,
+      }),
+    ).toBe('daily_limit');
+  });
   test('suppresses a paraphrase of an unanswered conversational beat', () => {
     const repeated = {
       ...decision,
@@ -334,6 +433,41 @@ test.describe('relationship initiative policy', () => {
         hasSensitiveSupport: true,
       }),
     ).toBe(true);
+  });
+
+  test('an invited follow-up may cross a merely paused boundary', () => {
+    expect(
+      decisionPolicyRejection({
+        decision: {
+          ...decision,
+          conversationState: {
+            signal: 'paused',
+            confidence: 0.9,
+            reason: 'The earlier exchange naturally paused overnight.',
+          },
+        },
+        trigger: 'server_scan',
+        recentTopicKeys: [],
+        hasSensitiveSupport: false,
+        explicitlyInvitedFollowUp: true,
+      }),
+    ).toBeNull();
+    expect(
+      decisionPolicyRejection({
+        decision: {
+          ...decision,
+          conversationState: {
+            signal: 'closing',
+            confidence: 0.9,
+            reason: 'The user is going to sleep.',
+          },
+        },
+        trigger: 'server_scan',
+        recentTopicKeys: [],
+        hasSensitiveSupport: false,
+        explicitlyInvitedFollowUp: true,
+      }),
+    ).toBe('conversation_boundary');
   });
 
   test('semantic seeking-company overrides generic busyness', () => {

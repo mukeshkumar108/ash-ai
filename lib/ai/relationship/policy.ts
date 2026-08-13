@@ -1,10 +1,11 @@
 import type { InitiativeDecision, InitiativeTrigger } from './types';
+import { repeatsRecentlyAddressedTopic } from './continuity';
 
 export const INITIATIVE_POLICY = {
   idleMs: Number(process.env.RELATIONSHIP_IDLE_MS ?? 5 * 60_000),
-  postTurnDelayMs: Number(process.env.RELATIONSHIP_POST_TURN_DELAY_MS ?? 2_800),
-  dailyLimit: Number(process.env.RELATIONSHIP_DAILY_LIMIT ?? 8),
-  idleDailyLimit: Number(process.env.RELATIONSHIP_IDLE_DAILY_LIMIT ?? 4),
+  // Emergency runaway ceilings, not target relationship cadence.
+  dailyLimit: Number(process.env.RELATIONSHIP_DAILY_LIMIT ?? 24),
+  idleDailyLimit: Number(process.env.RELATIONSHIP_IDLE_DAILY_LIMIT ?? 16),
   firstUnansweredFollowUpMinMs: Number(
     process.env.RELATIONSHIP_FIRST_UNANSWERED_FOLLOWUP_MIN_MS ?? 25 * 60_000,
   ),
@@ -19,6 +20,8 @@ export function mayUseDecision(input: {
   trigger: InitiativeTrigger;
   recentTopicKeys: string[];
   hasSensitiveSupport: boolean;
+  recentlyAddressedTopics?: string[];
+  explicitlyInvitedFollowUp?: boolean;
 }) {
   return decisionPolicyRejection(input) === null;
 }
@@ -28,12 +31,18 @@ export function decisionPolicyRejection(input: {
   trigger: InitiativeTrigger;
   recentTopicKeys: string[];
   hasSensitiveSupport: boolean;
+  recentlyAddressedTopics?: string[];
+  explicitlyInvitedFollowUp?: boolean;
 }) {
   if (!input.decision.act) return 'no_action';
   if (
     input.decision.conversationState.confidence >= 0.7 &&
     ['closing', 'paused', 'busy'].includes(
       input.decision.conversationState.signal,
+    ) &&
+    !(
+      input.explicitlyInvitedFollowUp &&
+      input.decision.conversationState.signal === 'paused'
     )
   )
     return 'conversation_boundary';
@@ -60,6 +69,13 @@ export function decisionPolicyRejection(input: {
     return 'unjustified_nudge';
   if (input.recentTopicKeys.includes(input.decision.topicKey))
     return 'repeated_topic';
+  if (
+    repeatsRecentlyAddressedTopic(
+      `${input.decision.topicKey} ${input.decision.beatAssessment.proposedBeat.summary} ${input.decision.guidance ?? ''}`,
+      input.recentlyAddressedTopics ?? [],
+    )
+  )
+    return 'recently_addressed_topic';
   if (input.decision.sensitive && !input.hasSensitiveSupport)
     return 'unsupported_sensitive_topic';
   return null;
@@ -96,13 +112,13 @@ export function checkInitiativeEligibility(input: {
     return 'conversation_changed';
   if (input.latestRole !== 'assistant') return 'latest_message_not_assistant';
   if (
-    input.trigger === 'active_idle' &&
+    input.trigger !== 'post_turn' &&
     input.idleForMs < INITIATIVE_POLICY.idleMs - 5_000
   )
     return 'not_idle_long_enough';
   if (input.dailyCount >= INITIATIVE_POLICY.dailyLimit) return 'daily_limit';
   if (
-    input.trigger === 'active_idle' &&
+    input.trigger !== 'post_turn' &&
     (input.idleDailyCount ?? 0) >= INITIATIVE_POLICY.idleDailyLimit
   )
     return 'idle_daily_limit';
@@ -116,6 +132,10 @@ export function checkInitiativeEligibility(input: {
   )
     return 'unanswered_followup_too_soon';
   return null;
+}
+
+export function isQuietDaypart(daypart: string | undefined) {
+  return daypart === 'night';
 }
 
 export function unansweredFollowUpDelayMs(anchorMessageId: string) {

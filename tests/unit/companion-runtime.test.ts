@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 
 import {
   companionRuntimeAssistantMessageId,
+  companionRuntimeReplyOnlyEnabled,
   executeCompanionRuntimeTurn,
 } from '@/lib/companion-runtime';
 
@@ -52,6 +53,14 @@ function jsonResponse(value: unknown) {
 test.beforeEach(() => {
   process.env.COMPANION_RUNTIME_URL = 'https://runtime.test';
   process.env.COMPANION_RUNTIME_SECRET = 'test-secret';
+});
+
+test('configured runtime is enabled by default with an explicit disable override', () => {
+  delete process.env.COMPANION_RUNTIME_REPLY_ONLY_ENABLED;
+  expect(companionRuntimeReplyOnlyEnabled()).toBe(true);
+  process.env.COMPANION_RUNTIME_REPLY_ONLY_ENABLED = 'false';
+  expect(companionRuntimeReplyOnlyEnabled()).toBe(false);
+  delete process.env.COMPANION_RUNTIME_REPLY_ONLY_ENABLED;
 });
 
 test('recovers a lost POST response from durable status without another POST', async () => {

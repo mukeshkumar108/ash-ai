@@ -167,8 +167,8 @@ export async function mirrorShadowTurnToSynapseCortex(input: {
   createdAt?: Date | string;
   timezone?: string;
 }) {
-  const enabled = process.env.SYNAPSE_CORTEX_ENABLED === 'true';
   const baseURL = process.env.SYNAPSE_CORTEX_URL?.trim();
+  const enabled = Boolean(baseURL) && process.env.SYNAPSE_CORTEX_ENABLED !== 'false';
   if (!enabled) {
     return { mirrored: false as const, reason: 'disabled' };
   }

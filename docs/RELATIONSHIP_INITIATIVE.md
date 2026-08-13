@@ -8,19 +8,19 @@ This in-repo runtime tests whether Sophie feels more alive when she can have a s
 - Honcho provides targeted, fallible evidence about the user. It does not decide timing or schedule outreach.
 - The evaluator decides whether there is a reason to act and may return no action.
 - The composer expresses one short message in Sophie's voice. Curiosity is judged by conversational coherence, not question-mark count.
-- The browser supplies `post_turn` and `active_idle` triggers only. The server revalidates every condition.
+- The browser may supply `active_idle`; an authenticated Vercel cron supplies bounded `server_scan` wake-ups. The server revalidates every condition. The former blind 2.8-second `post_turn` trigger is no longer emitted by the client.
 
 ## Behaviour
 
-After a normal streamed reply finishes, the client waits about 2.8 seconds and submits a `post_turn` trigger anchored to that assistant message. An open chat that remains idle for about five minutes submits `active_idle`. If the user sends anything or another message appears, the anchor is stale and the server suppresses the initiative.
+An open chat that remains idle for about five minutes may submit `active_idle`. Independently, a cron scan can inspect bounded inactive chats without a browser and asks Cortex for a canonical continuity candidate before any model call. If the user sends anything or another message appears, the anchor is stale and the server suppresses the initiative.
 
-The server checks ownership, the latest canonical message, minimum idle duration, daily limits, unanswered count and a unique trigger/anchor key. It retrieves a compact Honcho evidence packet, evaluates a structured candidate, applies topic, departure and sensitive-content policy, composes the message, rechecks the anchor in the insertion transaction and persists an ordinary `Message_v2` assistant message. The UI appends the returned canonical message; reloads retrieve it normally.
+The server checks ownership, the latest canonical message, minimum idle duration, daily limits, unanswered count and a unique trigger/anchor key. It retrieves the canonical Cortex continuity context plus a compact Honcho evidence packet, evaluates a structured candidate, applies topic, departure, quiet-time, repetition and sensitive-content policy, composes the message, rechecks the anchor in the insertion transaction and persists an ordinary `Message_v2` assistant message. The UI appends browser-request results; reloads retrieve server-created messages normally.
 
 `RelationshipInitiative` records sent, declined, suppressed and failed evaluations, including trigger, kind, reason, topic key, evidence, guidance, generated message and subsequent direct reply. This is enough to inspect why Sophie spoke and whether the user responded.
 
-The evaluator also derives an active conversational beat from the latest ordinary or proactive assistant message. It records a compact summary, whether that beat is awaiting a user response, the proposed next beat, whether it is new, extending or repetitive, and why it adds new value. An unanswered beat may receive a fast double-text only when the new message contributes something genuinely different; semantic paraphrases and intensified retries are suppressed. This judgment is model-based and does not use keyword lists, regexes or text-similarity thresholds.
+The evaluator also derives an active conversational beat from the latest ordinary or proactive assistant message. It records a compact summary, whether that beat is awaiting a user response, the proposed next beat, whether it is new, extending or repetitive, and why it adds new value. Semantic paraphrases and intensified retries are suppressed. A bounded lexical-topic overlap check provides a deterministic second guard after composition.
 
-Each evaluation also records a semantic conversational orientation and a relational posture: `hold`, `ask`, or `nudge`. Ask means active conversational expansion and is normal for social connection. It may be one question, several linked questions, an observation, playful provocation, remembered connection, new topic or invitation; it must not collapse into an interview or profile-extraction checklist. Hold is a positive contextual decision—not a default—and requires explicit justification such as storytelling, emotional disclosure or a request for listening. It can still be warm and substantive. Nudge requires high confidence, explicit justification and supporting evidence, but may be an observation rather than advice. The posture shapes composition but never overrides a user task. Social connection and company are valid orientations even when no task exists.
+Each evaluation also records a semantic conversational orientation and a relational posture: `hold`, `ask`, or `nudge`. Ask means active conversational expansion and is normal for social connection. It may be one natural question or no question at all—an observation, playful provocation, remembered connection, new topic or invitation can carry the beat. It must not stack questions into an interview or append one merely to sustain engagement. Hold is a positive contextual decision—not a default—and requires explicit justification such as storytelling, emotional disclosure or a request for listening. It can still be warm and substantive. Nudge requires high confidence, explicit justification and supporting evidence, but may be an observation rather than advice. The posture shapes composition but never overrides a user task. Social connection and company are valid orientations even when no task exists.
 
 ## Restraint defaults
 
@@ -32,8 +32,9 @@ Each evaluation also records a semantic conversational orientation and a relatio
 - Local time is supplied to the evaluator so social evening conversations can support warmer, more personal curiosity
 - Recent topic-key dedupe
 - Sensitive candidates require supporting memory evidence
-- 420 characters maximum; no mechanical question-count cap
-- Turn-tail initiatives are biased toward a quick aside that is shorter than the preceding message; this is guidance rather than a truncation limit
+- 420 characters maximum; no mechanical question-count cap. Composition prefers one clear entry point and avoids stacked/interview-style questions.
+- Daily limits (24 total, 16 idle/server by default) are emergency runaway ceilings, not target cadence. Ordinary cadence comes from unanswered backoff, conversation state, continuity value, quiet hours, repetition policy, and editorial judgment.
+- Continuity events are candidates rather than automatic messages; `act=false` is normal
 - All model, Honcho and persistence errors fail closed
 
 ## Models and tuning

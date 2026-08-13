@@ -69,7 +69,6 @@ export function Chat({
     (trigger: 'post_turn' | 'active_idle', anchorMessageId: string) => void
   >(() => {});
   const initiativeTimerRef = useRef<number | null>(null);
-  const turnTailTimerRef = useRef<number | null>(null);
   const [voiceReplyIds, setVoiceReplyIds] = useState<Set<string>>(
     () => new Set(),
   );
@@ -112,12 +111,6 @@ export function Chat({
       setTimeout(() => {
         void reconcileChatFromServer();
       }, 1500);
-      if (turnTailTimerRef.current) {
-        window.clearTimeout(turnTailTimerRef.current);
-      }
-      turnTailTimerRef.current = window.setTimeout(() => {
-        initiativeRequestRef.current('post_turn', message.id);
-      }, 2800);
     },
     onError: (error) => {
       if (error instanceof ChatSDKError) {
@@ -182,15 +175,6 @@ export function Chat({
     [id, isReadonly, mutate, setMessages, status],
   );
   initiativeRequestRef.current = requestInitiative;
-
-  useEffect(
-    () => () => {
-      if (turnTailTimerRef.current) {
-        window.clearTimeout(turnTailTimerRef.current);
-      }
-    },
-    [],
-  );
 
   useEffect(() => {
     if (initiativeTimerRef.current) {

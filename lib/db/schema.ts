@@ -113,6 +113,7 @@ export const relationshipInitiative = pgTable(
       { onDelete: 'set null' },
     ),
     createdAt: timestamp('createdAt').notNull().defaultNow(),
+    evaluationAt: timestamp('evaluationAt').notNull().defaultNow(),
     decidedAt: timestamp('decidedAt'),
     sentAt: timestamp('sentAt'),
     repliedAt: timestamp('repliedAt'),

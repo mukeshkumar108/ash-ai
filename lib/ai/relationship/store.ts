@@ -45,10 +45,13 @@ export async function claimInitiative(input: {
   chatId: string;
   trigger: InitiativeTrigger;
   anchorMessageId: string;
+  evaluationNow?: Date;
 }): Promise<InitiativeClaim> {
+  const evaluationNow = input.evaluationNow ?? new Date();
   return sql().begin(async (tx) => {
     const [latest] = await tx`
-      SELECT m.id, m.role, m."createdAt"
+      SELECT m.id, m.role, m."createdAt",
+        extract(epoch from (${evaluationNow}::timestamp - m."createdAt")) * 1000 AS "idleForMs"
       FROM "Message_v2" m JOIN "Chat" c ON c.id = m."chatId"
       WHERE m."chatId" = ${input.chatId} AND c."userId" = ${input.userId}
       ORDER BY m."createdAt" DESC, m.id DESC LIMIT 1
@@ -57,15 +60,19 @@ export async function claimInitiative(input: {
       SELECT count(*)::int AS count,
         count(*) FILTER (WHERE trigger = 'active_idle')::int AS "idleCount"
       FROM "RelationshipInitiative"
-      WHERE "userId" = ${input.userId} AND status = 'sent' AND "sentAt" >= date_trunc('day', now())
+      WHERE "userId" = ${input.userId} AND status = 'sent'
+        AND "sentAt" >= date_trunc('day', ${evaluationNow}::timestamp)
+        AND "sentAt" <= ${evaluationNow}
     `;
     const unanswered = await tx`
-      SELECT id, "sentAt" FROM "RelationshipInitiative"
+      SELECT id, "sentAt",
+        extract(epoch from (${evaluationNow}::timestamp - "sentAt")) * 1000 AS "ageMs"
+      FROM "RelationshipInitiative"
       WHERE "userId" = ${input.userId} AND status = 'sent' AND "repliedAt" IS NULL
       ORDER BY "sentAt" DESC LIMIT ${INITIATIVE_POLICY.maxUnanswered}
     `;
     const msSinceLatestUnanswered = unanswered[0]?.sentAt
-      ? Date.now() - new Date(unanswered[0].sentAt).getTime()
+      ? Number(unanswered[0].ageMs)
       : null;
     const requiredUnansweredGapMs = unansweredFollowUpDelayMs(
       input.anchorMessageId,
@@ -75,7 +82,7 @@ export async function claimInitiative(input: {
       anchorMessageId: input.anchorMessageId,
       latestMessageId: latest?.id ?? null,
       latestRole: latest?.role ?? null,
-      idleForMs: latest ? Date.now() - new Date(latest.createdAt).getTime() : 0,
+      idleForMs: latest ? Number(latest.idleForMs) : 0,
       dailyCount: Number(daily.count),
       idleDailyCount: Number(daily.idleCount),
       unansweredCount: unanswered.length,
@@ -93,8 +100,8 @@ export async function claimInitiative(input: {
 
     const dedupeKey = initiativeDedupeKey(input);
     const claimed = await tx`
-      INSERT INTO "RelationshipInitiative" ("userId", "chatId", "trigger", "triggerMessageId", "dedupeKey")
-      VALUES (${input.userId}, ${input.chatId}, ${input.trigger}, ${input.anchorMessageId}, ${dedupeKey})
+      INSERT INTO "RelationshipInitiative" ("userId", "chatId", "trigger", "triggerMessageId", "dedupeKey", "evaluationAt")
+      VALUES (${input.userId}, ${input.chatId}, ${input.trigger}, ${input.anchorMessageId}, ${dedupeKey}, ${evaluationNow})
       ON CONFLICT ("dedupeKey") DO NOTHING RETURNING id
     `;
     if (!claimed.length)
@@ -134,6 +141,49 @@ export async function conversationSnapshot(chatId: string) {
     .slice(-6_000);
 }
 
+export async function recentAssistantTopics(chatId: string) {
+  const rows = await sql()`
+    SELECT parts FROM "Message_v2"
+    WHERE "chatId" = ${chatId} AND role = 'assistant'
+    ORDER BY "createdAt" DESC LIMIT 4
+  `;
+  return rows
+    .map((row) =>
+      Array.isArray(row.parts)
+        ? row.parts
+            .filter((part: any) => part?.type === 'text')
+            .map((part: any) => String(part.text ?? ''))
+            .join(' ')
+            .replace(/\s+/gu, ' ')
+            .trim()
+            .slice(0, 500)
+        : '',
+    )
+    .filter(Boolean);
+}
+
+export async function serverInitiativeScanCandidates(
+  limit = 20,
+  evaluationNow: Date = new Date(),
+) {
+  return sql()`
+    SELECT DISTINCT ON (m."chatId") c."userId" AS "userId", m."chatId" AS "chatId",
+      m.id AS "anchorMessageId", m."createdAt" AS "lastMessageAt"
+    FROM "Message_v2" m
+    JOIN "Chat" c ON c.id = m."chatId"
+    WHERE m.role = 'assistant'
+      AND m."createdAt" <= ${evaluationNow}::timestamp - (${INITIATIVE_POLICY.idleMs} * interval '1 millisecond')
+      AND m."createdAt" >= ${evaluationNow}::timestamp - interval '48 hours'
+      AND NOT EXISTS (
+        SELECT 1 FROM "Message_v2" newer
+        WHERE newer."chatId" = m."chatId"
+          AND (newer."createdAt", newer.id) > (m."createdAt", m.id)
+      )
+    ORDER BY m."chatId", m."createdAt" DESC
+    LIMIT ${Math.max(1, Math.min(limit, 100))}
+  `;
+}
+
 export async function completeNoAction(
   eventId: string,
   decision: InitiativeDecision,
@@ -161,6 +211,7 @@ export async function persistInitiativeMessage(input: {
   decision: InitiativeDecision;
   messageId: string;
   text: string;
+  evaluationNow?: Date;
 }) {
   return sql().begin(async (tx) => {
     const [latest] = await tx`
@@ -172,7 +223,7 @@ export async function persistInitiativeMessage(input: {
       await tx`UPDATE "RelationshipInitiative" SET status = 'suppressed', reason = 'conversation_changed_before_send', "decidedAt" = now() WHERE id = ${input.eventId}`;
       return null;
     }
-    const createdAt = new Date();
+    const createdAt = input.evaluationNow ?? new Date();
     const canonical = canonicalInitiativeMessage({
       id: input.messageId,
       chatId: input.chatId,
