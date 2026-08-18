@@ -11,10 +11,21 @@ import {
   unansweredFollowUpDelayMs,
 } from './policy';
 import type { InitiativeDecision, InitiativeTrigger } from './types';
+import {
+  buildInitiativeSituation,
+  localDateKey,
+  type TrustedSituationalFacts,
+} from './situation';
 
 type Sql = ReturnType<typeof postgres>;
 let client: Sql | null = null;
-const sql = () => (client ??= postgres(getDatabaseUrl(), { max: 5 }));
+const sql = () => {
+  if (!client) {
+    client = postgres(getDatabaseUrl(), { max: 5 });
+  }
+
+  return client;
+};
 
 export type InitiativeClaim =
   | { ok: true; eventId: string; recentTopicKeys: string[] }
@@ -46,6 +57,7 @@ export async function claimInitiative(input: {
   trigger: InitiativeTrigger;
   anchorMessageId: string;
   evaluationNow?: Date;
+  dedupeScopeKey?: string;
 }): Promise<InitiativeClaim> {
   const evaluationNow = input.evaluationNow ?? new Date();
   return sql().begin(async (tx) => {
@@ -58,7 +70,7 @@ export async function claimInitiative(input: {
     `;
     const [daily] = await tx`
       SELECT count(*)::int AS count,
-        count(*) FILTER (WHERE trigger = 'active_idle')::int AS "idleCount"
+        count(*) FILTER (WHERE trigger IN ('active_idle', 'ambient_scan'))::int AS "idleCount"
       FROM "RelationshipInitiative"
       WHERE "userId" = ${input.userId} AND status = 'sent'
         AND "sentAt" >= date_trunc('day', ${evaluationNow}::timestamp)
@@ -167,21 +179,78 @@ export async function serverInitiativeScanCandidates(
   evaluationNow: Date = new Date(),
 ) {
   return sql()`
-    SELECT DISTINCT ON (m."chatId") c."userId" AS "userId", m."chatId" AS "chatId",
-      m.id AS "anchorMessageId", m."createdAt" AS "lastMessageAt"
-    FROM "Message_v2" m
-    JOIN "Chat" c ON c.id = m."chatId"
-    WHERE m.role = 'assistant'
-      AND m."createdAt" <= ${evaluationNow}::timestamp - (${INITIATIVE_POLICY.idleMs} * interval '1 millisecond')
-      AND m."createdAt" >= ${evaluationNow}::timestamp - interval '48 hours'
-      AND NOT EXISTS (
-        SELECT 1 FROM "Message_v2" newer
-        WHERE newer."chatId" = m."chatId"
-          AND (newer."createdAt", newer.id) > (m."createdAt", m.id)
-      )
-    ORDER BY m."chatId", m."createdAt" DESC
+    WITH latest_per_chat AS (
+      SELECT c."userId", m."chatId", m.id AS "anchorMessageId",
+        m.role, m."createdAt" AS "lastMessageAt",
+        row_number() OVER (
+          PARTITION BY m."chatId"
+          ORDER BY m."createdAt" DESC, m.id DESC
+        ) AS chat_rank
+      FROM "Message_v2" m
+      JOIN "Chat" c ON c.id = m."chatId"
+    ), eligible AS (
+      SELECT * FROM latest_per_chat
+      WHERE chat_rank = 1 AND role = 'assistant'
+        AND "lastMessageAt" <= ${evaluationNow}::timestamp - (${INITIATIVE_POLICY.idleMs} * interval '1 millisecond')
+        AND "lastMessageAt" >= ${evaluationNow}::timestamp - interval '48 hours'
+    )
+    SELECT DISTINCT ON ("userId") "userId", "chatId", "anchorMessageId", "lastMessageAt"
+    FROM eligible
+    ORDER BY "userId", "lastMessageAt" DESC, "chatId"
     LIMIT ${Math.max(1, Math.min(limit, 100))}
   `;
+}
+
+export async function initiativeSituationSnapshot(input: {
+  userId: string;
+  evaluationNow: Date;
+  timeZone: string;
+  trustedFacts?: TrustedSituationalFacts | null;
+}) {
+  const rows = await sql()`
+    SELECT m.role, m.parts, m."createdAt", m."chatId"
+    FROM "Message_v2" m
+    JOIN "Chat" c ON c.id = m."chatId"
+    WHERE c."userId" = ${input.userId}
+      AND m."createdAt" <= ${input.evaluationNow}
+      AND m."createdAt" >= ${input.evaluationNow}::timestamp - interval '36 hours'
+    ORDER BY m."createdAt" DESC, m.id DESC
+    LIMIT 100
+  `;
+  const today = localDateKey(input.evaluationNow, input.timeZone);
+  const todaysRows = rows
+    .filter(
+      (row) => localDateKey(new Date(row.createdAt), input.timeZone) === today,
+    )
+    .reverse();
+  const conversation = todaysRows
+    .slice(-24)
+    .map((row) => {
+      const text = Array.isArray(row.parts)
+        ? row.parts
+            .filter((part: any) => part?.type === 'text')
+            .map((part: any) => String(part.text ?? ''))
+            .join(' ')
+            .replace(/\s+/gu, ' ')
+            .trim()
+            .slice(0, 500)
+        : '';
+      return text ? `${row.role}: ${text}` : '';
+    })
+    .filter(Boolean)
+    .join('\n');
+  const latestUserRow = rows.find((row) => row.role === 'user');
+  return buildInitiativeSituation({
+    now: input.evaluationNow,
+    timeZone: input.timeZone,
+    lastInteractionAt: rows[0]?.createdAt ? new Date(rows[0].createdAt) : null,
+    lastUserMessageAt: latestUserRow?.createdAt
+      ? new Date(latestUserRow.createdAt)
+      : null,
+    interactionsToday: todaysRows.filter((row) => row.role === 'user').length,
+    todaysConversation: conversation,
+    trustedFacts: input.trustedFacts,
+  });
 }
 
 export async function completeNoAction(

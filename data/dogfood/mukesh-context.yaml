@@ -1,0 +1,47 @@
+user:
+  name: Mukesh
+  location: Cambridge, UK
+  timezone: Europe/London
+
+important_people:
+  - name: Mum
+    relationship: mother
+    location: Bedford
+    normal_contact:
+      type: phone_call
+      frequency: usually daily
+    last_contact: UNKNOWN
+
+routines:
+  - id: daily_walk
+    description: Mukesh normally goes for a walk most days
+    typical_steps: 13000
+    timing: often later in the day
+    importance: high
+
+  - id: daily_call
+    description: Mukesh generally has a daily call with GovRind
+    timing: UNKNOWN
+
+expectations:
+  - id: walk
+    subject: Mukesh
+    expected_pattern: most days
+    evidence: explicit user statement
+    confidence: high
+
+  - id: mum_call
+    subject: Mukesh
+    action: call Mum
+    expected_pattern: usually daily
+    evidence: explicit user statement
+    confidence: high
+
+preferences:
+  - enjoys walking and being outdoors
+  - notices weather and changes in light
+  - enjoys spontaneous wandering rather than rigid plans
+
+recent_context:
+  - last week was unusually hot
+  - it is cooler now

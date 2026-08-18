@@ -179,6 +179,13 @@
         width: 100%;
     }
 
+    /* Keep the composer slightly larger than the surrounding chat copy. */
+    textarea.chat-input.input-typography {
+        font-size: 19px !important;
+        line-height: 144% !important;
+        letter-spacing: -0.01rem !important;
+    }
+
     /* Mobile typography enhancement */
     @media (max-width: 768px) {
         .message-content-container {

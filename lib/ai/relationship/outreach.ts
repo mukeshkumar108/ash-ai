@@ -24,8 +24,15 @@ import {
   persistInitiativeMessage,
   recentAssistantTopics,
   serverInitiativeScanCandidates,
+  initiativeSituationSnapshot,
 } from './store';
 import type { InitiativeTrigger } from './types';
+import {
+  ambientCandidateForSituation,
+  type AmbientCandidate,
+  type InitiativeSituation,
+  type TrustedSituationalFacts,
+} from './situation';
 
 export type InitiativeTraceEvent = {
   stage:
@@ -45,6 +52,7 @@ type InitiativeRuntimeOptions = {
   onTrace?: (event: InitiativeTraceEvent) => void;
   evaluate?: typeof evaluateInitiative;
   compose?: typeof composeInitiative;
+  trustedFacts?: TrustedSituationalFacts | null;
 };
 
 const evidenceCache = new Map<
@@ -74,6 +82,9 @@ export async function runRelationshipInitiative(
     trigger: InitiativeTrigger;
     anchorMessageId: string;
     continuityContext?: InitiativeContinuityContext | null;
+    situation?: InitiativeSituation | null;
+    ambientCandidate?: AmbientCandidate | null;
+    dedupeScopeKey?: string;
   } & InitiativeRuntimeOptions,
 ) {
   const evaluationNow = input.evaluationNow ?? new Date();
@@ -96,11 +107,20 @@ export async function runRelationshipInitiative(
 
   try {
     const timeZone = process.env.ASH_TIME_ZONE?.trim() || 'Europe/London';
-    const [recentConversation, memory, assistantTopics] = await Promise.all([
-      conversationSnapshot(input.chatId),
-      evidenceFor(input.userId, input.chatId),
-      recentAssistantTopics(input.chatId),
-    ]);
+    const [recentConversation, memory, assistantTopics, situation] =
+      await Promise.all([
+        conversationSnapshot(input.chatId),
+        evidenceFor(input.userId, input.chatId),
+        recentAssistantTopics(input.chatId),
+        input.situation
+          ? Promise.resolve(input.situation)
+          : initiativeSituationSnapshot({
+              userId: input.userId,
+              evaluationNow,
+              timeZone,
+              trustedFacts: input.trustedFacts,
+            }),
+      ]);
     const continuity =
       input.continuityContext ??
       (await retrieveInitiativeContinuity({
@@ -114,6 +134,8 @@ export async function runRelationshipInitiative(
       stage: 'context',
       value: {
         continuity,
+        situation,
+        ambientCandidate: input.ambientCandidate ?? null,
         honcho: { packet: memory.packet, source: memory.source },
       },
     });
@@ -121,13 +143,15 @@ export async function runRelationshipInitiative(
       stage: 'candidate',
       value: {
         plausible: hasPlausibleContinuityCandidate(continuity),
+        ambient: input.ambientCandidate ?? null,
         quietHours: isQuietDaypart(continuity?.now?.daypart),
       },
     });
     if (
-      input.trigger === 'server_scan' &&
+      (input.trigger === 'server_scan' || input.trigger === 'ambient_scan') &&
       (!hasPlausibleContinuityCandidate(continuity) ||
-        isQuietDaypart(continuity?.now?.daypart))
+        isQuietDaypart(continuity?.now?.daypart)) &&
+      !input.ambientCandidate
     ) {
       await completeNoAction(claim.eventId, {
         conversationState: {
@@ -187,6 +211,8 @@ export async function runRelationshipInitiative(
       signal,
       localTime,
       continuityContext: continuity,
+      situation,
+      ambientCandidate: input.ambientCandidate,
     });
     input.onTrace?.({ stage: 'editorial', value: decision });
 
@@ -232,7 +258,7 @@ export async function runRelationshipInitiative(
     const text = await (input.compose ?? composeInitiative)({
       trigger: input.trigger,
       decision,
-      recentConversation,
+      recentConversation: `[SITUATIONAL PACKET]\n${JSON.stringify(situation)}\n\n[AMBIENT CANDIDATE]\n${JSON.stringify(input.ambientCandidate ?? null)}\n\n${recentConversation}`,
       memoryEvidence: memory.packet,
       continuityContext: continuity,
       signal: AbortSignal.timeout(
@@ -355,13 +381,21 @@ export async function runServerInitiativeScan(
   }
   const evaluationNow = options.evaluationNow ?? new Date();
   const candidates = await serverInitiativeScanCandidates(
-    Number(process.env.RELATIONSHIP_SERVER_SCAN_LIMIT ?? 20),
+    Number(process.env.RELATIONSHIP_SERVER_SCAN_LIMIT ?? 5),
     evaluationNow,
   );
   let acted = 0;
   for (const candidate of candidates) {
     const timeZone = process.env.ASH_TIME_ZONE?.trim() || 'Europe/London';
-    const topics = await recentAssistantTopics(String(candidate.chatId));
+    const [topics, situation] = await Promise.all([
+      recentAssistantTopics(String(candidate.chatId)),
+      initiativeSituationSnapshot({
+        userId: String(candidate.userId),
+        evaluationNow,
+        timeZone,
+        trustedFacts: options.trustedFacts,
+      }),
+    ]);
     const continuity = await retrieveInitiativeContinuity({
       userId: String(candidate.userId),
       chatId: String(candidate.chatId),
@@ -369,13 +403,19 @@ export async function runServerInitiativeScan(
       recentlyAddressedTopics: topics,
       evaluationNow,
     });
-    if (!hasPlausibleContinuityCandidate(continuity)) continue;
+    const ambientCandidate = ambientCandidateForSituation(situation);
+    const hasContinuity = hasPlausibleContinuityCandidate(continuity);
+    if (!hasContinuity && !ambientCandidate) continue;
+    const selectedAmbientCandidate = hasContinuity ? null : ambientCandidate;
     const result = await runRelationshipInitiative({
       userId: String(candidate.userId),
       chatId: String(candidate.chatId),
-      trigger: 'server_scan',
+      trigger: hasContinuity ? 'server_scan' : 'ambient_scan',
       anchorMessageId: String(candidate.anchorMessageId),
       continuityContext: continuity,
+      situation,
+      ambientCandidate: selectedAmbientCandidate,
+      dedupeScopeKey: selectedAmbientCandidate?.key,
       evaluationNow,
       onTrace: options.onTrace,
     });

@@ -260,6 +260,9 @@ importers:
       usehooks-ts:
         specifier: ^3.1.0
         version: 3.1.1(react@19.0.0)
+      yaml:
+        specifier: ^2.8.1
+        version: 2.9.0
       zod:
         specifier: ^3.25.68
         version: 3.25.68

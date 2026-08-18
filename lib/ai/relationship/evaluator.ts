@@ -9,6 +9,7 @@ import {
   type InitiativeTrigger,
 } from './types';
 import type { InitiativeContinuityContext } from './continuity';
+import type { AmbientCandidate, InitiativeSituation } from './situation';
 
 export async function evaluateInitiative(input: {
   trigger: InitiativeTrigger;
@@ -18,6 +19,8 @@ export async function evaluateInitiative(input: {
   signal: AbortSignal;
   localTime?: string;
   continuityContext?: InitiativeContinuityContext | null;
+  situation?: InitiativeSituation | null;
+  ambientCandidate?: AmbientCandidate | null;
   generate?: () => Promise<unknown>;
 }): Promise<InitiativeDecision> {
   const raw = input.generate
@@ -37,6 +40,8 @@ An open thread marked explicitly_invited is different from unsolicited outreach:
 If an explicitly invited follow-up is still valid and you choose act=true, use ASK or another active posture; do not label the agreed contact as HOLD. If the moment should breathe, choose act=false instead.
 Setting a future invitation and receiving a simple acknowledgement is not, by itself, evidence that the user is closing or busy at the later agreed time. Use the canonical continuity temporal state and supplied local time as authoritative; do not reinterpret an active or elapsed window as still being before “tomorrow.”
 For post_turn, act only when a separate afterthought would feel notably better than leaving the completed answer alone. For active_idle, act only when there is something worth saying after silence.
+For ambient_scan, decide SPEAK or SILENCE from the supplied situation. An ambient candidate is permission to consider a moment, never an instruction to speak. Stable facts describe the person; routines describe tendencies, not obligations; recent state may be temporary; UNKNOWN means unknown and never licenses a negative factual claim. Do not turn walking, step counts, family contact, school, work, weather, or calendar context into coaching or compliance monitoring.
+Time-sensitive questions must fit local time and today's conversation. In particular, never ask "how was your day?" merely because this is the first interaction. A day-recap question may be natural from 18:00 onward whether or not it is the first interaction, but not when the user has already described their day or Sophie has already asked. Prefer SILENCE over a redundant recap.
 Identify the active conversational beat in the latest assistant message, including any question, invitation, advice, joke, observation, or emotional framing. Decide whether it is awaiting a user response. Then describe the proposed beat and judge its semantic relationship to the previous beat as new, extends, or repeats. This is semantic judgment: do not use wording overlap, keywords, punctuation, or fixed language rules.
 If the previous beat awaits a response, suppress any proposal that merely rephrases its question, asks for the same information another way, repeats its emotional interpretation, intensifies the request for an answer, or adds filler such as "I'm genuinely curious" without new conversational value. A later message may still be repetitive; a message seconds later may be excellent. Timing does not determine novelty.
 A new beat may be a reaction, joke, callback, observation, playful challenge, affectionate aside, remembered connection, materially new angle, one natural question, or spontaneous thought. Mark addsNewValue=true only when the user receives something meaningfully new. Give the user one conversational response burden. Closely related checks may belong to the same beat; do not branch each candidate into alternatives or follow-up questions. A question is welcome when it is the natural move, but never add one merely to keep engagement going.
@@ -49,7 +54,7 @@ HOLD stays warmly and substantively with the user's experience without redirecti
 Optionally provide one compact relationalIntent—curiosity, connection, continuity, challenge, play, or presence—which is an entry point rather than a demanded outcome.
 Avoid therapy language, interviews, productivity nagging, repetitive check-ins, and generic "how are you" filler. A social bid such as checking in, sharing a win, or wanting company must not automatically become sleep, wellness, productivity, or behavioural coaching. That requires a genuinely justified NUDGE. Select one conversational entry point. Sensitive grief, trauma, sex, health, or relationship conflict requires explicit, meaningful supporting evidence and should set sensitive=true. Creatively riff on known context, but never describe an event, quote, reaction, conversation, or experience as shared history unless the supplied conversation or memory evidence supports it. Playful speculation is allowed only when clearly presented as speculation. Never invent memory.
 Return act=false if evidence is insufficient or the moment should breathe. topicKey must be a short reusable snake_case dedupe key. guidance is an intention, never a demanded outcome.`,
-          prompt: `[TRIGGER]\n${input.trigger}\n\n[USER LOCAL TIME]\n${input.localTime || '(unknown)'}\n\n[CANONICAL CONTINUITY CANDIDATES]\n${JSON.stringify(input.continuityContext ?? {})}\n\n[RECENT CONVERSATION]\n${input.recentConversation || '(none)'}\n\n[MEMORY EVIDENCE]\n${input.memoryEvidence || '(unavailable — do not pretend to remember anything)'}\n\n[RECENT TOPICS TO AVOID]\n${input.recentTopicKeys.join(', ') || '(none)'}`,
+          prompt: `[TRIGGER]\n${input.trigger}\n\n[SITUATIONAL PACKET]\n${JSON.stringify(input.situation ?? {})}\n\n[AMBIENT CANDIDATE]\n${JSON.stringify(input.ambientCandidate ?? null)}\n\n[USER LOCAL TIME]\n${input.localTime || '(unknown)'}\n\n[CANONICAL CONTINUITY CANDIDATES]\n${JSON.stringify(input.continuityContext ?? {})}\n\n[RECENT CONVERSATION]\n${input.recentConversation || '(none)'}\n\n[MEMORY EVIDENCE]\n${input.memoryEvidence || '(unavailable — do not pretend to remember anything)'}\n\n[RECENT TOPICS TO AVOID]\n${input.recentTopicKeys.join(', ') || '(none)'}`,
         })
       ).object;
   return initiativeDecisionSchema.parse(raw);

@@ -1,15 +1,19 @@
 import { execFileSync, spawn, type ChildProcess } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
-import { mkdtemp } from 'node:fs/promises';
+import { mkdtemp, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import dotenv from 'dotenv';
 import postgres from 'postgres';
+import { parse as parseYaml } from 'yaml';
 import type { InitiativeTraceEvent } from '@/lib/ai/relationship/outreach';
+import type { TrustedSituationalFacts } from '@/lib/ai/relationship/situation';
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 dotenv.config();
+process.env.RELATIONSHIP_EVALUATOR_TIMEOUT_MS ??= '90000';
+process.env.RELATIONSHIP_COMPOSER_TIMEOUT_MS ??= '90000';
 
 type SeedMessage = { at: string; role: 'user' | 'assistant'; text: string };
 type Scenario = {
@@ -17,6 +21,7 @@ type Scenario = {
   description: string;
   now: string;
   messages: SeedMessage[];
+  extraChats?: SeedMessage[][];
   cortexText?: string;
   mode?: 'scan' | 'direct' | 'concurrent';
   unansweredAgoMs?: number;
@@ -27,11 +32,16 @@ type Scenario = {
     | 'duplicate'
     | 'backoff'
     | 'runtime-failure'
-    | 'no-candidate';
+    | 'no-candidate'
+    | 'one-chat-per-user'
+    | 'daily-dedupe';
   suite?: 'core' | 'adversarial';
   cortexEvents?: Array<{ at: string; text: string }>;
   review?: string[];
   failureMode?: 'evaluator';
+  trustedFacts?: TrustedSituationalFacts;
+  forceAmbient?: boolean;
+  scanRuns?: number;
 };
 
 const scenarios: Scenario[] = [
@@ -233,6 +243,132 @@ const scenarios: Scenario[] = [
     ],
     cortexText: 'The build result should arrive today.',
     expected: 'sent-or-editorial-silence',
+  },
+  {
+    id: 'ambient-evening-open',
+    description: 'Evening context may justify a natural day-recap beat.',
+    now: '2026-08-18T17:30:00Z',
+    messages: [
+      {
+        at: '2026-08-18T15:00:00Z',
+        role: 'user',
+        text: 'Just finishing a bit of work.',
+      },
+      {
+        at: '2026-08-18T15:01:00Z',
+        role: 'assistant',
+        text: 'Nearly there, then.',
+      },
+    ],
+    mode: 'direct',
+    forceAmbient: true,
+    expected: 'sent-or-editorial-silence',
+  },
+  {
+    id: 'ambient-evening-day-covered',
+    description: 'Evening context includes that the day was already discussed.',
+    now: '2026-08-18T19:00:00Z',
+    messages: [
+      {
+        at: '2026-08-18T17:30:00Z',
+        role: 'user',
+        text: 'My day was good—I finished the launch and went for a long walk.',
+      },
+      {
+        at: '2026-08-18T17:31:00Z',
+        role: 'assistant',
+        text: 'That sounds like a properly satisfying day.',
+      },
+    ],
+    mode: 'direct',
+    forceAmbient: true,
+    expected: 'sent-or-editorial-silence',
+    review: ['must not ask how the day was again'],
+  },
+  {
+    id: 'ambient-pre-evening',
+    description: 'A day-recap ambient candidate is unavailable before 18:00.',
+    now: '2026-08-18T15:30:00Z',
+    messages: [
+      { at: '2026-08-18T14:00:00Z', role: 'user', text: 'Hello.' },
+      { at: '2026-08-18T14:01:00Z', role: 'assistant', text: 'Hey you.' },
+    ],
+    expected: 'no-candidate',
+  },
+  {
+    id: 'ambient-walk-weather',
+    description:
+      'Simulated weather and a descriptive walk routine reach judgment together.',
+    now: '2026-08-22T16:30:00Z',
+    messages: [
+      { at: '2026-08-22T13:00:00Z', role: 'user', text: 'Quiet Saturday.' },
+      { at: '2026-08-22T13:01:00Z', role: 'assistant', text: 'The good kind?' },
+    ],
+    mode: 'direct',
+    forceAmbient: true,
+    trustedFacts: {
+      weather: { condition: 'sunny', temperatureC: 20 },
+      routines: [
+        {
+          id: 'afternoon_walk',
+          description: 'The user often takes afternoon walks.',
+          evidence: 'explicit user statement',
+        },
+      ],
+    },
+    expected: 'sent-or-editorial-silence',
+  },
+  {
+    id: 'ambient-school-finish',
+    description:
+      'An explicit school routine is supplied without inferring age.',
+    now: '2026-08-24T14:45:00Z',
+    messages: [
+      { at: '2026-08-24T12:00:00Z', role: 'user', text: 'Busy afternoon.' },
+      {
+        at: '2026-08-24T12:01:00Z',
+        role: 'assistant',
+        text: 'I’ll let you crack on.',
+      },
+    ],
+    mode: 'direct',
+    forceAmbient: true,
+    trustedFacts: {
+      school_or_work: {
+        fact: 'The user explicitly said their child normally finishes school at 15:30 on Mondays.',
+        childAge: 'UNKNOWN',
+      },
+    },
+    expected: 'sent-or-editorial-silence',
+  },
+  {
+    id: 'ambient-one-chat-per-user',
+    description:
+      'Only the user’s most recently active eligible chat is evaluated.',
+    now: '2026-08-18T19:00:00Z',
+    messages: [
+      { at: '2026-08-18T17:30:00Z', role: 'user', text: 'Newer chat.' },
+      { at: '2026-08-18T17:31:00Z', role: 'assistant', text: 'I’m here.' },
+    ],
+    extraChats: [
+      [
+        { at: '2026-08-18T16:00:00Z', role: 'user', text: 'Older chat.' },
+        { at: '2026-08-18T16:01:00Z', role: 'assistant', text: 'Still here.' },
+      ],
+    ],
+    expected: 'one-chat-per-user',
+  },
+  {
+    id: 'ambient-daily-dedupe',
+    description:
+      'Repeated cron scans share one user-wide local-day ambient claim.',
+    now: '2026-08-18T19:00:00Z',
+    messages: [
+      { at: '2026-08-18T17:30:00Z', role: 'user', text: 'Evening.' },
+      { at: '2026-08-18T17:31:00Z', role: 'assistant', text: 'It is.' },
+    ],
+    scanRuns: 2,
+    expected: 'daily-dedupe',
   },
 ];
 
@@ -565,6 +701,13 @@ async function seedScenario(db: postgres.Sql, scenario: Scenario) {
     .map((item) => item.role)
     .lastIndexOf('assistant');
   const anchorMessageId = ids[anchorIndex];
+  for (const [chatIndex, messages] of (scenario.extraChats ?? []).entries()) {
+    const extraChatId = randomUUID();
+    await db`INSERT INTO "Chat" (id, "createdAt", title, "userId", "characterId", visibility) VALUES (${extraChatId}, ${new Date(messages[0].at)}, ${`${scenario.id}-extra-${chatIndex}`}, ${userId}, 'sophie', 'private')`;
+    for (const message of messages) {
+      await db`INSERT INTO "Message_v2" (id, "chatId", role, parts, attachments, "createdAt") VALUES (${randomUUID()}, ${extraChatId}, ${message.role}, ${db.json([{ type: 'text', text: message.text }])}, ${db.json([])}, ${new Date(message.at)})`;
+    }
+  }
   if (scenario.unansweredAgoMs != null) {
     const sentAt = new Date(
       new Date(scenario.now).getTime() - scenario.unansweredAgoMs,
@@ -675,6 +818,17 @@ function scenarioPassed(
       )
         return (packet?.continuity_context?.continuity?.length ?? 0) === 0;
       return traces.length === 0;
+    case 'one-chat-per-user':
+      return rows.length === 1;
+    case 'daily-dedupe':
+      return (
+        rows.length === 1 &&
+        traces.some(
+          (event) =>
+            event.stage === 'dedupe' &&
+            (event.value as { duplicate?: boolean }).duplicate === true,
+        )
+      );
     default:
       return (
         rows.length === 1 && traces.some((event) => event.stage === 'editorial')
@@ -699,9 +853,21 @@ async function runScenario(
     results = [
       await outreach.runRelationshipInitiative({
         ...ids,
-        trigger: 'server_scan',
+        trigger: scenario.forceAmbient ? 'ambient_scan' : 'server_scan',
         evaluationNow: now,
         onTrace,
+        trustedFacts: scenario.trustedFacts,
+        ambientCandidate: scenario.forceAmbient
+          ? {
+              key: `simulated:${scenario.id}:${scenario.now.slice(0, 10)}`,
+              kind: 'simulated_context',
+              reason:
+                'Synthetic dogfood context explicitly requested by the harness.',
+            }
+          : undefined,
+        dedupeScopeKey: scenario.forceAmbient
+          ? `simulated:${scenario.id}:${scenario.now.slice(0, 10)}`
+          : undefined,
         evaluate:
           scenario.failureMode === 'evaluator'
             ? async () => {
@@ -726,21 +892,23 @@ async function runScenario(
       }),
     ]);
   } else {
-    const scan = await outreach.runServerInitiativeScan({
-      evaluationNow: now,
-      onTrace,
-    });
-    const lastPolicy = traces.findLast((event) => event.stage === 'policy');
-    results = [
-      {
+    results = [];
+    for (let run = 0; run < (scenario.scanRuns ?? 1); run += 1) {
+      const scan = await outreach.runServerInitiativeScan({
+        evaluationNow: now,
+        onTrace,
+        trustedFacts: scenario.trustedFacts,
+      });
+      const lastPolicy = traces.findLast((event) => event.stage === 'policy');
+      results.push({
         ...scan,
         reason:
           lastPolicy?.value && (lastPolicy.value as { reason?: string }).reason,
-      },
-    ];
+      });
+    }
   }
   const rows =
-    await db`SELECT id, status, reason, "evaluationAt", "createdAt", "decidedAt", "sentAt", "generatedMessageId" FROM "RelationshipInitiative" WHERE "chatId" = ${ids.chatId} AND "dedupeKey" NOT LIKE 'seed:%' ORDER BY "createdAt"`;
+    await db`SELECT id, "chatId", status, reason, "evaluationAt", "createdAt", "decidedAt", "sentAt", "generatedMessageId" FROM "RelationshipInitiative" WHERE "userId" = ${ids.userId} AND "dedupeKey" NOT LIKE 'seed:%' ORDER BY "createdAt"`;
   const claim = traces.find((event) => event.stage === 'claim')?.value as any;
   const candidate = traces.find((event) => event.stage === 'candidate')
     ?.value ?? {
@@ -778,9 +946,12 @@ async function runScenario(
   return {
     scenario: scenario.id,
     description: scenario.description,
+    trigger: scenario.forceAmbient ? 'ambient_scan' : 'server_scan',
     simulatedNow: now.toISOString(),
     conversationSetup: scenario.messages,
     cortexCanonicalPacket: (packet as any).continuity_context ?? packet,
+    situationalPacket: context?.situation ?? null,
+    ambientCandidate: context?.ambientCandidate ?? null,
     honchoEvidence: context?.honcho ?? {
       packet: null,
       source: process.env.HONCHO_URL ? 'unavailable' : 'disabled',
@@ -809,7 +980,7 @@ async function main() {
   const requested = process.argv
     .find((arg) => arg.startsWith('--scenario='))
     ?.slice('--scenario='.length);
-  const selected = requested
+  let selected = requested
     ? scenarios.filter((scenario) => scenario.id === requested)
     : process.argv.includes('--suite=adversarial')
       ? scenarios.filter((scenario) => scenario.suite === 'adversarial')
@@ -822,6 +993,33 @@ async function main() {
     throw new Error(
       'Configure OPENROUTER_API_KEY or NANO_API_KEY for the real editorial/composer path.',
     );
+
+  const profilePath = process.argv
+    .find((arg) => arg.startsWith('--profile='))
+    ?.slice('--profile='.length);
+  const contextJson = process.argv
+    .find((arg) => arg.startsWith('--context='))
+    ?.slice('--context='.length);
+  const nowOverride = process.argv
+    .find((arg) => arg.startsWith('--now='))
+    ?.slice('--now='.length);
+  const profile = profilePath
+    ? parseYaml(
+        await readFile(path.resolve(process.cwd(), profilePath), 'utf8'),
+      )
+    : null;
+  const extraContext = contextJson
+    ? (JSON.parse(contextJson) as TrustedSituationalFacts)
+    : null;
+  selected = selected.map((scenario) => ({
+    ...scenario,
+    now: nowOverride || scenario.now,
+    trustedFacts: {
+      ...(scenario.trustedFacts ?? {}),
+      ...(extraContext ?? {}),
+      ...(profile ? { profile } : {}),
+    },
+  }));
 
   const pg = startPostgres();
   let cortex: { child: ChildProcess; baseUrl: string } | null = null;

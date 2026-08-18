@@ -1,6 +1,6 @@
 import { runServerInitiativeScan } from '@/lib/ai/relationship/outreach';
 
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET?.trim();

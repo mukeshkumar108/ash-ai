@@ -31,6 +31,7 @@ import { saveChatModel } from '@/app/(chat)/actions';
 import type { UserType } from '@/app/(auth)/auth';
 
 const MESSAGE_PAGE_SIZE = 40;
+const OPEN_CHAT_RECONCILE_INTERVAL_MS = 20_000;
 
 export function Chat({
   id,
@@ -245,6 +246,26 @@ export function Chat({
       reconcileInFlightRef.current = false;
     }
   }, [id, setMessages]);
+
+  useEffect(() => {
+    if (status !== 'ready' || isReadonly) return;
+    const reconcileIfVisible = () => {
+      if (document.visibilityState === 'visible') {
+        void reconcileChatFromServer();
+      }
+    };
+    const interval = window.setInterval(
+      reconcileIfVisible,
+      OPEN_CHAT_RECONCILE_INTERVAL_MS,
+    );
+    document.addEventListener('visibilitychange', reconcileIfVisible);
+    window.addEventListener('focus', reconcileIfVisible);
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener('visibilitychange', reconcileIfVisible);
+      window.removeEventListener('focus', reconcileIfVisible);
+    };
+  }, [isReadonly, reconcileChatFromServer, status]);
 
   const searchParams = useSearchParams();
   const query = searchParams.get('query');

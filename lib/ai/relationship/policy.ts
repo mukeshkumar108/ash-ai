@@ -92,7 +92,10 @@ export function initiativeDedupeKey(input: {
   chatId: string;
   trigger: InitiativeTrigger;
   anchorMessageId: string;
+  dedupeScopeKey?: string;
 }) {
+  if (input.dedupeScopeKey)
+    return `${input.userId}:ambient:${input.dedupeScopeKey}`;
   return `${input.userId}:${input.chatId}:${input.trigger}:${input.anchorMessageId}`;
 }
 

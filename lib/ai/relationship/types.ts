@@ -4,6 +4,7 @@ export const initiativeTriggerSchema = z.enum([
   'post_turn',
   'active_idle',
   'server_scan',
+  'ambient_scan',
 ]);
 export type InitiativeTrigger = z.infer<typeof initiativeTriggerSchema>;
 
