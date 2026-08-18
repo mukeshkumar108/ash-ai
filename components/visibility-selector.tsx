@@ -43,9 +43,11 @@ export function VisibilitySelector({
   chatId,
   className,
   selectedVisibilityType,
+  compact = false,
 }: {
   chatId: string;
   selectedVisibilityType: VisibilityType;
+  compact?: boolean;
 } & React.ComponentProps<typeof Button>) {
   const [open, setOpen] = useState(false);
 
@@ -71,11 +73,15 @@ export function VisibilitySelector({
         <Button
           data-testid="visibility-selector"
           variant="outline"
-          className="hidden md:flex md:px-2 md:h-[34px]"
+          className={
+            compact
+              ? 'hidden size-8 justify-center rounded-full border-transparent bg-transparent p-2 text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground md:flex'
+              : 'hidden md:flex md:px-2 md:h-[34px]'
+          }
         >
           {selectedVisibility?.icon}
-          {selectedVisibility?.label}
-          <ChevronDownIcon />
+          {!compact && selectedVisibility?.label}
+          {!compact && <ChevronDownIcon />}
         </Button>
       </DropdownMenuTrigger>
 

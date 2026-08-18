@@ -160,14 +160,13 @@ const INTERNAL_ALIASES = new Set([
 ]);
 
 const NANOGPT_MODEL_IDS = new Set([
-  'bytedance/doubao-seed-character',
-  'Gemma-4-31B-Dark-Gemistry',
-  'Gemma-4-31B-Gembrain-uncensored-heretic',
-  'Qwen3.5-27B-earica-Derestricted',
-  'Gemma-4-31B-DarkIdol',
-  'deepseek/deepseek-v4-flash',
-  'deepseek-ai/deepseek-v3.2-exp',
-  'huihui-ai/DeepSeek-R1-Distill-Qwen-32B-abliterated',
+  'nvidia/nemotron-3.5-lightning:thinking',
+  'deepseek/deepseek-v4-flash-0731:thinking',
+  'inclusionai/ling-3.0-flash:thinking',
+  'zai-org/glm-5.2:thinking',
+  'xiaomi/mimo-v2.5-pro-crof:thinking',
+  'longcat-2.0:thinking',
+  'nex-agi/nex-n2-mini',
 ]);
 
 export function getLanguageModel(modelId: string) {
@@ -181,7 +180,7 @@ export function getLanguageModel(modelId: string) {
     return venice(modelId) as any;
   }
   // Fallback to OpenRouter for remaining internal aliases and background models
-  if (modelId.includes('/')) {
+  if (modelId.includes('/') || modelId.includes(':')) {
     return openrouter(modelId) as any;
   }
   return myProvider.languageModel(modelId as any);

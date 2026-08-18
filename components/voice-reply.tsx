@@ -182,8 +182,8 @@ export function VoiceReply({
       <Button
         type="button"
         size="sm"
-        variant="outline"
-        className="h-8 rounded-full"
+        variant="ghost"
+        className="h-7 min-h-0 rounded-full px-3 text-xs text-muted-foreground hover:text-foreground"
         onClick={generate}
         disabled={loading}
       >

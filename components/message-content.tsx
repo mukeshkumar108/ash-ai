@@ -13,16 +13,16 @@ const NonMemoizedMessageContent = ({ text, role }: MessageContentProps) => {
   return (
     <div
       className={cn(
-        'w-full max-w-[92%] rounded-2xl px-3 py-2 md:px-5 md:py-2.5 shadow-sm',
+        'max-w-full',
         isUser
-          ? 'w-fit min-w-[56px] rounded-tr-none border border-fuchsia-500/30 bg-gradient-to-br from-fuchsia-600 via-purple-600 to-violet-700 text-white mr-0.5 md:mr-2'
-          : 'rounded-tl-none border border-rose-200/70 bg-gradient-to-br from-white via-rose-50 to-violet-50 text-slate-800 ml-0.5 md:ml-2 dark:border-violet-900/60 dark:from-zinc-900 dark:via-zinc-900 dark:to-violet-950/70 dark:text-zinc-100',
+          ? 'w-fit rounded-2xl rounded-br-md border border-black/5 bg-white px-5 py-3.5 font-sans text-[16px] leading-[1.55] text-slate-700 shadow-sm dark:border-white/10 dark:bg-[#171310] dark:text-foreground/95 md:text-[17px]'
+          : 'font-serif text-[17px] leading-[1.4] tracking-[-0.01em] text-foreground/90 md:text-[18px]',
       )}
     >
       <div
         className={cn(
-          'text-[16px] font-medium leading-[1.34] md:text-base md:leading-[1.4]',
-          isUser ? 'text-white' : 'text-slate-800 dark:text-zinc-100',
+          'text-[inherit] leading-[inherit]',
+          isUser ? 'text-foreground/95' : 'text-foreground/90',
         )}
       >
         <MessageResponse>{text}</MessageResponse>

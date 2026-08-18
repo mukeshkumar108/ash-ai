@@ -58,7 +58,7 @@ export function MobileBottomNav({ onChatsPress }: MobileBottomNavProps) {
   ];
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-white/50 bg-background/88 backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/88 md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-white/50 bg-background/88 backdrop-blur-xl dark:border-white/10 dark:bg-background/88 md:hidden">
       <div
         className="mx-auto flex max-w-3xl items-center justify-around px-3 pb-[calc(env(safe-area-inset-bottom)+0.35rem)] pt-2"
       >
@@ -73,7 +73,7 @@ export function MobileBottomNav({ onChatsPress }: MobileBottomNavProps) {
               className={cn(
                 'flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-[11px] font-medium transition-colors',
                 item.active
-                  ? 'text-fuchsia-600 dark:text-fuchsia-400'
+                  ? 'text-primary'
                   : 'text-muted-foreground',
               )}
             >
@@ -81,7 +81,7 @@ export function MobileBottomNav({ onChatsPress }: MobileBottomNavProps) {
                 className={cn(
                   'flex size-8 items-center justify-center rounded-full',
                   item.active
-                    ? 'bg-fuchsia-500/12 text-fuchsia-600 dark:bg-fuchsia-500/20 dark:text-fuchsia-300'
+                    ? 'bg-primary/12 text-primary'
                     : 'bg-transparent',
                 )}
               >

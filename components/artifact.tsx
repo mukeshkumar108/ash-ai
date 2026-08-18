@@ -335,7 +335,6 @@ function PureArtifact({
                     sendMessage={sendMessage}
                     className="bg-background dark:bg-muted"
                     setMessages={setMessages}
-                    selectedVisibilityType={selectedVisibilityType}
                   />
                 </form>
               </div>

@@ -4,14 +4,14 @@ export const Greeting = () => {
   return (
     <div
       key="overview"
-      className="max-w-3xl mx-auto md:mt-20 px-8 size-full flex flex-col justify-center"
+      className="flex flex-col items-center gap-2 text-center"
     >
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 10 }}
         transition={{ delay: 0.5 }}
-        className="bg-gradient-to-r from-fuchsia-500 via-purple-500 to-violet-500 bg-clip-text text-2xl font-semibold text-transparent"
+        className="font-sans text-4xl font-semibold tracking-[-0.02em] text-foreground md:text-5xl"
       >
         How can I help?
       </motion.div>
@@ -20,7 +20,7 @@ export const Greeting = () => {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 10 }}
         transition={{ delay: 0.6 }}
-        className="text-2xl text-zinc-500"
+        className="mt-2 max-w-md font-serif text-base leading-snug text-muted-foreground"
       >
         Ask a question, upload an image, or request a document.
       </motion.div>

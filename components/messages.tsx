@@ -1,5 +1,4 @@
 import { PreviewMessage, ThinkingMessage } from './message';
-import { Greeting } from './greeting';
 import { memo } from 'react';
 import type { Vote } from '@/lib/db/schema';
 import equal from 'fast-deep-equal';
@@ -79,7 +78,7 @@ function PureMessages({
       className="flex flex-col min-w-0 gap-6 flex-1 overflow-y-scroll pt-4 relative"
     >
       {hasOlderMessages ? (
-        <div className="w-full mx-auto max-w-3xl px-2 md:px-4">
+        <div className="w-full mx-auto max-w-4xl px-2 md:px-4">
           <div className="flex justify-center py-1">
             <Button
               type="button"
@@ -95,8 +94,6 @@ function PureMessages({
           </div>
         </div>
       ) : null}
-
-      {messages.length === 0 && <Greeting />}
 
       {messages.map(renderMessage)}
 

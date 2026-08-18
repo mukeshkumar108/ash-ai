@@ -6,7 +6,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import useSWR, { useSWRConfig } from 'swr';
 import { ChatHeader } from '@/components/chat-header';
 import type { Vote } from '@/lib/db/schema';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
+  cn,
   fetcher,
   fetchWithErrorHandlers,
   generateUUID,
@@ -14,6 +16,8 @@ import {
 } from '@/lib/utils';
 import { MultimodalInput } from './multimodal-input';
 import { Messages } from './messages';
+import { Greeting } from './greeting';
+import { AnimatedBackground } from './animated-background';
 import type { VisibilityType } from './visibility-selector';
 import { unstable_serialize } from 'swr/infinite';
 import { getChatHistoryPaginationKey } from './sidebar-history';
@@ -371,9 +375,45 @@ export function Chat({
     [id],
   );
 
+  const isNewChat = messages.length === 0 && status === 'ready';
+
+  const composerContent = (
+    <>
+      {!isReadonly && (
+        <MultimodalInput
+          chatId={id}
+          input={input}
+          setInput={setInput}
+          status={status}
+          stop={stop}
+          attachments={attachments}
+          setAttachments={setAttachments}
+          messages={messages}
+          setMessages={setMessages}
+          sendMessage={sendMessage}
+          selectedModelId={chatModel}
+          onModelChange={handleModelChange}
+          userType={userType}
+          onVoiceTranscript={(transcript) => {
+            setInput(transcript);
+          }}
+        />
+      )}
+      <p className="hidden pt-1 text-center text-xs text-muted-foreground/70 md:block">
+        Sophie may be inaccurate. Verify important information.
+      </p>
+    </>
+  );
+
   return (
     <>
-      <div className="flex h-dvh min-w-0 flex-col bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,_rgba(232,121,249,0.16),_transparent_60%),radial-gradient(ellipse_60%_40%_at_85%_5%,_rgba(167,139,250,0.12),_transparent_60%),linear-gradient(180deg,_rgba(255,255,255,0.98),_rgba(253,248,255,0.98))] pb-[calc(env(safe-area-inset-bottom)+9rem)] dark:bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,_rgba(217,70,239,0.22),_transparent_60%),radial-gradient(ellipse_60%_40%_at_85%_5%,_rgba(139,92,246,0.18),_transparent_60%),linear-gradient(180deg,_rgba(13,11,18,0.98),_rgba(19,15,27,0.98))] mobile-scroll md:pb-0">
+      <div
+        className={cn(
+          'relative flex h-dvh min-w-0 flex-col overflow-hidden bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,_rgba(224,126,170,0.08),_transparent_60%),linear-gradient(180deg,_rgba(255,255,255,0.98),_rgba(255,255,255,0.98))] mobile-scroll md:pb-0 dark:bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,_rgba(215,102,150,0.12),_transparent_60%),radial-gradient(ellipse_55%_40%_at_88%_2%,_rgba(215,102,150,0.06),_transparent_60%),linear-gradient(180deg,_rgba(30,27,24,0.98),_rgba(27,24,22,0.98))]',
+          !isNewChat ? 'pb-[calc(env(safe-area-inset-bottom)+9rem)]' : '',
+        )}
+      >
+        <AnimatedBackground />
         <ChatHeader
           chatId={id}
           selectedModelId={chatModel}
@@ -383,23 +423,25 @@ export function Chat({
           onModelChange={handleModelChange}
         />
 
-        <Messages
-          chatId={id}
-          status={status}
-          votes={votes}
-          messages={messages}
-          setMessages={setMessages}
-          regenerate={regenerate}
-          isReadonly={isReadonly}
-          hasOlderMessages={hasOlderMessages}
-          isLoadingOlderMessages={isLoadingOlderMessages}
-          onLoadOlderMessages={loadOlderMessages}
-          voiceReplyIds={voiceReplyIds}
-        />
+        {!isNewChat && (
+          <Messages
+            chatId={id}
+            status={status}
+            votes={votes}
+            messages={messages}
+            setMessages={setMessages}
+            regenerate={regenerate}
+            isReadonly={isReadonly}
+            hasOlderMessages={hasOlderMessages}
+            isLoadingOlderMessages={isLoadingOlderMessages}
+            onLoadOlderMessages={loadOlderMessages}
+            voiceReplyIds={voiceReplyIds}
+          />
+        )}
 
         {chatError ? (
           <div
-            className="mx-auto mb-2 flex w-[calc(100%-2rem)] max-w-3xl items-center justify-between gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm"
+            className="mx-auto mb-2 flex w-[calc(100%-2rem)] max-w-4xl items-center justify-between gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm"
             role="alert"
           >
             <span>{chatError}</span>
@@ -416,26 +458,32 @@ export function Chat({
           </div>
         ) : null}
 
-        <form className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+4.75rem)] z-30 flex w-full gap-2 px-4 pb-4 pt-2 md:sticky md:bottom-0 md:mx-auto md:max-w-3xl md:pb-6">
-          {!isReadonly && (
-            <MultimodalInput
-              chatId={id}
-              input={input}
-              setInput={setInput}
-              status={status}
-              stop={stop}
-              attachments={attachments}
-              setAttachments={setAttachments}
-              messages={messages}
-              setMessages={setMessages}
-              sendMessage={sendMessage}
-              selectedVisibilityType={visibilityType}
-              onVoiceTranscript={(transcript) => {
-                setInput(transcript);
-              }}
-            />
+        <motion.div
+          layout
+          className={cn(
+            'z-30 flex w-full flex-col gap-1.5 px-4 pb-4 pt-2',
+            isNewChat
+              ? 'flex-1 items-center justify-center overflow-y-auto pb-8 pt-4'
+              : 'fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+4.75rem)] md:sticky md:bottom-0 md:mx-auto md:max-w-4xl md:pb-6',
           )}
-        </form>
+        >
+          <AnimatePresence mode="wait">
+            {isNewChat && (
+              <motion.div
+                key="empty-composer"
+                className="relative flex w-full max-w-4xl flex-col items-center"
+              >
+                <div className="absolute inset-x-0 -top-28 flex flex-col items-center">
+                  <Greeting />
+                </div>
+                <form className="w-full">{composerContent}</form>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          {!isNewChat && (
+            <form className="w-full max-w-4xl">{composerContent}</form>
+          )}
+        </motion.div>
       </div>
     </>
   );

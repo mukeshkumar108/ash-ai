@@ -42,39 +42,42 @@
 }
 
 .dark {
-    --background: 247 14% 4%;
-    --foreground: 0 0% 98%;
-    --card: 247 14% 4%;
-    --card-foreground: 0 0% 98%;
-    --popover: 247 14% 4%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 292 84% 61%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 292 84% 61%;
-    --chart-1: 292 91% 72%;
-    --chart-2: 251 91% 76%;
-    --chart-3: 330 81% 70%;
-    --chart-4: 277 84% 70%;
-    --chart-5: 346 84% 71%;
-    --radius: 0.5rem;
-    --sidebar-background: 247 14% 4%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 292 84% 61%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Sophie warm dark palette. Light :root tokens are preserved
+       above so a light theme can be reintroduced later. */
+    color-scheme: dark;
+    --background: 28 6% 12%;
+    --foreground: 45 33% 93%;
+    --card: 28 6% 12%;
+    --card-foreground: 45 33% 93%;
+    --popover: 28 6% 12%;
+    --popover-foreground: 45 33% 93%;
+    --primary: 338 55% 62%;
+    --primary-foreground: 28 6% 10%;
+    --secondary: 27 5% 18%;
+    --secondary-foreground: 45 33% 93%;
+    --muted: 27 5% 16%;
+    --muted-foreground: 40 6% 62%;
+    --accent: 27 5% 18%;
+    --accent-foreground: 45 33% 93%;
+    --destructive: 8 62% 55%;
+    --destructive-foreground: 45 33% 96%;
+    --border: 27 5% 22%;
+    --input: 27 5% 22%;
+    --ring: 338 55% 62%;
+    --chart-1: 338 55% 62%;
+    --chart-2: 28 55% 60%;
+    --chart-3: 350 45% 56%;
+    --chart-4: 45 45% 60%;
+    --chart-5: 330 50% 70%;
+    --radius: 0.75rem;
+    --sidebar-background: 28 4% 8%;
+    --sidebar-foreground: 45 20% 88%;
+    --sidebar-primary: 338 55% 62%;
+    --sidebar-primary-foreground: 28 6% 10%;
+    --sidebar-accent: 27 5% 14%;
+    --sidebar-accent-foreground: 45 33% 93%;
+    --sidebar-border: 27 5% 20%;
+    --sidebar-ring: 338 55% 62%;
 }
 
 @theme inline {
@@ -113,7 +116,10 @@
     --radius-sm: calc(var(--radius) - 4px);
     --radius-md: calc(var(--radius) - 2px);
     --radius-lg: var(--radius);
-    --font-sans: var(--font-geist);
+    --font-sans: var(--font-outfit);
+    --font-body: var(--font-outfit);
+    --font-header: var(--font-outfit);
+    --font-serif: var(--font-ovo);
     --font-mono: var(--font-geist-mono);
     --breakpoint-toast-mobile: 600px;
 }

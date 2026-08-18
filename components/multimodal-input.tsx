@@ -38,9 +38,10 @@ import type { UseChatHelpers } from '@ai-sdk/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowDown, Clapperboard, FileText, ImagePlus, X } from 'lucide-react';
 import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom';
-import type { VisibilityType } from './visibility-selector';
 import type { Attachment, ChatMessage } from '@/lib/types';
 import { VoiceRecorder } from './voice-recorder';
+import { ModelSelector } from './model-selector';
+import type { UserType } from '@/app/(auth)/auth';
 import type { TranscriptReliability } from '@/lib/transcript-reliability';
 
 const VIDEO_ACCEPT = 'video/mp4,video/webm,video/quicktime,video/x-m4v';
@@ -59,7 +60,9 @@ function PureMultimodalInput({
   setMessages,
   sendMessage,
   className,
-  selectedVisibilityType,
+  selectedModelId,
+  onModelChange,
+  userType,
   onVoiceTranscript,
 }: {
   chatId: string;
@@ -73,7 +76,9 @@ function PureMultimodalInput({
   setMessages: UseChatHelpers<ChatMessage>['setMessages'];
   sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
   className?: string;
-  selectedVisibilityType: VisibilityType;
+  selectedModelId?: string;
+  onModelChange?: (id: string) => void;
+  userType?: UserType;
   onVoiceTranscript?: (transcript: string) => void;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -529,7 +534,7 @@ function PureMultimodalInput({
         onChange={handleInput}
         onPaste={handlePaste}
         className={cx(
-          'min-h-[24px] max-h-[calc(75dvh)] overflow-hidden resize-none rounded-2xl bg-muted pb-10 dark:border-zinc-700 chat-input input-typography',
+          'min-h-[24px] max-h-[calc(75dvh)] overflow-hidden resize-none rounded-3xl border border-border/60 bg-secondary/40 pb-12 pt-3 text-foreground shadow-sm transition-shadow chat-input input-typography',
           className,
         )}
         rows={2}
@@ -552,11 +557,19 @@ function PureMultimodalInput({
       />
 
       <div className="absolute bottom-0 left-0 p-2 w-fit flex flex-row items-center gap-1">
+        {userType && selectedModelId && onModelChange && (
+          <ModelSelector
+            userType={userType}
+            selectedModelId={selectedModelId}
+            onModelChange={onModelChange}
+            className="h-7 min-h-0 rounded-full border-transparent bg-transparent px-2 text-xs text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground md:h-7"
+          />
+        )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               data-testid="attachments-button"
-              className="rounded-md rounded-bl-lg p-[7px] h-fit dark:border-zinc-700 hover:dark:bg-zinc-900 hover:bg-zinc-200"
+              className="rounded-full p-2 h-fit text-muted-foreground hover:bg-accent hover:text-accent-foreground"
               onClick={(event) => {
                 event.preventDefault();
               }}
@@ -564,7 +577,7 @@ function PureMultimodalInput({
               variant="ghost"
               aria-label="Attach files"
             >
-              <PlusIcon size={14} />
+              <PlusIcon size={16} />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="min-w-44">
@@ -635,8 +648,9 @@ export const MultimodalInput = memo(
     if (prevProps.input !== nextProps.input) return false;
     if (prevProps.status !== nextProps.status) return false;
     if (!equal(prevProps.attachments, nextProps.attachments)) return false;
-    if (prevProps.selectedVisibilityType !== nextProps.selectedVisibilityType)
-      return false;
+    if (prevProps.selectedModelId !== nextProps.selectedModelId) return false;
+    if (prevProps.onModelChange !== nextProps.onModelChange) return false;
+    if (prevProps.userType !== nextProps.userType) return false;
     if (prevProps.onVoiceTranscript !== nextProps.onVoiceTranscript)
       return false;
 
@@ -654,14 +668,14 @@ function PureStopButton({
   return (
     <Button
       data-testid="stop-button"
-      className="rounded-full p-1.5 h-fit border dark:border-zinc-600"
+      className="rounded-full p-2 h-fit border border-border bg-background dark:border-border"
       onClick={(event) => {
         event.preventDefault();
         stop();
         setMessages((messages) => messages);
       }}
     >
-      <StopIcon size={14} />
+      <StopIcon size={15} />
     </Button>
   );
 }
@@ -682,7 +696,7 @@ function PureSendButton({
   return (
     <Button
       data-testid="send-button"
-      className="rounded-full p-1.5 h-fit border dark:border-zinc-600"
+      className="rounded-full p-2 h-fit bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-35"
       onClick={(event) => {
         event.preventDefault();
         submitForm();
@@ -691,7 +705,7 @@ function PureSendButton({
         (input.length === 0 && !hasAttachments) || uploadQueue.length > 0
       }
     >
-      <ArrowUpIcon size={14} />
+      <ArrowUpIcon size={15} />
     </Button>
   );
 }
