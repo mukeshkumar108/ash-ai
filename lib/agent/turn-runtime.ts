@@ -13,6 +13,7 @@ import type { ChatMessage } from '@/lib/types';
 import type { TranscriptReliability } from '@/lib/transcript-reliability';
 import type { CortexContext } from '@/lib/synapse-cortex';
 import type { SceneState } from '@/lib/agent/scene-state';
+import type { InteractionSteer } from '@/lib/ai/interaction/types';
 
 export type ExecutionLane =
   | 'reply_only'
@@ -41,6 +42,7 @@ export type TurnEvent = {
   };
   sceneState?: SceneState;
   cortexContext?: CortexContext | null;
+  interactionSteer?: InteractionSteer | null;
 };
 
 export type TurnDecision = {
@@ -214,6 +216,7 @@ export function createTurnPacket({
       transcriptReliability: event.transcriptReliability,
       cortexContext: event.cortexContext,
       sceneState: event.sceneState,
+      interactionSteer: event.interactionSteer,
     }),
   };
 }

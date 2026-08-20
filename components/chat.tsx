@@ -71,7 +71,10 @@ export function Chat({
   const [chatError, setChatError] = useState<string | null>(null);
   const voiceTurnPendingRef = useRef(false);
   const initiativeRequestRef = useRef<
-    (trigger: 'post_turn' | 'active_idle', anchorMessageId: string) => void
+    (
+      trigger: 'post_turn' | 'active_idle' | 'second_thought',
+      anchorMessageId: string,
+    ) => void
   >(() => {});
   const initiativeTimerRef = useRef<number | null>(null);
   const [voiceReplyIds, setVoiceReplyIds] = useState<Set<string>>(
@@ -142,7 +145,10 @@ export function Chat({
 
   const initiativeInFlightRef = useRef(false);
   const requestInitiative = useCallback(
-    async (trigger: 'post_turn' | 'active_idle', anchorMessageId: string) => {
+    async (
+      trigger: 'post_turn' | 'active_idle' | 'second_thought',
+      anchorMessageId: string,
+    ) => {
       if (initiativeInFlightRef.current || status !== 'ready' || isReadonly) {
         return;
       }
@@ -189,12 +195,22 @@ export function Chat({
     if (status !== 'ready' || isReadonly) return;
     const latest = messages.at(-1);
     if (!latest || latest.role !== 'assistant') return;
+    const steerPart = latest.parts.find(
+      (part) => part.type === 'data-interactionSteer',
+    );
+    const permitsSecondThought =
+      steerPart?.type === 'data-interactionSteer' &&
+      steerPart.data.initiativePermission !== 'none';
     const createdAt = latest.metadata?.createdAt
       ? new Date(latest.metadata.createdAt).getTime()
       : Date.now();
-    const waitMs = Math.max(1_000, 5 * 60_000 - (Date.now() - createdAt));
+    const idleTargetMs = permitsSecondThought ? 90_000 : 5 * 60_000;
+    const waitMs = Math.max(1_000, idleTargetMs - (Date.now() - createdAt));
     initiativeTimerRef.current = window.setTimeout(() => {
-      void requestInitiative('active_idle', latest.id);
+      void requestInitiative(
+        permitsSecondThought ? 'second_thought' : 'active_idle',
+        latest.id,
+      );
     }, waitMs);
     return () => {
       if (initiativeTimerRef.current)

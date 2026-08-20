@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const initiativeTriggerSchema = z.enum([
   'post_turn',
   'active_idle',
+  'second_thought',
   'server_scan',
   'ambient_scan',
 ]);

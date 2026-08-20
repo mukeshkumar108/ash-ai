@@ -3,6 +3,7 @@ import type { UIMessage } from 'ai';
 import type { ArtifactKind } from '@/components/artifact';
 import type { Suggestion } from './db/schema';
 import type { TranscriptReliability } from './transcript-reliability';
+import type { InteractionSteer } from './ai/interaction/types';
 
 export type DataPart = { type: 'append-message'; message: string };
 
@@ -51,6 +52,7 @@ export type CustomUIDataTypes = {
   finish: null;
   research: ResearchTrace;
   transcriptReliability: TranscriptReliability;
+  interactionSteer: InteractionSteer;
 };
 
 export type ChatMessage = UIMessage<

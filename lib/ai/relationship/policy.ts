@@ -3,6 +3,7 @@ import { repeatsRecentlyAddressedTopic } from './continuity';
 
 export const INITIATIVE_POLICY = {
   idleMs: Number(process.env.RELATIONSHIP_IDLE_MS ?? 5 * 60_000),
+  secondThoughtMs: Number(process.env.RELATIONSHIP_SECOND_THOUGHT_MS ?? 90_000),
   // Emergency runaway ceilings, not target relationship cadence.
   dailyLimit: Number(process.env.RELATIONSHIP_DAILY_LIMIT ?? 24),
   idleDailyLimit: Number(process.env.RELATIONSHIP_IDLE_DAILY_LIMIT ?? 16),
@@ -114,10 +115,11 @@ export function checkInitiativeEligibility(input: {
   if (input.latestMessageId !== input.anchorMessageId)
     return 'conversation_changed';
   if (input.latestRole !== 'assistant') return 'latest_message_not_assistant';
-  if (
-    input.trigger !== 'post_turn' &&
-    input.idleForMs < INITIATIVE_POLICY.idleMs - 5_000
-  )
+  const requiredIdleMs =
+    input.trigger === 'second_thought'
+      ? INITIATIVE_POLICY.secondThoughtMs
+      : INITIATIVE_POLICY.idleMs;
+  if (input.trigger !== 'post_turn' && input.idleForMs < requiredIdleMs - 5_000)
     return 'not_idle_long_enough';
   if (input.dailyCount >= INITIATIVE_POLICY.dailyLimit) return 'daily_limit';
   if (

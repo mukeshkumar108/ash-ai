@@ -3,6 +3,8 @@ import type { EpistemicPolicy } from '@/lib/agent/research-policy';
 import type { TranscriptReliability } from '@/lib/transcript-reliability';
 import type { CortexContext } from '@/lib/synapse-cortex';
 import type { SceneState } from '@/lib/agent/scene-state';
+import type { InteractionSteer } from '@/lib/ai/interaction/types';
+import { compileInteractionSteer } from '@/lib/ai/interaction/steer';
 
 export type SophieInteractionMode = NonNullable<
   EpistemicPolicy['interactionMode']
@@ -68,6 +70,7 @@ export function buildSophieReplySystemPrompt({
   transcriptReliability,
   cortexContext,
   sceneState,
+  interactionSteer,
 }: {
   now?: Date;
   timeZone?: string;
@@ -82,6 +85,7 @@ export function buildSophieReplySystemPrompt({
   transcriptReliability?: TranscriptReliability | null;
   cortexContext?: CortexContext | null;
   sceneState?: SceneState;
+  interactionSteer?: InteractionSteer | null;
   handshake?: {
     userLocation?: string | null;
     chatsToday: number;
@@ -158,6 +162,9 @@ Use this only to remain honest about how a recent answer was obtained. Do not cl
         ? `\n\n[AUDIO TRANSCRIPT RELIABILITY]\nThis user message came from recorded audio and its transcript is uncertain (${transcriptReliability.reason}). Treat suspicious details cautiously. Do not silently repair or confidently infer them. Continue only where safe, and ask naturally for clarification if the answer materially depends on those details.`
         : `\n\n[AUDIO INPUT SOURCE]\nThis user message was transcribed from audio. Speech transcription is fallible. If wording actually appears garbled, repetitive, implausible, or unlike what the user probably intended, do not force an interpretation or silently correct it. Say naturally that you may have misheard them and ask them to repeat or clarify. Do not mention transcription uncertainty unless you genuinely have reason to doubt what you received.`
     : '';
+  const interactionSteerBlock = interactionSteer
+    ? `\n\n${compileInteractionSteer(interactionSteer)}`
+    : '';
 
   return `${sophieSystemPrompt().trim()}
 
@@ -171,7 +178,7 @@ Answer as Sophie, using your learned understanding and your own judgment. You do
 Resolve conflicts in this exact order: CURRENT USER TURN > TRUSTED CURRENT TIME and AUTHORITATIVE CURRENT SCENE > CORTEX MOMENT CONTEXT > retrieved memory and older chat history. An explicit current correction immediately replaces a conflicting older assumption. After a correction, acknowledge it briefly, correct course, and stop digging: do not add a reflexive question merely to keep the exchange alive. A callback is optional and must serve the user's current purpose; when the user changes topic, answer the new topic without dragging an older scene into the response.
 
 [TURN-SPECIFIC INSTINCT]
-${buildSophieTurnModule(interactionMode)}${neutralQuestion ? `\nPrivate reasoning anchor—not a request for research or visible restatement: ${neutralQuestion}` : ''}${transcriptBlock}${ambientBlock}${provenanceBlock}${sceneBlock}${cortexBlock}${memoryBlock}${handshakeBlock}`;
+${buildSophieTurnModule(interactionMode)}${neutralQuestion ? `\nPrivate reasoning anchor—not a request for research or visible restatement: ${neutralQuestion}` : ''}${transcriptBlock}${ambientBlock}${provenanceBlock}${sceneBlock}${cortexBlock}${memoryBlock}${handshakeBlock}${interactionSteerBlock}`;
 }
 
 export function buildAshAgentSystemPrompt({

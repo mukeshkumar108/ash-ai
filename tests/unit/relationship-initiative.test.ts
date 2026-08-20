@@ -357,6 +357,31 @@ test.describe('relationship initiative policy', () => {
     ).toBe('conversation_changed');
   });
 
+  test('second thought is only an earlier eligibility opportunity', () => {
+    expect(
+      checkInitiativeEligibility({
+        trigger: 'second_thought',
+        anchorMessageId: 'm',
+        latestMessageId: 'm',
+        latestRole: 'assistant',
+        idleForMs: INITIATIVE_POLICY.secondThoughtMs - 6_000,
+        dailyCount: 0,
+        unansweredCount: 0,
+      }),
+    ).toBe('not_idle_long_enough');
+    expect(
+      checkInitiativeEligibility({
+        trigger: 'second_thought',
+        anchorMessageId: 'm',
+        latestMessageId: 'm',
+        latestRole: 'assistant',
+        idleForMs: INITIATIVE_POLICY.secondThoughtMs,
+        dailyCount: 0,
+        unansweredCount: 0,
+      }),
+    ).toBeNull();
+  });
+
   test('one unanswered initiative delays rather than freezes follow-up', () => {
     const requiredGap = unansweredFollowUpDelayMs('m');
     expect(
