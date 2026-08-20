@@ -4,6 +4,7 @@ import {
   companionRuntimeAssistantMessageId,
   companionRuntimeReplyOnlyEnabled,
   executeCompanionRuntimeTurn,
+  streamCompanionRuntimeTurn,
 } from '@/lib/companion-runtime';
 
 const input = {
@@ -158,4 +159,79 @@ test('derives a stable UUID-shaped assistant ID from the turn ID', () => {
   expect(first).toMatch(
     /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u,
   );
+});
+
+function sseResponse(chunks: string[]) {
+  const encoder = new TextEncoder();
+  return new Response(
+    new ReadableStream({
+      start(controller) {
+        for (const chunk of chunks) controller.enqueue(encoder.encode(chunk));
+        controller.close();
+      },
+    }),
+    {
+      status: 200,
+      headers: { 'Content-Type': 'text/event-stream; charset=utf-8' },
+    },
+  );
+}
+
+test('parses split SSE frames and treats the completed result as canonical', async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () =>
+    sseResponse([
+      ': keep-alive\r\n\r\nevent: status\r\ndata: {"contract_version":"v1","turn_id":"turn-1",',
+      '"conversation_id":"conversation-1","status":"executing","phase":"context","elapsed_ms":12}\r\n\r\n',
+      'event: text_delta\ndata: {"contract_version":"v1","turn_id":"turn-1","conversation_id":"conversation-1","delta":"Hello ","index":0,"elapsed_ms":40}\n\n',
+      `event: completed\ndata: ${JSON.stringify({
+        contract_version: 'v1',
+        turn_id: input.turn_id,
+        conversation_id: input.conversation_id,
+        result: completed,
+      })}\n\n`,
+    ]);
+
+  try {
+    const events = [];
+    for await (const event of streamCompanionRuntimeTurn(input)) {
+      events.push(event);
+    }
+    expect(events.map((event) => event.type)).toEqual([
+      'status',
+      'text_delta',
+      'completed',
+    ]);
+    expect(events[1]?.type === 'text_delta' && events[1].data.delta).toBe(
+      'Hello ',
+    );
+    expect(
+      events[2]?.type === 'completed' &&
+        events[2].data.result.status === 'completed' &&
+        events[2].data.result.assistant_message,
+    ).toBe('Hello back');
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test('rejects a stream that closes without a terminal event', async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () =>
+    sseResponse([
+      'event: text_delta\ndata: {"contract_version":"v1","turn_id":"turn-1","conversation_id":"conversation-1","delta":"partial","index":0,"elapsed_ms":40}\n\n',
+    ]);
+
+  try {
+    const consume = async () => {
+      for await (const _event of streamCompanionRuntimeTurn(input)) {
+        // Consume the complete stream.
+      }
+    };
+    await expect(consume()).rejects.toThrow(
+      'Companion Runtime stream ended without a terminal event',
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });

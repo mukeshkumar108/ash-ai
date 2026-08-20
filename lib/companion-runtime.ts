@@ -52,6 +52,49 @@ const statusResponseSchema = z.object({
   result: z.unknown().nullable(),
 });
 
+const streamStatusEventSchema = z.object({
+  contract_version: z.literal('v1'),
+  turn_id: z.string(),
+  conversation_id: z.string(),
+  status: z.literal('executing'),
+  // Consumers must tolerate phases added by later runtime versions.
+  phase: z.string(),
+  elapsed_ms: z.number().nonnegative(),
+});
+
+const streamTextDeltaEventSchema = z.object({
+  contract_version: z.literal('v1'),
+  turn_id: z.string(),
+  conversation_id: z.string(),
+  delta: z.string(),
+  index: z.number().int().nonnegative(),
+  elapsed_ms: z.number().nonnegative(),
+});
+
+const streamCompletedEventSchema = z.object({
+  contract_version: z.literal('v1'),
+  turn_id: z.string(),
+  conversation_id: z.string(),
+  result: runtimeResultSchema,
+});
+
+const streamErrorEventSchema = z.object({
+  contract_version: z.literal('v1'),
+  turn_id: z.string(),
+  conversation_id: z.string(),
+  error: z.object({
+    status: z.string(),
+    error_code: z.string(),
+    message: z.string(),
+  }),
+});
+
+export type CompanionRuntimeStreamEvent =
+  | { type: 'status'; data: z.infer<typeof streamStatusEventSchema> }
+  | { type: 'text_delta'; data: z.infer<typeof streamTextDeltaEventSchema> }
+  | { type: 'completed'; data: z.infer<typeof streamCompletedEventSchema> }
+  | { type: 'error'; data: z.infer<typeof streamErrorEventSchema> };
+
 export type CompanionRuntimeResult = z.infer<typeof runtimeResultSchema>;
 
 export type CompanionRuntimeTurnInput = {
@@ -198,5 +241,105 @@ export async function executeCompanionRuntimeTurn(
       );
     }
     throw initialError;
+  }
+}
+
+function parseStreamEvent(
+  eventName: string,
+  data: string,
+): CompanionRuntimeStreamEvent | null {
+  if (!['status', 'text_delta', 'completed', 'error'].includes(eventName)) {
+    return null;
+  }
+
+  const value: unknown = JSON.parse(data);
+  switch (eventName) {
+    case 'status':
+      return { type: 'status', data: streamStatusEventSchema.parse(value) };
+    case 'text_delta':
+      return {
+        type: 'text_delta',
+        data: streamTextDeltaEventSchema.parse(value),
+      };
+    case 'completed':
+      return {
+        type: 'completed',
+        data: streamCompletedEventSchema.parse(value),
+      };
+    case 'error':
+      return { type: 'error', data: streamErrorEventSchema.parse(value) };
+    default:
+      return null;
+  }
+}
+
+/**
+ * Consume Companion Runtime's authenticated SSE protocol. Deltas are
+ * presentation-only; callers must persist only the terminal completed result.
+ */
+export async function* streamCompanionRuntimeTurn(
+  input: CompanionRuntimeTurnInput,
+): AsyncGenerator<CompanionRuntimeStreamEvent> {
+  const { baseUrl, secret } = configuredRuntime();
+  const response = await fetch(`${baseUrl}/v1/turns/stream`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'text/event-stream',
+      'X-Companion-Runtime-Key': secret,
+    },
+    body: JSON.stringify(input),
+    cache: 'no-store',
+    signal: AbortSignal.timeout(
+      Number(process.env.COMPANION_RUNTIME_REQUEST_TIMEOUT_MS ?? 250_000),
+    ),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Companion Runtime stream HTTP ${response.status}`);
+  }
+  if (!response.headers.get('content-type')?.includes('text/event-stream')) {
+    throw new Error('Companion Runtime stream returned a non-SSE response');
+  }
+  if (!response.body) {
+    throw new Error('Companion Runtime stream returned no response body');
+  }
+
+  const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
+  let buffer = '';
+  let terminalSeen = false;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    buffer += value ?? '';
+    const normalized = buffer.replace(/\r\n/gu, '\n');
+    const frames = normalized.split('\n\n');
+    buffer = frames.pop() ?? '';
+
+    for (const frame of frames) {
+      let eventName = 'message';
+      const dataLines: string[] = [];
+      for (const line of frame.split('\n')) {
+        if (line.startsWith(':')) continue;
+        if (line.startsWith('event:')) {
+          eventName = line.slice('event:'.length).trim();
+        } else if (line.startsWith('data:')) {
+          dataLines.push(line.slice('data:'.length).trimStart());
+        }
+      }
+      if (dataLines.length === 0) continue;
+      const event = parseStreamEvent(eventName, dataLines.join('\n'));
+      if (!event) continue;
+      if (event.type === 'completed' || event.type === 'error') {
+        terminalSeen = true;
+      }
+      yield event;
+    }
+
+    if (done) break;
+  }
+
+  if (!terminalSeen) {
+    throw new Error('Companion Runtime stream ended without a terminal event');
   }
 }
