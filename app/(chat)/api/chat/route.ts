@@ -50,6 +50,7 @@ import {
   saveUserDefaultLocationIfMissing,
   saveChat,
   saveMessages,
+  updateChatTitleById,
   withQueryContext,
   db,
 } from '@/lib/db/queries';
@@ -251,17 +252,31 @@ export async function POST(request: Request) {
       const chat = await getChatById({ id });
 
       if (!chat) {
-        const title = await generateTitleFromUserMessage({
-          message,
-        });
-
         await saveChat({
           id,
           userId: session.user.id,
-          title,
+          title: 'New chat',
           characterId: 'neutral',
           visibility: selectedVisibilityType,
           chatModel: selectedChatModel,
+        });
+        // A title is navigation metadata, not a dependency of Sophie's reply.
+        // Generate it after the response so a second model call cannot delay
+        // the first turn. Ownership is checked again by the update query.
+        after(async () => {
+          try {
+            const title = await generateTitleFromUserMessage({ message });
+            await updateChatTitleById({
+              id,
+              userId: session.user.id,
+              title,
+            });
+          } catch (error) {
+            console.warn('[chat] deferred title generation failed', {
+              chatId: id,
+              error: error instanceof Error ? error.message : 'Unknown error',
+            });
+          }
         });
       } else {
         if (chat.userId !== session.user.id) {
@@ -270,7 +285,17 @@ export async function POST(request: Request) {
       }
 
       // Ensure the session user has a row so chat/message foreign keys hold.
-      const userProfile = await getUserById(session.user.id);
+      const timeZone = process.env.ASH_TIME_ZONE?.trim() || 'Europe/London';
+      const [userProfile, messagesFromDb, crossChatHandshake] =
+        await Promise.all([
+          getUserById(session.user.id),
+          getMessagesByChatId({ id }),
+          getConversationHandshakeContext({
+            userId: session.user.id,
+            currentChatId: id,
+            timeZone,
+          }),
+        ]);
       if (!userProfile) {
         if (!isProductionEnvironment) {
           await db
@@ -288,13 +313,6 @@ export async function POST(request: Request) {
         }
       }
 
-      const messagesFromDb = await getMessagesByChatId({ id });
-      const timeZone = process.env.ASH_TIME_ZONE?.trim() || 'Europe/London';
-      const crossChatHandshake = await getConversationHandshakeContext({
-        userId: session.user.id,
-        currentChatId: id,
-        timeZone,
-      });
       const currentChatLastInteraction =
         messagesFromDb.at(-1)?.createdAt ?? null;
       const candidates = [
@@ -348,17 +366,19 @@ export async function POST(request: Request) {
 
       // If the user is replying after a proactive Sophie message, connect the
       // reply to that initiative for simple acceptance/latency inspection.
-      await markLatestInitiativeReplied({
-        userId: session.user.id,
-        chatId: id,
-        replyMessageId: message.id,
-        repliedAt: userCreatedAt,
-      }).catch((error) => {
-        console.warn('[relationship] failed to record initiative reply', {
+      after(() =>
+        markLatestInitiativeReplied({
+          userId: session.user.id,
           chatId: id,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        });
-      });
+          replyMessageId: message.id,
+          repliedAt: userCreatedAt,
+        }).catch((error) => {
+          console.warn('[relationship] failed to record initiative reply', {
+            chatId: id,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
+        }),
+      );
 
       const currentUserText = sanitizedMessage.parts
         .filter((part) => part.type === 'text')

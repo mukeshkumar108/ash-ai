@@ -516,6 +516,29 @@ export async function updateChatModelById({
   }
 }
 
+export async function updateChatTitleById({
+  id,
+  userId,
+  title,
+}: {
+  id: string;
+  userId: string;
+  title: string;
+}) {
+  try {
+    return await db
+      .update(chat)
+      .set({ title })
+      .where(and(eq(chat.id, id), eq(chat.userId, userId)));
+  } catch (error) {
+    logDatabaseError('update chat title', error);
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to update chat title',
+    );
+  }
+}
+
 export async function getRecentChatByCharacter({
   userId,
   characterId,
