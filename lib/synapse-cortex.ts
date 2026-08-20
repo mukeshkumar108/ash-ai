@@ -22,6 +22,7 @@ export type CanonicalContinuityContext = {
   now?: { local_time?: string; timezone?: string; daypart?: string };
   continuity?: unknown[];
   open_threads?: unknown[];
+  sophie_attention?: unknown[];
   recent_resolutions?: unknown[];
   avoid_repeating?: unknown[];
   relevant_honcho_message_ids?: string[];
@@ -48,6 +49,7 @@ export function compactCortexContext(
           now: { local_time: localDateTime, timeZone, daypart: handshake.daypart },
           continuity: list(attention.followups, 3),
           open_threads: list(attention.open_loops, 3),
+          sophie_attention: list(attention.sophie_attention, 5),
           recent_resolutions: list(attention.recent_resolutions, 3),
           avoid_repeating: list(attention.suppressed_targets, 5),
           relevant_honcho_message_ids: list(
@@ -143,6 +145,66 @@ async function cortexFetch(path: string, init?: RequestInit) {
   });
   if (!response.ok) throw new Error(`Cortex HTTP ${response.status}`);
   return (await response.json()) as Record<string, unknown>;
+}
+
+export async function persistSophieAttention(input: {
+  userId: string;
+  chatId: string;
+  sourceMessageId: string;
+  sourceAssistantMessageId: string;
+  candidates: Array<{
+    key: string;
+    kind:
+      | 'pending_question'
+      | 'unfinished_thought'
+      | 'callback'
+      | 'promise'
+      | 'reentry';
+    content: string;
+    salience: number;
+    confidence: number;
+    notBeforeMinutes: number | null;
+    expiresAfterHours: number;
+  }>;
+  now?: Date;
+}) {
+  if (input.candidates.length === 0) return { persisted: false as const };
+  const ids = honchoIds(input.userId, input.chatId);
+  const now = input.now ?? new Date();
+  try {
+    const result = await cortexFetch('/v1/events/attention', {
+      method: 'POST',
+      body: JSON.stringify({
+        workspace_id: ids.workspaceId,
+        session_id: ids.sessionId,
+        source_message_id: input.sourceMessageId,
+        source_assistant_message_id: input.sourceAssistantMessageId,
+        candidates: input.candidates.map((candidate) => ({
+          key: candidate.key,
+          kind: candidate.kind,
+          content: candidate.content,
+          salience: candidate.salience,
+          confidence: candidate.confidence,
+          not_before:
+            candidate.notBeforeMinutes === null
+              ? null
+              : new Date(
+                  now.getTime() + candidate.notBeforeMinutes * 60_000,
+                ).toISOString(),
+          expires_at: new Date(
+            now.getTime() + candidate.expiresAfterHours * 3_600_000,
+          ).toISOString(),
+        })),
+      }),
+    });
+    return { persisted: true as const, result };
+  } catch (error) {
+    console.warn('[synapse-cortex] Sophie attention persistence failed open', {
+      chatId: input.chatId,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+    return { persisted: false as const };
+  }
 }
 
 export async function fetchCortexContext(input: {

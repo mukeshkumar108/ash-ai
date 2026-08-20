@@ -12,11 +12,43 @@ import {
   checkInitiativeEligibility,
   decisionPolicyRejection,
   initiativeDedupeKey,
+  initiativeOpportunityForSteer,
   INITIATIVE_POLICY,
   mayUseDecision,
   unansweredFollowUpDelayMs,
   validateInitiativeText,
 } from '@/lib/ai/relationship/policy';
+
+test('active steer creates a durable 90-second reconsideration opportunity', () => {
+  const createdAt = new Date('2026-08-20T20:00:00.000Z');
+  const opportunity = initiativeOpportunityForSteer(
+    {
+      posture: 'ask',
+      phase: 'curiosity',
+      objective: 'Stay with a grounded curiosity.',
+      strength: 'medium',
+      turnsRemaining: 3,
+      initiativePermission: 'medium',
+      expressionShape: 'single',
+      reason: 'A meaningful thread remains open.',
+      lastTactic: null,
+    },
+    createdAt,
+  );
+  expect(opportunity.trigger).toBe('second_thought');
+  expect(opportunity.notBefore.getTime() - createdAt.getTime()).toBe(
+    INITIATIVE_POLICY.secondThoughtMs,
+  );
+});
+
+test('ordinary reply creates a durable active-idle opportunity', () => {
+  const createdAt = new Date('2026-08-20T20:00:00.000Z');
+  const opportunity = initiativeOpportunityForSteer(null, createdAt);
+  expect(opportunity.trigger).toBe('active_idle');
+  expect(opportunity.notBefore.getTime() - createdAt.getTime()).toBe(
+    INITIATIVE_POLICY.idleMs,
+  );
+});
 
 const decision = {
   conversationState: {

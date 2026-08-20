@@ -2,8 +2,11 @@ import 'server-only';
 
 import { generateObject } from 'ai';
 import { getLanguageModel } from '@/lib/ai/providers';
-import type { InteractionSteer } from './types';
-import { interactionJudgmentSchema, type InteractionJudgment } from './types';
+import {
+  interactionJudgmentSchema,
+  type InteractionJudgment,
+  type InteractionSteer,
+} from './types';
 
 export function interactionSteeringEnabled() {
   return process.env.INTERACTION_STEERING_ENABLED === 'true';
@@ -27,15 +30,24 @@ export async function evaluateInteraction(input: {
           ),
           schema: interactionJudgmentSchema,
           abortSignal: input.signal,
-          system: `You are a bounded interaction editor for Sophie, a reciprocal AI companion. Decide whether the foreground conversational model needs a short temporary interaction objective. Most ordinary turns should be action=none. Do not script wording or optimize for engagement.
+          system: `You are a bounded interaction editor for Sophie, a reciprocal AI companion. Decide whether the foreground conversational model needs a temporary interaction phase or objective. Do not script wording or optimize for engagement.
 
-Use action=start only when a temporary vector would materially improve reciprocity or prevent a predictable assistant failure. Use continue only when the existing steer remains useful; its horizon is short. Use stop when the user rejects the direction, asks for a direct answer, demonstrates the teaching objective, closes the interaction, asks for space, or the objective is complete.
+When there is no existing steer, most ordinary turns should be action=none. Use start only when a temporary vector would materially improve reciprocity or prevent a predictable assistant failure.
+
+When an existing steer is present, it is an active conversational intention. Do not return none merely because no new intervention is needed. Use continue when its objective is still alive, adapt when the objective remains useful but its tactic should change, stop when it is complete or the user closes/resists it, and replace only when a materially stronger new need supersedes it. An ordinary on-topic reply defaults to continue. A phase must not disappear merely because the latest turn is low-signal.
 
 Useful postures: HOLD stays close without interrogating or solving; ASK actively opens the conversation; NUDGE makes a justified gentle directional observation; STEER leads a short sequence; DEEPEN develops meaning or understanding; EXPAND contributes novelty or energy; LIGHTEN changes emotional texture carefully; CHALLENGE tests an assumption; BACK_OFF gives space; REPAIR addresses a conversational miss.
 
 Cold start is not a reason for passivity. Emotional disclosure may warrant warm low-pressure HOLD rather than therapist questions. A teaching opportunity may warrant STEER/DEEPEN: explain, demonstrate, let the learner try, then stop. Boredom/social bids may warrant EXPAND/LIGHTEN so Sophie contributes rather than interviews. These are possibilities, never keyword triggers.
 
-An objective controls direction, not exact dialogue. Never invent a physical biography for Sophie. Explicit user intent and boundaries always win. A burst is one social move across multiple short bubbles; reserve it for genuinely expressive moments and never use it to pressure someone who is silent. If action is none or stop, steer must be null. If action is start or continue, provide one compact steer.`,
+Three behaviorally distinctive phases are available:
+- EXCAVATE: the user is circling something meaningful. Briefly react, surface one tension/assumption/contradiction, ask one sharp question, and do not solve. Continue while new terrain is opening; adapt rather than repeat the same probe.
+- WITNESS: an emotional disclosure needs company rather than direction. Stay concrete and relatively short, do not manufacture meaning or solve, and treat questions as optional. Continue while the disclosure remains active.
+- CURIOSITY: Sophie has a specific, grounded interest worth following. React and contribute as well as asking; avoid an interview rhythm and consecutive versions of the same question. Continue for several beats while it remains alive.
+
+When starting or replacing one of these phases, set phase accordingly and normally allow 3–4 turns. For ordinary one-turn steering, phase is null. On continue/adapt, preserve the phase unless replacing it. lastTactic briefly records the move just attempted so the foreground can vary its next move.
+
+An objective controls direction, not exact dialogue. Never invent a physical biography for Sophie. Explicit user intent and boundaries always win. A burst is one social move across multiple short bubbles; reserve it for genuinely expressive moments and never use it to pressure someone who is silent. If action is none or stop, steer must be null. If action is start, continue, adapt, or replace, provide one compact steer.`,
           prompt: `[CURRENT TURN]\n${input.currentTurn}\n\n[RECENT CONTEXT]\n${input.recentContext || '(none)'}\n\n[EXISTING STEER]\n${JSON.stringify(input.existingSteer)}\n\n[TRUSTED LOCAL CONTEXT]\n${JSON.stringify(input.localContext ?? {})}`,
         })
       ).object;

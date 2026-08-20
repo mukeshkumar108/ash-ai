@@ -9,6 +9,7 @@ import type { InteractionSteer } from '@/lib/ai/interaction/types';
 
 const sadSteer: InteractionSteer = {
   posture: 'hold',
+  phase: null,
   objective:
     'Stay close without demanding an explanation or immediately turning this into solutions. Do not interrogate.',
   strength: 'medium',
@@ -16,6 +17,19 @@ const sadSteer: InteractionSteer = {
   initiativePermission: 'high',
   expressionShape: 'short_burst',
   reason: 'The user disclosed diffuse sadness and uncertainty.',
+  lastTactic: null,
+};
+
+const curiosityPhase: InteractionSteer = {
+  posture: 'ask',
+  phase: 'curiosity',
+  objective: 'Understand what the user actually enjoys about making things.',
+  strength: 'medium',
+  turnsRemaining: 4,
+  initiativePermission: 'medium',
+  expressionShape: 'single',
+  reason: 'The user opened a specific personal thread with room to explore.',
+  lastTactic: 'Asked which part of the project felt most alive.',
 };
 
 test('ordinary factual request can remain unsteered', async () => {
@@ -48,7 +62,7 @@ test('sad disclosure can create a bounded low-pressure steer', async () => {
     }),
   });
   const active = resolveInteractionSteer(decision, null);
-  expect(active).toEqual(sadSteer);
+  expect(active).toMatchObject(sadSteer);
   const compiled = compileInteractionSteer(active!);
   expect(compiled).toContain('[INTERACTION STEER]');
   expect(compiled).toContain('Do not interrogate');
@@ -68,6 +82,60 @@ test('continuing a steer consumes its short turn horizon', async () => {
     }),
   });
   expect(resolveInteractionSteer(decision, sadSteer)?.turnsRemaining).toBe(2);
+});
+
+test('NONE does not erase an active conversational phase', () => {
+  const active = resolveInteractionSteer(
+    {
+      action: 'none',
+      interpretation: 'No new intervention is needed.',
+      steer: null,
+    },
+    curiosityPhase,
+  );
+  expect(active).toMatchObject({
+    phase: 'curiosity',
+    turnsRemaining: 3,
+  });
+});
+
+test('active phase expires at its bounded horizon', () => {
+  const active = resolveInteractionSteer(
+    {
+      action: 'none',
+      interpretation: 'No new intervention is needed.',
+      steer: null,
+    },
+    { ...curiosityPhase, turnsRemaining: 1 },
+  );
+  expect(active).toBeNull();
+});
+
+test('curiosity phase compiles a distinctive procedural contract', () => {
+  const compiled = compileInteractionSteer(curiosityPhase);
+  expect(compiled).toContain('Active phase: CURIOSITY');
+  expect(compiled).toContain('React and contribute');
+  expect(compiled).toContain('Previous phase tactic');
+  expect(compiled).toContain('one natural conversational move');
+});
+
+test('adapt preserves the phase while changing its tactic', () => {
+  const adapted = resolveInteractionSteer(
+    {
+      action: 'adapt',
+      interpretation: 'The objective is alive but another question would interview.',
+      steer: {
+        ...curiosityPhase,
+        lastTactic: 'Offer a playful theory instead of another question.',
+      },
+    },
+    curiosityPhase,
+  );
+  expect(adapted).toMatchObject({
+    phase: 'curiosity',
+    turnsRemaining: 3,
+    lastTactic: 'Offer a playful theory instead of another question.',
+  });
 });
 
 test('an explicit boundary immediately stops an existing steer', async () => {

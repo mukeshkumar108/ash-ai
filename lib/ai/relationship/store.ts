@@ -36,6 +36,26 @@ export type InitiativeClaim =
       retryAfterMs?: number;
     };
 
+export async function scheduleInitiativeOpportunity(input: {
+  userId: string;
+  chatId: string;
+  anchorMessageId: string;
+  trigger: 'second_thought' | 'active_idle';
+  notBefore: Date;
+  context?: Record<string, unknown>;
+}) {
+  await sql()`
+    INSERT INTO "RelationshipOpportunity"
+      ("userId", "chatId", "anchorMessageId", trigger, "notBefore", context)
+    VALUES (
+      ${input.userId}, ${input.chatId}, ${input.anchorMessageId},
+      ${input.trigger}, ${input.notBefore},
+      ${input.context ? sql().json(input.context as any) : null}
+    )
+    ON CONFLICT ("anchorMessageId", trigger) DO NOTHING
+  `;
+}
+
 function decisionEvidence(decision: InitiativeDecision) {
   return {
     items: decision.evidence,
@@ -102,6 +122,13 @@ export async function claimInitiative(input: {
       requiredUnansweredGapMs,
     });
     if (eligibility) {
+      if (eligibility === 'conversation_changed') {
+        await tx`
+          UPDATE "RelationshipOpportunity" SET status = 'cancelled'
+          WHERE "anchorMessageId" = ${input.anchorMessageId}
+            AND trigger = ${input.trigger} AND status = 'scheduled'
+        `;
+      }
       const retryAfterMs =
         eligibility === 'unanswered_followup_too_soon' &&
         msSinceLatestUnanswered !== null
@@ -118,6 +145,12 @@ export async function claimInitiative(input: {
     `;
     if (!claimed.length)
       return { ok: false as const, reason: 'duplicate', duplicate: true };
+
+    await tx`
+      UPDATE "RelationshipOpportunity" SET status = 'claimed', "claimedAt" = ${evaluationNow}
+      WHERE "anchorMessageId" = ${input.anchorMessageId}
+        AND trigger = ${input.trigger} AND status = 'scheduled'
+    `;
 
     const topics = await tx`
       SELECT "topicKey" FROM "RelationshipInitiative"
@@ -179,7 +212,14 @@ export async function serverInitiativeScanCandidates(
   evaluationNow: Date = new Date(),
 ) {
   return sql()`
-    WITH latest_per_chat AS (
+    WITH due_opportunities AS (
+      SELECT o."userId", o."chatId", o."anchorMessageId", o.trigger,
+        o."notBefore" AS "lastMessageAt", 0 AS priority
+      FROM "RelationshipOpportunity" o
+      WHERE o.status = 'scheduled' AND o."notBefore" <= ${evaluationNow}
+        AND o."createdAt" >= ${evaluationNow}::timestamp - interval '48 hours'
+    ),
+    latest_per_chat AS (
       SELECT c."userId", m."chatId", m.id AS "anchorMessageId",
         m.role, m."createdAt" AS "lastMessageAt",
         row_number() OVER (
@@ -194,9 +234,17 @@ export async function serverInitiativeScanCandidates(
         AND "lastMessageAt" <= ${evaluationNow}::timestamp - (${INITIATIVE_POLICY.idleMs} * interval '1 millisecond')
         AND "lastMessageAt" >= ${evaluationNow}::timestamp - interval '48 hours'
     )
-    SELECT DISTINCT ON ("userId") "userId", "chatId", "anchorMessageId", "lastMessageAt"
-    FROM eligible
-    ORDER BY "userId", "lastMessageAt" DESC, "chatId"
+    , scan_candidates AS (
+      SELECT "userId", "chatId", "anchorMessageId", trigger, "lastMessageAt", priority
+      FROM due_opportunities
+      UNION ALL
+      SELECT "userId", "chatId", "anchorMessageId", 'server_scan' AS trigger,
+        "lastMessageAt", 1 AS priority
+      FROM eligible
+    )
+    SELECT DISTINCT ON ("userId") "userId", "chatId", "anchorMessageId", trigger, "lastMessageAt"
+    FROM scan_candidates
+    ORDER BY "userId", priority, "lastMessageAt" DESC, "chatId"
     LIMIT ${Math.max(1, Math.min(limit, 100))}
   `;
 }

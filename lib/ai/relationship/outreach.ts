@@ -6,8 +6,7 @@ import { mirrorAssistantInitiative } from '@/lib/honcho';
 import { composeInitiative } from './composer';
 import { retrieveRelationshipEvidence } from './evidence';
 import { evaluateInitiative } from './evaluator';
-import { decisionPolicyRejection } from './policy';
-import { isQuietDaypart } from './policy';
+import { decisionPolicyRejection, isQuietDaypart } from './policy';
 import {
   hasPlausibleContinuityCandidate,
   hasExplicitlyInvitedFollowUp,
@@ -405,12 +404,19 @@ export async function runServerInitiativeScan(
     });
     const ambientCandidate = ambientCandidateForSituation(situation);
     const hasContinuity = hasPlausibleContinuityCandidate(continuity);
-    if (!hasContinuity && !ambientCandidate) continue;
-    const selectedAmbientCandidate = hasContinuity ? null : ambientCandidate;
+    const scheduledTrigger =
+      candidate.trigger === 'second_thought' ||
+      candidate.trigger === 'active_idle'
+        ? candidate.trigger
+        : null;
+    if (!scheduledTrigger && !hasContinuity && !ambientCandidate) continue;
+    const selectedAmbientCandidate =
+      scheduledTrigger || hasContinuity ? null : ambientCandidate;
     const result = await runRelationshipInitiative({
       userId: String(candidate.userId),
       chatId: String(candidate.chatId),
-      trigger: hasContinuity ? 'server_scan' : 'ambient_scan',
+      trigger:
+        scheduledTrigger ?? (hasContinuity ? 'server_scan' : 'ambient_scan'),
       anchorMessageId: String(candidate.anchorMessageId),
       continuityContext: continuity,
       situation,

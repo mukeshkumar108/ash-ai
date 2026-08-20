@@ -1,5 +1,6 @@
 import type { InitiativeDecision, InitiativeTrigger } from './types';
 import { repeatsRecentlyAddressedTopic } from './continuity';
+import type { InteractionSteer } from '@/lib/ai/interaction/types';
 
 export const INITIATIVE_POLICY = {
   idleMs: Number(process.env.RELATIONSHIP_IDLE_MS ?? 5 * 60_000),
@@ -15,6 +16,24 @@ export const INITIATIVE_POLICY = {
   ),
   maxUnanswered: Number(process.env.RELATIONSHIP_MAX_UNANSWERED ?? 2),
 } as const;
+
+export function initiativeOpportunityForSteer(
+  steer: InteractionSteer | null,
+  createdAt: Date,
+) {
+  const trigger =
+    steer?.initiativePermission && steer.initiativePermission !== 'none'
+      ? ('second_thought' as const)
+      : ('active_idle' as const);
+  const delayMs =
+    trigger === 'second_thought'
+      ? INITIATIVE_POLICY.secondThoughtMs
+      : INITIATIVE_POLICY.idleMs;
+  return {
+    trigger,
+    notBefore: new Date(createdAt.getTime() + delayMs),
+  };
+}
 
 export function mayUseDecision(input: {
   decision: InitiativeDecision;

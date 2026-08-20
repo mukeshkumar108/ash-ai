@@ -140,6 +140,41 @@ export type RelationshipInitiative = InferSelectModel<
   typeof relationshipInitiative
 >;
 
+export const relationshipOpportunity = pgTable(
+  'RelationshipOpportunity',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    chatId: uuid('chatId')
+      .notNull()
+      .references(() => chat.id, { onDelete: 'cascade' }),
+    anchorMessageId: uuid('anchorMessageId')
+      .notNull()
+      .references(() => message.id, { onDelete: 'cascade' }),
+    trigger: varchar('trigger', { length: 24 }).notNull(),
+    status: varchar('status', { length: 24 }).notNull().default('scheduled'),
+    notBefore: timestamp('notBefore').notNull(),
+    context: json('context'),
+    createdAt: timestamp('createdAt').notNull().defaultNow(),
+    claimedAt: timestamp('claimedAt'),
+  },
+  (table) => ({
+    anchorTriggerIdx: uniqueIndex(
+      'RelationshipOpportunity_anchor_trigger_idx',
+    ).on(table.anchorMessageId, table.trigger),
+    dueIdx: index('RelationshipOpportunity_due_idx').on(
+      table.status,
+      table.notBefore,
+    ),
+  }),
+);
+
+export type RelationshipOpportunity = InferSelectModel<
+  typeof relationshipOpportunity
+>;
+
 // DEPRECATED: The following schema is deprecated and will be removed in the future.
 // Read the migration guide at https://chat-sdk.dev/docs/migration-guides/message-parts
 export const voteDeprecated = pgTable(

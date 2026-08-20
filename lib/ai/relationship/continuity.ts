@@ -16,6 +16,7 @@ export function hasPlausibleContinuityCandidate(
     context &&
       ((context.continuity?.length ?? 0) > 0 ||
         (context.open_threads?.length ?? 0) > 0 ||
+        (context.sophie_attention?.length ?? 0) > 0 ||
         (context.recent_resolutions?.length ?? 0) > 0),
   );
 }

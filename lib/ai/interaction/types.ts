@@ -13,18 +13,26 @@ export const interactionPostureSchema = z.enum([
   'repair',
 ]);
 
+export const interactionPhaseSchema = z.enum([
+  'excavate',
+  'witness',
+  'curiosity',
+]);
+
 export const interactionSteerSchema = z.object({
   posture: interactionPostureSchema,
+  phase: interactionPhaseSchema.nullable().optional().default(null),
   objective: z.string().trim().min(1).max(280),
   strength: z.enum(['light', 'medium', 'strong']),
   turnsRemaining: z.number().int().min(1).max(4),
   initiativePermission: z.enum(['none', 'low', 'medium', 'high']),
   expressionShape: z.enum(['single', 'short_burst', 'expressive_burst']),
   reason: z.string().trim().min(1).max(240),
+  lastTactic: z.string().trim().max(180).nullable().optional().default(null),
 });
 
 export const interactionJudgmentSchema = z.object({
-  action: z.enum(['none', 'start', 'continue', 'stop']),
+  action: z.enum(['none', 'start', 'continue', 'adapt', 'stop', 'replace']),
   interpretation: z.string().trim().min(1).max(240),
   steer: interactionSteerSchema.nullable(),
 });

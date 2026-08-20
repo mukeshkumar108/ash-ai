@@ -37,7 +37,11 @@ import {
   synthesizeSophieAnswer,
 } from '@/lib/agent/sophie-synthesis';
 import { getLanguageModel, getPinnedOpenAIModel } from '@/lib/ai/providers';
-import { fetchCortexContext } from '@/lib/synapse-cortex';
+import {
+  fetchCortexContext,
+  persistSophieAttention,
+} from '@/lib/synapse-cortex';
+import { extractSophieAttentionCandidates } from '@/lib/ai/interaction/attention';
 import {
   createStreamId,
   deleteChatById,
@@ -74,7 +78,10 @@ import type { VisibilityType } from '@/components/visibility-selector';
 import { mirrorCompletedTurn } from '@/lib/honcho';
 import { prepareTurnMemory, recordMemoryTrace } from '@/lib/agent/memory';
 import type { TurnMemory } from '@/lib/agent/memory';
-import { markLatestInitiativeReplied } from '@/lib/ai/relationship/store';
+import {
+  markLatestInitiativeReplied,
+  scheduleInitiativeOpportunity,
+} from '@/lib/ai/relationship/store';
 import { transcriptReliabilitySchema } from '@/lib/transcript-reliability';
 import { applyTranscriptReliabilityGuard } from '@/lib/agent/transcript-reliability';
 import {
@@ -93,6 +100,7 @@ import {
   resolveInteractionSteer,
 } from '@/lib/ai/interaction/steer';
 import type { InteractionSteer } from '@/lib/ai/interaction/types';
+import { initiativeOpportunityForSteer } from '@/lib/ai/relationship/policy';
 
 export const maxDuration = 300;
 const CHAT_AGENT_TIMEOUT_MS = Number(
@@ -410,7 +418,18 @@ export async function POST(request: Request) {
       const previousInteractionSteer = latestInteractionSteer(
         uiMessages.slice(0, -1),
       );
-      let interactionSteer: InteractionSteer | null = null;
+      // Preserve an active bounded phase if the editor fails. A transient
+      // timeout must not reset the relationship's conversational intention.
+      let interactionSteer: InteractionSteer | null = previousInteractionSteer
+        ? resolveInteractionSteer(
+            {
+              action: 'none',
+              interpretation: 'Preserved through editor fallback.',
+              steer: null,
+            },
+            previousInteractionSteer,
+          )
+        : null;
       if (interactionSteeringEnabled()) {
         try {
           const judgment = await evaluateInteraction({
@@ -1050,8 +1069,36 @@ export async function POST(request: Request) {
       // the best-effort write only after both canonical messages are durable,
       // and keep it entirely outside Sophie prompt assembly and generation.
       if (shouldMirrorCompletedTurn) {
-        after(() =>
-          mirrorCompletedTurn({
+        after(async () => {
+          const opportunity = initiativeOpportunityForSteer(
+            interactionSteer,
+            assistantCreatedAt,
+          );
+          await scheduleInitiativeOpportunity({
+            userId: session.user.id,
+            chatId: id,
+            anchorMessageId: assistantId,
+            trigger: opportunity.trigger,
+            notBefore: opportunity.notBefore,
+            context: interactionSteer
+              ? {
+                  phase: interactionSteer.phase ?? null,
+                  posture: interactionSteer.posture,
+                  objective: interactionSteer.objective,
+                  initiativePermission: interactionSteer.initiativePermission,
+                }
+              : undefined,
+          }).catch((error) => {
+            console.warn(
+              '[relationship] failed to schedule durable opportunity',
+              {
+                chatId: id,
+                error:
+                  error instanceof Error ? error.message : 'Unknown error',
+              },
+            );
+          });
+          const completedTurn: Parameters<typeof mirrorCompletedTurn>[0] = {
             userId: session.user.id,
             chatId: id,
             userMessage: {
@@ -1066,8 +1113,29 @@ export async function POST(request: Request) {
               text: finalText,
               createdAt: assistantCreatedAt,
             },
-          }),
-        );
+          };
+          await mirrorCompletedTurn(completedTurn);
+          try {
+            const candidates = await extractSophieAttentionCandidates({
+              recentContext: boundedEpistemicContext(uiMessages),
+              userText: currentUserText,
+              assistantText: finalText,
+            });
+            await persistSophieAttention({
+              userId: session.user.id,
+              chatId: id,
+              sourceMessageId: message.id,
+              sourceAssistantMessageId: assistantId,
+              candidates,
+              now: assistantCreatedAt,
+            });
+          } catch (error) {
+            console.warn('[interaction] attention extraction failed open', {
+              chatId: id,
+              error: error instanceof Error ? error.message : 'Unknown error',
+            });
+          }
+        });
       }
 
       // Buffered delivery has nothing resumable until the graph has completed
