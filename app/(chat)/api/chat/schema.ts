@@ -38,6 +38,7 @@ export const postRequestBodySchema = z.object({
     parts: z.array(partSchema),
   }),
   selectedChatModel: z.string(),
+  developerModelOverride: z.string().min(1).max(200).optional(),
   selectedVisibilityType: z.enum(['public', 'private']),
 });
 

@@ -56,6 +56,7 @@ export const chat = pgTable('Chat', {
   chatModel: varchar('chatModel', { length: 100 })
     .notNull()
     .default('chat-model'),
+  sessionRouting: json('session_routing'),
 });
 
 export type Chat = InferSelectModel<typeof chat>;

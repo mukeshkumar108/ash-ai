@@ -90,6 +90,19 @@ export const initiativeDecisionSchema = z.object({
     .regex(/^[a-z0-9_-]+$/)
     .max(80),
   sensitive: z.boolean(),
+  highConsequence: z.boolean().optional(),
+  highConsequenceDomain: z
+    .enum([
+      'medical',
+      'relationship',
+      'legal',
+      'safety',
+      'financial_life',
+      'interpersonal_conflict',
+    ])
+    .nullable()
+    .optional(),
+  highConsequenceReason: z.string().max(240).nullable().optional(),
 });
 
 export type InitiativeDecision = z.infer<typeof initiativeDecisionSchema>;

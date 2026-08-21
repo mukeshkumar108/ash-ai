@@ -55,6 +55,7 @@ import {
   saveChat,
   saveMessages,
   updateChatTitleById,
+  updateChatSessionRouting,
   withQueryContext,
   db,
 } from '@/lib/db/queries';
@@ -84,6 +85,7 @@ import {
 } from '@/lib/ai/relationship/store';
 import { transcriptReliabilitySchema } from '@/lib/transcript-reliability';
 import { applyTranscriptReliabilityGuard } from '@/lib/agent/transcript-reliability';
+import { classifyReentry } from '@/lib/agent/reentry';
 import {
   companionRuntimeAssistantMessageId,
   companionRuntimeReplyOnlyEnabled,
@@ -253,11 +255,13 @@ export async function POST(request: Request) {
         message,
         selectedChatModel,
         selectedVisibilityType,
+        developerModelOverride,
       }: {
         id: string;
         message: ChatMessage;
         selectedChatModel: ChatModel['id'];
         selectedVisibilityType: VisibilityType;
+        developerModelOverride?: string;
       } = requestBody;
 
       const session = await auth();
@@ -369,6 +373,28 @@ export async function POST(request: Request) {
       let messagesToSend = uiMessages.slice(-Math.max(3, contextWindowSize));
 
       const userCreatedAt = new Date();
+      const allowedDeveloperOverride =
+        process.env.SOPHIE_DEV_MODEL_OVERRIDE_ENABLED === 'true'
+          ? developerModelOverride
+          : undefined;
+      const reentry = classifyReentry({
+        history: messagesFromDb.map((entry) => ({
+          role: entry.role,
+          createdAt: entry.createdAt,
+          text: Array.isArray(entry.parts)
+            ? entry.parts
+                .filter((part: any) => part?.type === 'text')
+                .map((part: any) => String(part.text ?? ''))
+                .join('\n')
+            : '',
+        })),
+        externalPriorAt: crossChatHandshake.lastInteractionAt,
+        externalPriorText: crossChatHandshake.lastInteractionText,
+        totalPriorUserTurns: crossChatHandshake.totalUserTurns,
+        now: userCreatedAt,
+        timeZone,
+        manualModelOverride: allowedDeveloperOverride,
+      });
       await db
         .insert(messageTable)
         .values({
@@ -490,7 +516,7 @@ export async function POST(request: Request) {
           turn_id: message.id,
           conversation_id: id,
           companion_id: 'sophie',
-          selected_model_id: selectedChatModel,
+          selected_model_id: reentry.selectedForegroundModel,
           current_sanitized_message: currentUserText,
           message_parts: runtimeCurrent?.parts ?? sanitizedMessage.parts,
           canonical_history: runtimeMessages.slice(0, -1).map((entry) => ({
@@ -514,6 +540,8 @@ export async function POST(request: Request) {
               lastInteractionAt:
                 handshake.lastInteractionAt?.toISOString() ?? null,
             },
+            reentry,
+            session_routing: chat?.sessionRouting ?? null,
           },
           recent_provenance: { summary: recentProvenance },
           capability_grant: {
@@ -527,6 +555,19 @@ export async function POST(request: Request) {
         });
 
         if (runtimeResult.status === 'completed') {
+          const nextSessionState =
+            runtimeResult.execution_metadata.next_session_state;
+          if (
+            nextSessionState &&
+            typeof nextSessionState === 'object' &&
+            !Array.isArray(nextSessionState)
+          ) {
+            await updateChatSessionRouting({
+              id,
+              userId: session.user.id,
+              sessionRouting: nextSessionState as Record<string, unknown>,
+            });
+          }
           runtimeCompleted = runtimeResult;
           sceneState = runtimeResult.scene_state as typeof sceneState;
           epistemicPolicy =
@@ -638,6 +679,7 @@ export async function POST(request: Request) {
             sceneState,
             cortexContext,
             interactionSteer,
+            reentry,
           },
           epistemicPolicy,
         );
@@ -660,12 +702,13 @@ export async function POST(request: Request) {
         sceneState,
         cortexContext,
         interactionSteer,
+        reentry,
       };
       const researchTurn = turnDecision.lane === 'research';
       const modelToUse = turnDecision.modelId;
 
       console.info(
-        `[chat] lane=${turnDecision.lane} role=${turnDecision.modelRole} interaction=${epistemicPolicy.interactionMode ?? 'unset'} classifier_ran=${epistemicPolicy.classifierRan} classifier_ok=${epistemicPolicy.classifierSucceeded} depth=${epistemicPolicy.researchDepth} freshness=${epistemicPolicy.freshnessNeed} authority=${epistemicPolicy.authorityNeed} sensitivity=${epistemicPolicy.sourceSensitivity} confidence=${epistemicPolicy.confidence.toFixed(2)} memory=${turnMemory.decision.needsMemory ? turnMemory.retrievalMode : 'no'} memory_ms=${turnMemory.decisionLatencyMs + (turnMemory.retrievalLatencyMs ?? 0)} model=${modelToUse}`,
+        `[chat] lane=${turnDecision.lane} role=${turnDecision.modelRole} interaction=${epistemicPolicy.interactionMode ?? 'unset'} classifier_ran=${epistemicPolicy.classifierRan} classifier_ok=${epistemicPolicy.classifierSucceeded} depth=${epistemicPolicy.researchDepth} freshness=${epistemicPolicy.freshnessNeed} authority=${epistemicPolicy.authorityNeed} sensitivity=${epistemicPolicy.sourceSensitivity} confidence=${epistemicPolicy.confidence.toFixed(2)} memory=${turnMemory.decision.needsMemory ? turnMemory.retrievalMode : 'no'} memory_ms=${turnMemory.decisionLatencyMs + (turnMemory.retrievalLatencyMs ?? 0)} model=${modelToUse} reentry=${reentry.class} reentry_turn=${reentry.turnIndex} route_reason=${JSON.stringify(reentry.routeReason)} override=${reentry.manualOverride}`,
       );
       if (transcriptReliability) {
         console.info('[chat] audio transcript reliability', {

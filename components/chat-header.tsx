@@ -5,7 +5,7 @@ import { useWindowSize } from 'usehooks-ts';
 
 import { SidebarToggle } from '@/components/sidebar-toggle';
 import { Button } from '@/components/ui/button';
-import { PlusIcon, } from './icons';
+import { PlusIcon } from './icons';
 import { useSidebar } from './ui/sidebar';
 import { memo } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
@@ -66,7 +66,11 @@ function PureChatHeader({
         />
       )}
 
-      {!isReadonly && <ChatDebugPanel chatId={chatId} />}
+      {!isReadonly &&
+        (process.env.NODE_ENV !== 'production' ||
+          process.env.NEXT_PUBLIC_SOPHIE_DEBUG_INSPECTOR === 'true') && (
+          <ChatDebugPanel chatId={chatId} />
+        )}
     </header>
   );
 }

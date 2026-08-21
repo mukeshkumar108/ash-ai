@@ -143,6 +143,7 @@ type CompatibleChatRow = {
   continuityEvents: ContinuityEvent[] | null;
   continuitySeq: number | null;
   chatModel: string | null;
+  sessionRouting: Record<string, unknown> | null;
 };
 
 type ChatAccessRow = {
@@ -212,6 +213,8 @@ export type MessagePage = {
 export type ConversationHandshakeContext = {
   chatsToday: number;
   lastInteractionAt: Date | null;
+  lastInteractionText: string | null;
+  totalUserTurns: number;
 };
 
 export async function getConversationHandshakeContext({
@@ -225,7 +228,12 @@ export async function getConversationHandshakeContext({
 }): Promise<ConversationHandshakeContext> {
   try {
     const [row] = await getClient()<
-      Array<{ chatsToday: number; lastInteractionAt: Date | string | null }>
+      Array<{
+        chatsToday: number;
+        lastInteractionAt: Date | string | null;
+        lastInteractionText: string | null;
+        totalUserTurns: number;
+      }>
     >`
       select
         count(distinct c.id) filter (
@@ -233,7 +241,16 @@ export async function getConversationHandshakeContext({
             c."createdAt" at time zone 'UTC' at time zone ${timeZone}
           )::date = (now() at time zone ${timeZone})::date
         )::int as "chatsToday",
-        max(m."createdAt") filter (where c.id <> ${currentChatId}) as "lastInteractionAt"
+        max(m."createdAt") filter (where c.id <> ${currentChatId}) as "lastInteractionAt",
+        count(*) filter (where m.role = 'user')::int as "totalUserTurns",
+        (
+          select m2.parts::text
+          from "Message_v2" m2
+          inner join "Chat" c2 on c2.id = m2."chatId"
+          where c2."userId" = ${userId} and c2.id <> ${currentChatId}
+          order by m2."createdAt" desc
+          limit 1
+        ) as "lastInteractionText"
       from "Chat" c
       left join "Message_v2" m on m."chatId" = c.id
       where c."userId" = ${userId}
@@ -245,6 +262,8 @@ export async function getConversationHandshakeContext({
 
     return instrumentReadResult('getConversationHandshakeContext', {
       chatsToday: row?.chatsToday ?? 1,
+      totalUserTurns: row?.totalUserTurns ?? 0,
+      lastInteractionText: row?.lastInteractionText ?? null,
       lastInteractionAt:
         parsedLastInteractionAt &&
         !Number.isNaN(parsedLastInteractionAt.getTime())
@@ -253,7 +272,12 @@ export async function getConversationHandshakeContext({
     });
   } catch (error) {
     logDatabaseError('get conversation handshake context', error);
-    return { chatsToday: 1, lastInteractionAt: null };
+    return {
+      chatsToday: 1,
+      lastInteractionAt: null,
+      lastInteractionText: null,
+      totalUserTurns: 0,
+    };
   }
 }
 
@@ -294,6 +318,7 @@ function normalizeChatRow(row: CompatibleChatRow): Chat {
     continuityEvents: row.continuityEvents,
     continuitySeq: row.continuitySeq ?? 0,
     chatModel: row.chatModel ?? 'chat-model',
+    sessionRouting: row.sessionRouting,
   };
 }
 
@@ -539,6 +564,29 @@ export async function updateChatTitleById({
   }
 }
 
+export async function updateChatSessionRouting({
+  id,
+  userId,
+  sessionRouting,
+}: {
+  id: string;
+  userId: string;
+  sessionRouting: Record<string, unknown>;
+}) {
+  try {
+    return await db
+      .update(chat)
+      .set({ sessionRouting })
+      .where(and(eq(chat.id, id), eq(chat.userId, userId)));
+  } catch (error) {
+    logDatabaseError('update chat session routing', error);
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to update chat session routing',
+    );
+  }
+}
+
 export async function getRecentChatByCharacter({
   userId,
   characterId,
@@ -702,7 +750,8 @@ export async function getChatById({ id }: { id: string }) {
         to_jsonb(c)->'relationship_dynamics' as "relationshipDynamics",
         to_jsonb(c)->'continuity_events' as "continuityEvents",
         coalesce(to_jsonb(c)->>'continuity_seq', '0')::int as "continuitySeq",
-        coalesce(to_jsonb(c)->>'chatModel', 'chat-model') as "chatModel"
+        coalesce(to_jsonb(c)->>'chatModel', 'chat-model') as "chatModel",
+        to_jsonb(c)->'session_routing' as "sessionRouting"
       from "Chat" c
       where c.id = ${id}
       limit 1

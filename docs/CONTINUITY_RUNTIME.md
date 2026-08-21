@@ -3,6 +3,32 @@
 This document records the live path shared by the Vercel BFF, Companion Runtime,
 Honcho, and Synapse-Cortex. It describes code contracts, not production secrets.
 
+## Sophie re-entry routing V1
+
+The existing handshake answers “how are we entering now?” and compact Cortex context supplies the live handover: only durable semantic residue that may deserve to cross the boundary. No Synapse-v3 handover path is connected.
+
+Classification is deterministic. A gap of at most 15 minutes is `CONTINUATION`; over 15 minutes but below 8 hours is `SOFT_REENTRY`; 8 hours or more is `HARD_REENTRY`. Crossing a local date with at least a 6-hour gap is also hard, and an explicit goodnight followed by a new local day takes precedence. An explicit `brb`-style return within 90 minutes stays continuation. Fewer than two prior canonical user turns takes precedence as `COLD_START`; new-chat status alone does not.
+
+`HARD_REENTRY` and `COLD_START` use `google/gemini-3.7-flash` for foreground turns 1–2, then `nex-agi/nex-n2-mini`. `SOFT_REENTRY` uses Gemini for turn 1, then Nex. `CONTINUATION` uses Nex. Both foreground IDs use OpenRouter. Existing research, safety, celebration, live-data, image-capability and judgment routes remain escape paths.
+
+The seeded turns receive a bounded natural-language handover steer from the existing handshake and compact Cortex sources; later turns retain only temporal orientation. On hard re-entry, lightweight games, transient tactics and conversational excavation become historical callbacks rather than active directives. Durable health, event, promise, reminder, relationship and work continuity remains eligible.
+
+Normal UI exposes no model selector. For developer testing, add `?devModel=<model-id>` and enable `SOPHIE_DEV_MODEL_OVERRIDE_ENABLED=true` server-side. Without that flag the value is ignored. Logs/runtime metadata record the selected foreground model, route reason, class, turn index and override state.
+
+## Sophie session orchestration V1
+
+After re-entry, Companion Runtime evaluates the standing objective against the bounded recent transcript. Its model-driven decision is one of `ALIGNED`, `STATE_UPDATE`, `STEER`, `STOP`, or `HIGH_CONSEQUENCE`. `STATE_UPDATE` replaces the objective and retains the previous value for inspection; it must never be treated as drift. `STOP` clears it. `STEER` means the objective remains valid but conversational trajectory or agency has failed. The resulting state is persisted in PostgreSQL on `Chat.session_routing`; it is not a second memory or continuity store.
+
+A `STEER` decision starts a persisted Gemini 3.7 Flash burst with a UUID, reason, evidence fingerprint, turn index and two-turn minimum. After the minimum, `ALIGNED`, `STATE_UPDATE`, or `STOP` returns the speaker to Nex; continued `STEER` keeps Gemini active. A two-turn cooldown after exit prevents immediate burst thrashing unless the persisted lifecycle advances beyond it.
+
+`HIGH_CONSEQUENCE` is a model-judged segment, not a keyword route. Consequential medical, relationship, legal, safety, financial/life and complex interpersonal decisions use `anthropic/claude-sonnet-5` through OpenRouter until `STATE_UPDATE` or `STOP` establishes a lightweight trajectory. Ordinary aches, annoyance and casual complaints remain eligible for Nex.
+
+Foreground precedence is: safety hard requirement; enabled developer override; active high-consequence segment; active steering burst; re-entry seed; existing specialist/judgment/celebration escape; Nex ambient. Research and tool lanes remain workers/deferred capabilities and do not implicitly choose the conversational speaker. Runtime metadata stores worker and actual speaker separately.
+
+Relationship initiative judgment uses Gemini 3.7 independently of the foreground speaker. Ordinary initiative composition uses Nex because the output is a small relational speaking task after Gemini has made the semantic decision; high-consequence composition uses Claude Sonnet 5. `SILENCE` remains first-class. Future `contractual_cadence` must remain a distinct initiative source rather than being inferred from memory, relational expectations, event expectations, reminders, or watches; product-specific cadence execution is intentionally deferred.
+
+The developer inspector is hidden in production unless `NEXT_PUBLIC_SOPHIE_DEBUG_INSPECTOR=true`. It shows speaker/worker models, route reason, re-entry class/index, controller decision, objective transition, burst status, high-consequence state and override status without exposing any of this in Sophie's reply.
+
 ## Reactive turn path
 
 1. `app/(chat)/api/chat/route.ts` persists the user message and sends a bounded

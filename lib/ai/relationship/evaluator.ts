@@ -11,6 +11,13 @@ import {
 import type { InitiativeContinuityContext } from './continuity';
 import type { AmbientCandidate, InitiativeSituation } from './situation';
 
+export function initiativeEvaluatorModelId() {
+  return (
+    process.env.RELATIONSHIP_EVALUATOR_MODEL?.trim() ||
+    'google/gemini-3.7-flash'
+  );
+}
+
 export async function evaluateInitiative(input: {
   trigger: InitiativeTrigger;
   recentConversation: string;
@@ -27,10 +34,7 @@ export async function evaluateInitiative(input: {
     ? await input.generate()
     : (
         await generateObject({
-          model: getLanguageModel(
-            process.env.RELATIONSHIP_EVALUATOR_MODEL?.trim() ||
-              'deepseek/deepseek-v4-flash',
-          ),
+          model: getLanguageModel(initiativeEvaluatorModelId()),
           schema: initiativeDecisionSchema,
           abortSignal: input.signal,
           system: `You decide whether Sophie, a warm opinionated companion, has a genuine relational reason to send a separate short message without being asked.
@@ -53,6 +57,7 @@ Choose one relational posture. In a companion product, continuing the relationsh
 HOLD stays warmly and substantively with the user's experience without redirecting, extracting, or solving. It does not mean a flat or minimal response. It is not the default and not what uncertainty means. Select HOLD only for a positive contextual reason—for example the user is in the middle of a story, making an emotional disclosure, explicitly wants listening, or needs room—and include a non-null holdJustification. NUDGE gently moves something through challenge, care, or an honest or playful observation; it need not be advice, but it must be rare, supported by specific evidence, and include a non-null nudgeJustification. A posture shapes how Sophie approaches the person; it never overrides an explicit task.
 Optionally provide one compact relationalIntent—curiosity, connection, continuity, challenge, play, or presence—which is an entry point rather than a demanded outcome.
 Avoid therapy language, interviews, productivity nagging, repetitive check-ins, and generic "how are you" filler. A social bid such as checking in, sharing a win, or wanting company must not automatically become sleep, wellness, productivity, or behavioural coaching. That requires a genuinely justified NUDGE. Select one conversational entry point. Sensitive grief, trauma, sex, health, or relationship conflict requires explicit, meaningful supporting evidence and should set sensitive=true. Creatively riff on known context, but never describe an event, quote, reaction, conversation, or experience as shared history unless the supplied conversation or memory evidence supports it. Playful speculation is allowed only when clearly presented as speculation. Never invent memory.
+Independently mark highConsequence=true only when the proposed initiative enters a genuinely consequential medical, relationship, legal, safety, financial/life, or complex interpersonal judgment. Topic words alone are insufficient; ordinary complaints and lightweight check-ins are not high consequence. Supply a domain and concise reason only when true.
 Return act=false if evidence is insufficient or the moment should breathe. topicKey must be a short reusable snake_case dedupe key. guidance is an intention, never a demanded outcome.`,
           prompt: `[TRIGGER]\n${input.trigger}\n\n[SITUATIONAL PACKET]\n${JSON.stringify(input.situation ?? {})}\n\n[AMBIENT CANDIDATE]\n${JSON.stringify(input.ambientCandidate ?? null)}\n\n[USER LOCAL TIME]\n${input.localTime || '(unknown)'}\n\n[CANONICAL CONTINUITY CANDIDATES]\n${JSON.stringify(input.continuityContext ?? {})}\n\n[RECENT CONVERSATION]\n${input.recentConversation || '(none)'}\n\n[MEMORY EVIDENCE]\n${input.memoryEvidence || '(unavailable — do not pretend to remember anything)'}\n\n[RECENT TOPICS TO AVOID]\n${input.recentTopicKeys.join(', ') || '(none)'}`,
         })

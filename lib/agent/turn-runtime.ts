@@ -14,6 +14,7 @@ import type { TranscriptReliability } from '@/lib/transcript-reliability';
 import type { CortexContext } from '@/lib/synapse-cortex';
 import type { SceneState } from '@/lib/agent/scene-state';
 import type { InteractionSteer } from '@/lib/ai/interaction/types';
+import type { ReentryContext } from '@/lib/agent/reentry';
 
 export type ExecutionLane =
   | 'reply_only'
@@ -43,6 +44,7 @@ export type TurnEvent = {
   sceneState?: SceneState;
   cortexContext?: CortexContext | null;
   interactionSteer?: InteractionSteer | null;
+  reentry?: ReentryContext;
 };
 
 export type TurnDecision = {
@@ -72,6 +74,8 @@ const VISION_CAPABLE_ALIASES = new Set(['chat-model']);
 const TEXT_ONLY_ALIASES = new Set([
   'chat-model-fallback',
   'chat-model-reasoning',
+  'deepseek/deepseek-v4-flash',
+  'nex-agi/nex-n2-mini',
 ]);
 
 export function isTextOnlyModel(modelId: string): boolean {
@@ -170,7 +174,9 @@ export function decideTurn(
   const judgment =
     !event.hasImageParts &&
     (policy.interactionMode === 'emotional' || shouldUseJudgmentModel(policy));
-  let modelId = judgment ? judgmentModelId() : event.selectedModelId;
+  let modelId = judgment
+    ? judgmentModelId()
+    : (event.reentry?.selectedForegroundModel ?? event.selectedModelId);
   if (event.hasImageParts && isTextOnlyModel(modelId)) modelId = 'chat-model';
 
   return {
@@ -217,6 +223,7 @@ export function createTurnPacket({
       cortexContext: event.cortexContext,
       sceneState: event.sceneState,
       interactionSteer: event.interactionSteer,
+      reentry: event.reentry,
     }),
   };
 }

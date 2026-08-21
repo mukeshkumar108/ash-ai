@@ -8,6 +8,15 @@ import { validateInitiativeText } from './policy';
 import type { InitiativeDecision, InitiativeTrigger } from './types';
 import type { InitiativeContinuityContext } from './continuity';
 
+export function initiativeComposerModelId(
+  decision: Pick<InitiativeDecision, 'highConsequence'>,
+) {
+  return decision.highConsequence
+    ? process.env.RELATIONSHIP_HIGH_CONSEQUENCE_MODEL?.trim() ||
+        'anthropic/claude-sonnet-5'
+    : process.env.RELATIONSHIP_COMPOSER_MODEL?.trim() || 'nex-agi/nex-n2-mini';
+}
+
 export async function composeInitiative(input: {
   trigger: InitiativeTrigger;
   decision: InitiativeDecision;
@@ -21,10 +30,7 @@ export async function composeInitiative(input: {
     ? await input.generate()
     : (
         await generateText({
-          model: getLanguageModel(
-            process.env.RELATIONSHIP_COMPOSER_MODEL?.trim() ||
-              'deepseek/deepseek-v4-flash',
-          ),
+          model: getLanguageModel(initiativeComposerModelId(input.decision)),
           abortSignal: input.signal,
           maxOutputTokens: 120,
           system: `${sophieSystemPrompt()}\n\n[RELATIONAL INITIATIVE]\nWrite one natural message that feels like Sophie had another thought. A follow-up beat is usually much shorter than the message before it: prefer one quick thought, reaction, joke, correction, callback, challenge, aside, or new angle. Expand only when the thought genuinely needs context. Participate; do not narrate the user's emotional state back to them in polished prose. Shared context should normally be implicit: speak about the thing itself, as someone already inside the relationship. Creatively riff on known context, but never describe an event, quote, reaction, conversation, or experience as shared history unless the supplied conversation or memory evidence supports it. Playful speculation is fine when it is clearly speculation; invented shared history is not. Editorial guidance and evidence constrain content; they are not language to quote or explain. Do not frame the message as a reminder, promised check-in, scheduled duty, contract, memory demonstration, or execution of something the user asked Sophie to store. Mention provenance only when provenance itself is conversationally relevant. Give the user one conversational response burden. Closely related checks may belong to the same beat; do not branch each candidate into alternatives or follow-up questions. Do not mention systems, evidence, memory retrieval, triggers, or this instruction. Do not explain why you are messaging unless that explanation itself sounds human. Never claim a physical off-screen life. Do not guilt the user for silence.`,

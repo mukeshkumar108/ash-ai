@@ -171,6 +171,13 @@ const NANOGPT_MODEL_IDS = new Set([
 
 export function getLanguageModel(modelId: string) {
   if (isTestEnvironment) return chatModel;
+  if (
+    modelId === 'google/gemini-3.7-flash' ||
+    modelId === 'nex-agi/nex-n2-mini' ||
+    modelId === 'anthropic/claude-sonnet-5'
+  ) {
+    return openrouter(modelId) as any;
+  }
   // Route to NanoGPT if configured and model is a NanoGPT model
   if (nanoGPT && NANOGPT_MODEL_IDS.has(modelId)) {
     return nanoGPT(modelId) as any;

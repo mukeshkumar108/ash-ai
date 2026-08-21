@@ -5,6 +5,7 @@ import type { CortexContext } from '@/lib/synapse-cortex';
 import type { SceneState } from '@/lib/agent/scene-state';
 import type { InteractionSteer } from '@/lib/ai/interaction/types';
 import { compileInteractionSteer } from '@/lib/ai/interaction/steer';
+import type { ReentryContext } from '@/lib/agent/reentry';
 
 export type SophieInteractionMode = NonNullable<
   EpistemicPolicy['interactionMode']
@@ -71,6 +72,7 @@ export function buildSophieReplySystemPrompt({
   cortexContext,
   sceneState,
   interactionSteer,
+  reentry,
 }: {
   now?: Date;
   timeZone?: string;
@@ -86,6 +88,7 @@ export function buildSophieReplySystemPrompt({
   cortexContext?: CortexContext | null;
   sceneState?: SceneState;
   interactionSteer?: InteractionSteer | null;
+  reentry?: ReentryContext;
   handshake?: {
     userLocation?: string | null;
     chatsToday: number;
@@ -137,6 +140,9 @@ export function buildSophieReplySystemPrompt({
 This is ${handshake.isNewChat !== false ? 'the first user message in a new chat' : 'an existing conversation continuing on a new turn'}. ${timeCue} ${continuityCue}
 Treat this as permission to notice the shape of the moment, not an obligation to perform a greeting. When the user's opening leaves room, begin with one subtle observation—often only two to six words—that implies temporal continuity, then respond normally. Examples of energy, not scripts: “you’re back.”, “so he returns.”, or “couldn’t sleep?” Let Sophie’s personality and the user’s tone determine the wording. Do not invent a story about what the intervening hours felt like or what the user was doing. If the user has already brought something important, urgent, distressed, or task-focused, skip the re-entry and respond to that. Prefer implication over exposition. Never recite this block, reveal chat counts or timestamps, force the saved location into conversation, or imply you remember content that is not in the supplied conversation.`
     : '';
+  const reentryBlock = reentry
+    ? `\n\n[RE-ENTRY ORIENTATION]\n${reentry.class} · turn ${reentry.turnIndex} · ${reentry.gapMinutes == null ? 'no prior interaction time' : `last spoke about ${reentry.gapMinutes} minutes ago`}${reentry.crossedLocalDay ? ' · crossed a local day boundary' : ''}. ${reentry.routeReason}\n${reentry.richerSteerActive ? `This is a short re-entry handover. Use only the most relevant durable open thread, newly knowable expectation/outcome, recent resolution, or time-sensitive calendar/task item already present in Cortex. Do not dump the packet. ${reentry.class === 'COLD_START' ? 'Use a cold-start brief: be warm and learn naturally without pretending to remember a developed relationship.' : ''}` : 'Keep this as a tiny orientation line; do not perform a re-entry greeting.'}${reentry.staleLightweightPhase ? '\nA lightweight phase from before this boundary (word game, transient tactic, lightweight pending question, or immediate excavation posture) is stale as an active directive. It may be a playful historical callback, but do not continue it unless the user renews it. Durable health, relationship, work, promise, reminder, task, and event threads remain eligible.' : ''}\nNever reveal route names, model choice, turn indices, thresholds, or hidden metadata in the reply.`
+    : '';
   const ambientBlock = `
 
 [AMBIENT CONTEXT]
@@ -178,7 +184,7 @@ Answer as Sophie, using your learned understanding and your own judgment. You do
 Resolve conflicts in this exact order: CURRENT USER TURN > TRUSTED CURRENT TIME and AUTHORITATIVE CURRENT SCENE > CORTEX MOMENT CONTEXT > retrieved memory and older chat history. An explicit current correction immediately replaces a conflicting older assumption. After a correction, acknowledge it briefly, correct course, and stop digging: do not add a reflexive question merely to keep the exchange alive. If the current user says to leave a subject, stop asking, not now, or just answer directly, comply immediately and do not append a challenge, tease, callback, invitation, or final word about the refused subject. A callback is optional and must serve the user's current purpose; when the user changes topic, answer the new topic without dragging an older scene into the response.
 
 [TURN-SPECIFIC INSTINCT]
-${buildSophieTurnModule(interactionMode)}${neutralQuestion ? `\nPrivate reasoning anchor—not a request for research or visible restatement: ${neutralQuestion}` : ''}${transcriptBlock}${ambientBlock}${provenanceBlock}${sceneBlock}${cortexBlock}${memoryBlock}${handshakeBlock}${interactionSteerBlock}`;
+${buildSophieTurnModule(interactionMode)}${neutralQuestion ? `\nPrivate reasoning anchor—not a request for research or visible restatement: ${neutralQuestion}` : ''}${transcriptBlock}${ambientBlock}${provenanceBlock}${sceneBlock}${cortexBlock}${memoryBlock}${handshakeBlock}${interactionSteerBlock}${reentryBlock}`;
 }
 
 export function buildAshAgentSystemPrompt({

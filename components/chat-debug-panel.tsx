@@ -38,6 +38,7 @@ type PreviewResponse = {
   };
   memory: string | null;
   persistedMemory?: any;
+  sessionRouting?: Record<string, any> | null;
   persistedActiveState?: any;
   persistedRelationshipDynamics?: Record<string, number> | null;
   persistedContinuityEvents?: Array<any> | null;
@@ -319,6 +320,24 @@ export function ChatDebugPanel({ chatId }: { chatId: string }) {
 
           {data ? (
             <>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Session routing</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  <div>Speaker: {data.sessionRouting?.actualSpeakerModel ?? 'not recorded'}</div>
+                  <div>Worker: {data.sessionRouting?.workerModel ?? 'none'}</div>
+                  <div>Decision: {data.sessionRouting?.decision ?? 'none'}</div>
+                  <div>Reason: {data.sessionRouting?.routeReason ?? 'none'}</div>
+                  <div>Re-entry: {data.sessionRouting?.reentryClass ?? 'none'} / {data.sessionRouting?.reentryTurnIndex ?? 'n/a'}</div>
+                  <div>Objective: {data.sessionRouting?.currentObjective ?? 'none'}</div>
+                  {data.sessionRouting?.previousObjective ? <div>Previous objective: {data.sessionRouting.previousObjective}</div> : null}
+                  <div>Burst: {data.sessionRouting?.burst?.active ? `Gemini ${data.sessionRouting.burst.turnIndex}/${data.sessionRouting.burst.minimumTurns}` : 'inactive'}</div>
+                  <div>High consequence: {data.sessionRouting?.highConsequence?.active ? `${data.sessionRouting.highConsequence.domain}: ${data.sessionRouting.highConsequence.reason}` : 'inactive'}</div>
+                  <div>Developer override: {data.sessionRouting?.developerOverride ? 'active' : 'off'}</div>
+                </CardContent>
+              </Card>
+
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">Scope</CardTitle>

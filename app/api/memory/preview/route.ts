@@ -201,6 +201,7 @@ export async function GET(request: Request) {
       persistedActiveState,
       persistedRelationshipDynamics: effectiveChat?.relationshipDynamics ?? null,
       persistedContinuityEvents: effectiveChat?.continuityEvents ?? null,
+      sessionRouting: effectiveChat?.sessionRouting ?? null,
       relationshipDynamics,
       continuityEvents,
       topContinuityEvents: getTopContinuityEvents(continuityEvents),
