@@ -55,6 +55,8 @@ export async function retrieveInitiativeContinuity(input: {
   return {
     ...context,
     recently_addressed_topics: (input.recentlyAddressedTopics ?? [])
+      .map((topic) => normalizeTopicKey(topic))
+      .filter((topic): topic is string => topic !== null)
       .map((topic) => topic.replace(/\s+/gu, ' ').trim().slice(0, 240))
       .filter(Boolean)
       .slice(-4),
@@ -90,9 +92,31 @@ const STOP_WORDS = new Set([
   'sophie',
 ]);
 
-function topicTokens(value: string) {
-  return new Set(
-    value
+export function normalizeTopicKey(value: unknown): string | null {
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed || null;
+  }
+  if (value && typeof value === 'object') {
+    const text = (value as { text?: unknown }).text;
+    const topicKey = (value as { topicKey?: unknown }).topicKey;
+    const candidate =
+      typeof text === 'string'
+        ? text
+        : typeof topicKey === 'string'
+          ? topicKey
+          : null;
+    const trimmed = candidate?.trim();
+    return trimmed || null;
+  }
+  return null;
+}
+
+function topicTokens(value: unknown) {
+  const key = normalizeTopicKey(value);
+  if (!key) return new Set<string>();
+  return new Set<string>(
+    key
       .toLowerCase()
       .normalize('NFKD')
       .replace(/[^a-z0-9\s]/gu, ' ')
@@ -101,7 +125,7 @@ function topicTokens(value: string) {
   );
 }
 
-export function substantialTopicOverlap(a: string, b: string) {
+export function substantialTopicOverlap(a: unknown, b: unknown) {
   const left = topicTokens(a);
   const right = topicTokens(b);
   if (left.size === 0 || right.size === 0) return false;
@@ -111,9 +135,10 @@ export function substantialTopicOverlap(a: string, b: string) {
 }
 
 export function repeatsRecentlyAddressedTopic(
-  candidate: string,
-  recentTopics: string[],
+  candidate: unknown,
+  recentTopics: unknown[],
 ) {
+  if (!Array.isArray(recentTopics)) return false;
   return recentTopics.some((topic) =>
     substantialTopicOverlap(candidate, topic),
   );

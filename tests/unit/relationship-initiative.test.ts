@@ -4,6 +4,7 @@ import { evaluateInitiative } from '@/lib/ai/relationship/evaluator';
 import { retrieveRelationshipEvidence } from '@/lib/ai/relationship/evidence';
 import {
   hasPlausibleContinuityCandidate,
+  normalizeTopicKey,
   repeatsRecentlyAddressedTopic,
   retrieveInitiativeContinuity,
 } from '@/lib/ai/relationship/continuity';
@@ -666,5 +667,115 @@ test.describe('relationship initiative policy', () => {
         hasSensitiveSupport: true,
       }),
     ).toBe(false);
+  });
+});
+
+test.describe('relationship initiative topic normalization regression', () => {
+  test('preserves normal string topic keys', () => {
+    expect(normalizeTopicKey('pitch_deck')).toBe('pitch_deck');
+    expect(normalizeTopicKey('  pitch_deck  ')).toBe('pitch_deck');
+  });
+
+  test('tolerates null', () => {
+    expect(normalizeTopicKey(null)).toBeNull();
+  });
+
+  test('tolerates undefined', () => {
+    expect(normalizeTopicKey(undefined)).toBeNull();
+  });
+
+  test('accepts a rich { text, guidance } topic shape', () => {
+    expect(
+      normalizeTopicKey({ text: 'pitch_deck', guidance: 'follow up' }),
+    ).toBe('pitch_deck');
+  });
+
+  test('accepts a { topicKey } topic shape', () => {
+    expect(normalizeTopicKey({ topicKey: 'pitch_deck' })).toBe('pitch_deck');
+  });
+
+  test('ignores unknown malformed objects without fabricating tokens', () => {
+    expect(normalizeTopicKey({ whatever: 1 })).toBeNull();
+    expect(normalizeTopicKey({})).toBeNull();
+    const result = repeatsRecentlyAddressedTopic(
+      'How did the pitch deck go?',
+      [{ whatever: 1 }] as unknown as string[],
+    );
+    expect(result).toBe(false);
+  });
+
+  test('ignores malformed historical values without crashing', () => {
+    expect(normalizeTopicKey(42 as unknown)).toBeNull();
+    expect(normalizeTopicKey([] as unknown)).toBeNull();
+    expect(
+      repeatsRecentlyAddressedTopic(
+        'How did the pitch deck go?',
+        [42, null, undefined, { topicKey: 'other' }] as unknown as string[],
+      ),
+    ).toBe(false);
+  });
+
+  test('valid rich topic shapes still dedupe correctly', () => {
+    expect(
+      repeatsRecentlyAddressedTopic(
+        'How did the pitch deck go?',
+        [{ text: 'Pitch deck', guidance: 'follow up' }] as unknown as string[],
+      ),
+    ).toBe(true);
+    expect(
+      decisionPolicyRejection({
+        decision: {
+          ...decision,
+          topicKey: 'pitch_deck',
+          guidance: 'Ask how the pitch deck went.',
+          beatAssessment: {
+            ...decision.beatAssessment,
+            proposedBeat: {
+              ...decision.beatAssessment.proposedBeat,
+              summary: 'Ask how the pitch deck went.',
+            },
+          },
+        },
+        trigger: 'server_scan',
+        recentTopicKeys: [],
+        recentlyAddressedTopics: [
+          {
+            text: 'Pitch deck',
+            guidance: 'Ask about the follow-up.',
+          },
+        ] as unknown as string[],
+        hasSensitiveSupport: true,
+      }),
+    ).toBe('recently_addressed_topic');
+  });
+
+  test('does not crash when recently addressed topics are objects (value.toLowerCase regression)', () => {
+    expect(() =>
+      repeatsRecentlyAddressedTopic(
+        'How did the pitch deck go?',
+        [{ text: 'pitch_deck', guidance: 'follow up' }] as unknown as string[],
+      ),
+    ).not.toThrow();
+  });
+
+  test('retrieveInitiativeContinuity normalizes rich shapes instead of throwing', async () => {
+    const context = await retrieveInitiativeContinuity({
+      userId: 'user',
+      chatId: 'chat',
+      timeZone: 'Europe/London',
+      recentlyAddressedTopics: [
+        { text: 'pitch_deck', guidance: 'follow up' },
+        'plain topic',
+        null,
+        { topicKey: 'open_loop' },
+        { unknown: true },
+      ] as unknown as string[],
+      fetchContext: async () => ({ now: { daypart: 'morning' } }),
+    });
+    expect(context?.recently_addressed_topics).toEqual([
+      'pitch_deck',
+      'plain topic',
+      'open_loop',
+    ]);
   });
 });
