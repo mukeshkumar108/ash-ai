@@ -18,6 +18,11 @@ import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 
 import { ArrowUpIcon, PlusIcon, StopIcon } from './icons';
 import { PreviewAttachment } from './preview-attachment';
+import {
+  Attachment as AttachmentTile,
+  Attachments,
+  AttachmentPreview,
+} from './ai-elements/attachments';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import {
@@ -26,7 +31,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
-import { getBlobPathname } from '@/lib/blob';
+import { getBlobDisplayUrl, getBlobPathname } from '@/lib/blob';
 import {
   FILE_ACCEPT_ATTR,
   ImageProcessingError,
@@ -36,11 +41,17 @@ import {
 import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowDown, Clapperboard, FileText, ImagePlus, X } from 'lucide-react';
+import {
+  ArrowDown,
+  Clapperboard,
+  FileText,
+  ImagePlus,
+  RefreshCw,
+  X,
+} from 'lucide-react';
 import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom';
 import type { Attachment, ChatMessage } from '@/lib/types';
 import { VoiceRecorder } from './voice-recorder';
-import { ModelSelector } from './model-selector';
 import type { UserType } from '@/app/(auth)/auth';
 import type { TranscriptReliability } from '@/lib/transcript-reliability';
 
@@ -461,7 +472,7 @@ function PureMultimodalInput({
         textAttachments.length > 0) && (
         <div
           data-testid="attachments-preview"
-          className="flex flex-row gap-2 overflow-x-scroll items-end"
+          className="flex flex-row flex-wrap gap-2 items-end"
         >
           {textAttachments.map((doc) => (
             <div
@@ -495,22 +506,52 @@ function PureMultimodalInput({
             </div>
           ))}
 
-          {attachments.map((attachment) => (
-            <PreviewAttachment
-              key={attachment.url}
-              attachment={attachment}
-              onRemove={
-                attachment.id
-                  ? () => removeAttachment(attachment.id as string)
-                  : undefined
-              }
-              onReplace={
-                attachment.id
-                  ? () => replaceAttachment(attachment.id as string)
-                  : undefined
-              }
-            />
-          ))}
+          {attachments.length > 0 && (
+            <Attachments variant="grid">
+              {attachments.map((attachment) => (
+                <AttachmentTile
+                  key={attachment.url}
+                  data={{
+                    id: attachment.id ?? attachment.url,
+                    type: 'file',
+                    url: getBlobDisplayUrl(attachment.url),
+                    mediaType: attachment.contentType,
+                    filename: attachment.name,
+                  }}
+                >
+                  <AttachmentPreview />
+                  {attachment.id && (
+                    <>
+                      <button
+                        type="button"
+                        data-testid="remove-attachment-button"
+                        aria-label="Remove image"
+                        onClick={(event) => {
+                          event.preventDefault();
+                          removeAttachment(attachment.id as string);
+                        }}
+                        className="absolute top-1 right-1 z-10 flex size-5 min-h-0 min-w-0 items-center justify-center rounded-full border border-border bg-background/90 p-0 text-muted-foreground shadow-sm transition-colors hover:bg-background hover:text-foreground"
+                      >
+                        <X size={12} />
+                      </button>
+                      <button
+                        type="button"
+                        data-testid="replace-attachment-button"
+                        aria-label="Replace image"
+                        onClick={(event) => {
+                          event.preventDefault();
+                          replaceAttachment(attachment.id as string);
+                        }}
+                        className="absolute bottom-1 right-1 z-10 flex size-5 min-h-0 min-w-0 items-center justify-center rounded-full border border-border bg-background/90 p-0 text-muted-foreground shadow-sm transition-colors hover:bg-background hover:text-foreground"
+                      >
+                        <RefreshCw size={12} />
+                      </button>
+                    </>
+                  )}
+                </AttachmentTile>
+              ))}
+            </Attachments>
+          )}
 
           {pending.map((item) => (
             <PreviewAttachment
@@ -557,14 +598,6 @@ function PureMultimodalInput({
       />
 
       <div className="absolute bottom-0 left-0 p-2 w-fit flex flex-row items-center gap-1">
-        {userType && selectedModelId && onModelChange && (
-          <ModelSelector
-            userType={userType}
-            selectedModelId={selectedModelId}
-            onModelChange={onModelChange}
-            className="h-7 min-h-0 rounded-full border-transparent bg-transparent px-2 text-xs text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground md:h-7"
-          />
-        )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button

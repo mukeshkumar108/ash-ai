@@ -27,7 +27,6 @@ import { useChatVisibility } from '@/hooks/use-chat-visibility';
 import { useAutoResume } from '@/hooks/use-auto-resume';
 import { ChatSDKError } from '@/lib/errors';
 import type { Attachment, ChatMessage } from '@/lib/types';
-import { saveChatModel } from '@/app/(chat)/actions';
 import type { UserType } from '@/app/(auth)/auth';
 
 const MESSAGE_PAGE_SIZE = 40;
@@ -63,7 +62,9 @@ export function Chat({
   const lastReconcileTimeRef = useRef(0);
 
   const [input, setInput] = useState<string>('');
-  const [chatModel, setChatModel] = useState<string>(initialChatModel);
+  const [chatModel] = useState<string>(initialChatModel);
+  const searchParams = useSearchParams();
+  const developerModelOverride = searchParams.get('devModel') || undefined;
   const [hasOlderMessages, setHasOlderMessages] = useState(
     initialHasOlderMessages,
   );
@@ -103,6 +104,7 @@ export function Chat({
             id,
             message: messages.at(-1),
             selectedChatModel: chatModel,
+            ...(developerModelOverride ? { developerModelOverride } : {}),
             selectedVisibilityType: visibilityType,
             ...body,
           },
@@ -283,7 +285,6 @@ export function Chat({
     };
   }, [isReadonly, reconcileChatFromServer, status]);
 
-  const searchParams = useSearchParams();
   const query = searchParams.get('query');
 
   const [hasAppendedQuery, setHasAppendedQuery] = useState(false);
@@ -404,14 +405,6 @@ export function Chat({
     }
   }, [hasOlderMessages, id, isLoadingOlderMessages, messages, setMessages]);
 
-  const handleModelChange = useCallback(
-    (newModelId: string) => {
-      setChatModel(newModelId);
-      void saveChatModel({ id, model: newModelId });
-    },
-    [id],
-  );
-
   const isNewChat = messages.length === 0 && status === 'ready';
 
   const composerContent = (
@@ -428,8 +421,6 @@ export function Chat({
           messages={messages}
           setMessages={setMessages}
           sendMessage={sendMessage}
-          selectedModelId={chatModel}
-          onModelChange={handleModelChange}
           userType={userType}
           onVoiceTranscript={(transcript) => {
             setInput(transcript);
@@ -457,7 +448,6 @@ export function Chat({
           selectedVisibilityType={initialVisibilityType}
           isReadonly={isReadonly}
           userType={userType}
-          onModelChange={handleModelChange}
         />
 
         {!isNewChat && (
@@ -496,7 +486,7 @@ export function Chat({
         ) : null}
 
         <motion.div
-          layout
+          initial={false}
           className={cn(
             'z-30 flex w-full flex-col gap-1.5 px-4 pb-4 pt-2',
             isNewChat
@@ -504,22 +494,28 @@ export function Chat({
               : 'fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+4.75rem)] md:sticky md:bottom-0 md:mx-auto md:max-w-4xl md:pb-6',
           )}
         >
-          <AnimatePresence mode="wait">
-            {isNewChat && (
-              <motion.div
-                key="empty-composer"
-                className="relative flex w-full max-w-4xl flex-col items-center"
-              >
-                <div className="absolute inset-x-0 -top-28 flex flex-col items-center">
+          <motion.div
+            key={isNewChat ? 'centered' : 'bottom'}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+            className="relative w-full max-w-4xl"
+          >
+            <AnimatePresence mode="wait">
+              {isNewChat && (
+                <motion.div
+                  key="empty-greeting"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6, transition: { duration: 0.12 } }}
+                  className="pointer-events-none absolute inset-x-0 -top-36 flex justify-center"
+                >
                   <Greeting />
-                </div>
-                <form className="w-full">{composerContent}</form>
-              </motion.div>
-            )}
-          </AnimatePresence>
-          {!isNewChat && (
-            <form className="w-full max-w-4xl">{composerContent}</form>
-          )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <form className="w-full">{composerContent}</form>
+          </motion.div>
         </motion.div>
       </div>
     </>

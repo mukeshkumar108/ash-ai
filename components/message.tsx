@@ -3,10 +3,15 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { memo, useState, useEffect } from 'react';
 import type { Vote } from '@/lib/db/schema';
 import { SparklesIcon } from './icons';
-import { PreviewAttachment } from './preview-attachment';
 import equal from 'fast-deep-equal';
+import { getBlobDisplayUrl } from '@/lib/blob';
 import { cn, sanitizeText } from '@/lib/utils';
 import { MessageEditor } from './message-editor';
+import {
+  Attachment,
+  AttachmentPreview,
+  Attachments,
+} from './ai-elements/attachments';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { ChatMessage } from '@/lib/types';
 import {
@@ -93,16 +98,22 @@ const PurePreviewMessage = ({
                 data-testid={`message-attachments`}
                 className="flex flex-row justify-end gap-2"
               >
-                {attachmentsFromMessage.map((attachment) => (
-                  <PreviewAttachment
-                    key={attachment.url}
-                    attachment={{
-                      name: attachment.filename ?? 'file',
-                      contentType: attachment.mediaType,
-                      url: attachment.url,
-                    }}
-                  />
-                ))}
+                <Attachments variant="grid">
+                  {attachmentsFromMessage.map((attachment) => (
+                    <Attachment
+                      key={attachment.url}
+                      data={{
+                        id: attachment.url,
+                        type: 'file',
+                        url: getBlobDisplayUrl(attachment.url),
+                        mediaType: attachment.mediaType,
+                        filename: attachment.filename,
+                      }}
+                    >
+                      <AttachmentPreview />
+                    </Attachment>
+                  ))}
+                </Attachments>
               </div>
             )}
 

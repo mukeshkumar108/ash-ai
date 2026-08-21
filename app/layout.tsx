@@ -1,6 +1,6 @@
 import { Toaster } from 'sonner';
 import type { Metadata } from 'next';
-import { Geist_Mono, Outfit, Ovo } from 'next/font/google';
+import { Geist_Mono, Outfit, Piazzolla } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
 
 import './globals.css';
@@ -24,11 +24,11 @@ export const viewport = {
   userScalable: false,
 };
 
-const ovo = Ovo({
+const piazzolla = Piazzolla({
   subsets: ['latin'],
-  weight: ['400'],
+  style: ['normal', 'italic'],
   display: 'swap',
-  variable: '--font-ovo',
+  variable: '--font-piazzolla',
 });
 
 const outfit = Outfit({
@@ -76,7 +76,7 @@ export default async function RootLayout({
       // prop is necessary to avoid the React hydration mismatch warning.
       // https://github.com/pacocoursey/next-themes?tab=readme-ov-file#with-app
       suppressHydrationWarning
-className={`${outfit.variable} ${ovo.variable} ${geistMono.variable}`}
+className={`${outfit.variable} ${piazzolla.variable} ${geistMono.variable}`}
       >
       <head>
         <script
