@@ -26,35 +26,21 @@ export function resolveInteractionSteer(
 ): InteractionSteer | null {
   if (judgment.action === 'stop') return null;
   if (judgment.action === 'start' || judgment.action === 'replace')
-    return carryActHistory(judgment.steer, existing);
-  if (!existing) return carryActHistory(judgment.steer, null);
+    return judgment.steer;
+  if (!existing) return judgment.steer;
   // NONE means no new intervention. It must not silently erase an already
   // active conversational intention. The existing phase still consumes one
   // turn of its bounded horizon.
   if (judgment.action === 'none') {
     const turnsRemaining = Math.max(0, existing.turnsRemaining - 1);
-    return turnsRemaining > 0
-      ? carryActHistory({ ...existing, turnsRemaining }, existing)
-      : null;
+    return turnsRemaining > 0 ? { ...existing, turnsRemaining } : null;
   }
   const next = judgment.steer ?? existing;
   const turnsRemaining = Math.min(
     next.turnsRemaining,
     Math.max(0, existing.turnsRemaining - 1),
   );
-  return turnsRemaining > 0
-    ? carryActHistory({ ...next, turnsRemaining }, existing)
-    : null;
-}
-
-function carryActHistory(
-  steer: InteractionSteer | null,
-  existing: InteractionSteer | null,
-): InteractionSteer | null {
-  if (!steer) return null;
-  const history = [...(existing?.actHistory ?? [])];
-  if (steer.act && history.at(-1) !== steer.act) history.push(steer.act);
-  return { ...steer, actHistory: history.slice(-8) };
+  return turnsRemaining > 0 ? { ...next, turnsRemaining } : null;
 }
 
 export function compileInteractionSteer(steer: InteractionSteer): string {
@@ -81,10 +67,6 @@ export function compileInteractionSteer(steer: InteractionSteer): string {
     '[INTERACTION STEER]',
     `Posture: ${steer.posture.toUpperCase()}.`,
     ...phaseContract,
-    steer.act ? `Conversational act: ${steer.act}.` : '',
-    steer.actHistory?.length
-      ? `Recent acts (newest last): ${steer.actHistory.slice(-4).join(', ')}. Change the act rather than narrowing a failed question.`
-      : '',
     steer.objective,
     steer.lastTactic
       ? `Previous phase tactic: ${steer.lastTactic} Vary the next move rather than repeating it.`

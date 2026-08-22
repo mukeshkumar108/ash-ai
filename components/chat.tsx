@@ -133,7 +133,7 @@ export function Chat({
       }
 
       const message =
-        'The reply could not be delivered. Your message is saved; please retry in a moment.';
+        'No model completed the reply. Your message is saved; retry it or choose another model.';
       setChatError(message);
       toast({
         type: 'error',

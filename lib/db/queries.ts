@@ -1,7 +1,7 @@
 import 'server-only';
 import { AsyncLocalStorage } from 'node:async_hooks';
 
-import { and, asc, count, desc, eq, gt, gte, inArray, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gt, gte, inArray } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres, { type Sql } from 'postgres';
 
@@ -689,24 +689,16 @@ export async function updateChatSessionRouting({
   id,
   userId,
   sessionRouting,
-  timeoutMs = 2_000,
 }: {
   id: string;
   userId: string;
   sessionRouting: Record<string, unknown>;
-  timeoutMs?: number;
 }) {
   try {
-    const boundedTimeoutMs = Math.max(250, Math.min(timeoutMs, 10_000));
-    return await db.transaction(async (tx) => {
-      await tx.execute(
-        sql`select set_config('statement_timeout', ${String(boundedTimeoutMs)}, true)`,
-      );
-      return tx
-        .update(chat)
-        .set({ sessionRouting })
-        .where(and(eq(chat.id, id), eq(chat.userId, userId)));
-    });
+    return await db
+      .update(chat)
+      .set({ sessionRouting })
+      .where(and(eq(chat.id, id), eq(chat.userId, userId)));
   } catch (error) {
     logDatabaseError('update chat session routing', error);
     throw new ChatSDKError(
