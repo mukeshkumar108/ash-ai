@@ -16,7 +16,7 @@ test('new UserDay posture reaches the direct TypeScript prompt path', () => {
       staleLightweightPhase: true,
     } as never,
     entryContext: {
-      version: 1,
+      version: 2,
       timeZone: 'Europe/London',
       chronology: {
         temporalSession: 'new',
@@ -27,7 +27,9 @@ test('new UserDay posture reaches the direct TypeScript prompt path', () => {
         sessionStartedAt: '2026-08-22T07:00:00.000Z',
         sessionsToday: 1,
       },
-      previousSittingResidue: null,
+      previousSessionSummary: null,
+      recentSessionSummaries: [],
+      bridgeCandidates: [],
       thread: null,
     },
   });

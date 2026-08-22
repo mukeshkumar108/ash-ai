@@ -1,6 +1,6 @@
 'use client';
 import { AnimatePresence, motion } from 'framer-motion';
-import { memo, useState, useEffect } from 'react';
+import { memo, useState, useEffect, type ReactNode } from 'react';
 import type { Vote } from '@/lib/db/schema';
 import { SparklesIcon } from './icons';
 import equal from 'fast-deep-equal';
@@ -24,6 +24,7 @@ import { MessageActions } from './message-actions';
 import { ResearchTraceView } from './research-trace';
 import { VoiceReply } from './voice-reply';
 import { format } from 'date-fns';
+import { isBeatAvailable } from '@/lib/agent/beat-delivery';
 
 function humanizedTimestamp(iso?: string) {
   const date = iso ? new Date(iso) : new Date();
@@ -31,6 +32,37 @@ function humanizedTimestamp(iso?: string) {
   const now = new Date();
   if (date.toDateString() === now.toDateString()) return format(date, 'h:mm a');
   return format(date, 'MMM d, h:mm a');
+}
+
+function DelayedBeat({
+  availableAt,
+  children,
+}: {
+  availableAt?: string;
+  children: ReactNode;
+}) {
+  const dueAt = availableAt ? new Date(availableAt).getTime() : 0;
+  const [visible, setVisible] = useState(() => isBeatAvailable(availableAt));
+
+  useEffect(() => {
+    if (!dueAt || Date.now() >= dueAt) {
+      setVisible(true);
+      return;
+    }
+    const revealIfDue = () => {
+      if (Date.now() >= dueAt) setVisible(true);
+    };
+    const timeout = window.setTimeout(revealIfDue, Math.max(0, dueAt - Date.now()));
+    document.addEventListener('visibilitychange', revealIfDue);
+    window.addEventListener('focus', revealIfDue);
+    return () => {
+      window.clearTimeout(timeout);
+      document.removeEventListener('visibilitychange', revealIfDue);
+      window.removeEventListener('focus', revealIfDue);
+    };
+  }, [dueAt]);
+
+  return visible ? children : null;
 }
 
 const PurePreviewMessage = ({
@@ -132,9 +164,19 @@ const PurePreviewMessage = ({
 
               if (type === 'text') {
                 if (mode === 'view') {
+                  const delivery = [...message.parts.slice(0, index)]
+                    .reverse()
+                    .find((candidate) => candidate.type === 'data-beatDelivery');
                   return (
-                    <div
+                    <DelayedBeat
                       key={key}
+                      availableAt={
+                        delivery?.type === 'data-beatDelivery'
+                          ? delivery.data.availableAt
+                          : undefined
+                      }
+                    >
+                    <div
                       className="flex flex-row gap-2 items-start text-message-part group-data-[role=user]/message:justify-end"
                     >
                       <div
@@ -174,6 +216,7 @@ const PurePreviewMessage = ({
                         </div>
                       </div>
                     </div>
+                    </DelayedBeat>
                   );
                 }
 

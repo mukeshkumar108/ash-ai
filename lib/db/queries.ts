@@ -363,7 +363,7 @@ export async function getTemporalSessionResidueRows({
   userId,
   startedAt,
   before,
-  limit = 8,
+  limit = 36,
 }: {
   userId: string;
   startedAt: Date;
@@ -384,7 +384,7 @@ export async function getTemporalSessionResidueRows({
         and m."createdAt" < ${beforeIso}
         and m.role in ('user', 'assistant')
       order by m."createdAt" desc
-      limit ${Math.max(1, Math.min(limit, 12))}
+      limit ${Math.max(1, Math.min(limit, 36))}
     `;
     return instrumentReadResult(
       'getTemporalSessionResidueRows',

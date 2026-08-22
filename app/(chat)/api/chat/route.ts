@@ -407,7 +407,12 @@ export async function POST(request: Request) {
         chronology.newTemporalSession && chronology.previousTemporalSessionStartedAt
           ? await getTemporalSessionResidueRows({
               userId: session.user.id,
-              startedAt: chronology.previousTemporalSessionStartedAt,
+              // Fetch a bounded historical pool so bridge candidates may come
+              // from more than only the immediately preceding sitting.
+              startedAt: new Date(
+                chronology.previousTemporalSessionStartedAt.getTime() -
+                  7 * 24 * 60 * 60_000,
+              ),
               before: new Date(
                 Math.min(
                   userCreatedAt.getTime(),
@@ -762,6 +767,10 @@ export async function POST(request: Request) {
       // conversational beats. One logical assistant turn is persisted with one
       // `text` part per beat so the UI renders each as its own bubble.
       let finalBeats: string[] = [];
+      let finalBeatDelivery: Array<{
+        kind: 'immediate' | 'continuation';
+        available_after_ms: number;
+      }> = [];
       let researchTrace: ResearchTrace = { activities: [], sources: [] };
       let existingRuntimeAssistant = false;
 
@@ -804,6 +813,7 @@ export async function POST(request: Request) {
             beats && beats.length >= 2
               ? beats.slice(0, 3)
               : [];
+          finalBeatDelivery = runtimeCompleted.beat_delivery ?? [];
           console.info(
             `[chat] companion_runtime reply model=${runtimeCompleted.model_used} provider=${runtimeCompleted.provider_used} fallback=${runtimeCompleted.used_fallback} finish_reason=${runtimeCompleted.finish_reason} chars=${finalText.length} beats=${finalBeats.length}`,
           );
@@ -1082,7 +1092,25 @@ export async function POST(request: Request) {
       // text stays the canonical single-text projection for Honcho/chronology.
       const assistantTextParts =
         finalBeats.length >= 2
-          ? finalBeats.map((beat) => ({ type: 'text' as const, text: beat }))
+          ? finalBeats.flatMap((beat, beatIndex) => {
+              const delivery = finalBeatDelivery[beatIndex] ?? {
+                kind: beatIndex === 0 ? 'immediate' as const : 'continuation' as const,
+                available_after_ms: beatIndex === 0 ? 0 : 1200,
+              };
+              return [
+                {
+                  type: 'data-beatDelivery' as const,
+                  data: {
+                    beatIndex,
+                    kind: delivery.kind,
+                    availableAt: new Date(
+                      assistantCreatedAt.getTime() + delivery.available_after_ms,
+                    ).toISOString(),
+                  },
+                },
+                { type: 'text' as const, text: beat },
+              ];
+            })
           : [{ type: 'text' as const, text: finalText }];
       const assistantMessage = {
         id: assistantId,
@@ -1217,6 +1245,20 @@ export async function POST(request: Request) {
           // between already-completed beats.
           if (finalBeats.length >= 2) {
             for (let beatIndex = 0; beatIndex < finalBeats.length; beatIndex += 1) {
+              const delivery = finalBeatDelivery[beatIndex] ?? {
+                kind: beatIndex === 0 ? 'immediate' as const : 'continuation' as const,
+                available_after_ms: beatIndex === 0 ? 0 : 1200,
+              };
+              dataStream.write({
+                type: 'data-beatDelivery',
+                data: {
+                  beatIndex,
+                  kind: delivery.kind,
+                  availableAt: new Date(
+                    assistantCreatedAt.getTime() + delivery.available_after_ms,
+                  ).toISOString(),
+                },
+              });
               const beatPartId = `${assistantId}-beat-${beatIndex}`;
               dataStream.write({
                 type: 'text-start',

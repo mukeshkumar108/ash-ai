@@ -51,6 +51,11 @@ export type CustomUIDataTypes = {
   finish: null;
   research: ResearchTrace;
   transcriptReliability: TranscriptReliability;
+  beatDelivery: {
+    beatIndex: number;
+    kind: 'immediate' | 'continuation';
+    availableAt: string;
+  };
 };
 
 export type ChatMessage = UIMessage<

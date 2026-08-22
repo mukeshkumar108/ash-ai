@@ -4,7 +4,7 @@ import { buildCompanionEntryContext } from '@/lib/agent/entry-context';
 import { resolveUserTimeZone } from '@/lib/agent/timezone';
 import { buildSophieReplySystemPrompt } from '@/lib/agent/system-prompt';
 
-test('builds bounded cross-thread previous-sitting residue without a thread dependency', () => {
+test('builds a bounded historical session summary and optional bridges', () => {
   const chronology = computeUserChronology({
     interactionTimes: [
       { createdAt: new Date('2026-08-22T00:20:00Z') },
@@ -29,9 +29,11 @@ test('builds bounded cross-thread previous-sitting residue without a thread depe
     daypart: 'morning',
     firstContactUserDay: true,
   });
-  expect(packet.previousSittingResidue?.id).toMatch(/^ts_[a-f0-9]{16}_\d+$/u);
-  expect(packet.previousSittingResidue?.touchedThreadIds).toEqual(['a', 'b']);
-  expect(packet.previousSittingResidue?.recentTurns).toHaveLength(3);
+  expect(packet.version).toBe(2);
+  expect(packet.previousSessionSummary?.id).toMatch(/^ts_[a-f0-9]{16}_\d+$/u);
+  expect(packet.previousSessionSummary?.touchedThreadIds).toEqual(['a', 'b']);
+  expect(packet.previousSessionSummary?.majorTopics).toEqual(['late night', 'night']);
+  expect(packet.bridgeCandidates).toHaveLength(2);
   expect(packet.thread).toBeNull();
 });
 
@@ -47,14 +49,35 @@ test('TemporalSession residue IDs are namespaced per authenticated user', () => 
     now: new Date('2026-08-22T10:45:00Z'),
     timeZone: 'Europe/London',
   });
-  const first = buildCompanionEntryContext({ userId: 'user-a', chronology, timeZone: 'Europe/London' });
-  const second = buildCompanionEntryContext({ userId: 'user-b', chronology, timeZone: 'Europe/London' });
-  expect(first.previousSittingResidue?.id).not.toBe(second.previousSittingResidue?.id);
+  const residueRows = [{ chatId: 'a', role: 'user', parts: [{ type: 'text', text: 'night' }], createdAt: new Date('2026-08-22T00:32:00Z') }];
+  const first = buildCompanionEntryContext({ userId: 'user-a', chronology, timeZone: 'Europe/London', residueRows });
+  const second = buildCompanionEntryContext({ userId: 'user-b', chronology, timeZone: 'Europe/London', residueRows });
+  expect(first.previousSessionSummary?.id).not.toBe(second.previousSessionSummary?.id);
+});
+
+test('bridge candidates can come from an older recent session', () => {
+  const chronology = computeUserChronology({
+    interactionTimes: [
+      { createdAt: new Date('2026-08-22T08:00:00Z') },
+      { createdAt: new Date('2026-08-22T10:00:00Z') },
+    ],
+    now: new Date('2026-08-22T12:00:00Z'),
+    timeZone: 'Europe/London',
+  });
+  const packet = buildCompanionEntryContext({
+    userId: 'user-a', chronology, timeZone: 'Europe/London',
+    residueRows: [
+      { chatId: 'a', role: 'user', parts: [{ type: 'text', text: 'I am going for a sunset walk' }], createdAt: new Date('2026-08-22T08:00:00Z') },
+      { chatId: 'b', role: 'user', parts: [{ type: 'text', text: 'I made coffee' }], createdAt: new Date('2026-08-22T10:00:00Z') },
+    ],
+  });
+  expect(packet.recentSessionSummaries).toHaveLength(2);
+  expect(packet.bridgeCandidates.some((candidate) => candidate.summary.includes('sunset walk'))).toBe(true);
 });
 
 test('authoritative entry context is preserved without an app behavioral steer', () => {
   const entryContext = {
-    version: 1 as const,
+    version: 2 as const,
     timeZone: 'Europe/London',
     chronology: {
       temporalSession: 'new' as const,
@@ -65,7 +88,9 @@ test('authoritative entry context is preserved without an app behavioral steer',
       sessionStartedAt: '2026-08-22T09:45:00.000Z',
       sessionsToday: 1,
     },
-    previousSittingResidue: null,
+    previousSessionSummary: null,
+    recentSessionSummaries: [],
+    bridgeCandidates: [],
     thread: null,
   };
   const prompt = buildSophieReplySystemPrompt({
@@ -74,5 +99,5 @@ test('authoritative entry context is preserved without an app behavioral steer',
   expect(prompt.indexOf('[AUTHORITATIVE ENTRY CONTEXT')).toBeGreaterThan(
     prompt.indexOf('[INTERACTION STEER]'),
   );
-  expect(prompt).toContain('this entry context supersedes it');
+  expect(prompt).toContain('previousSessionSummary is historical description');
 });
