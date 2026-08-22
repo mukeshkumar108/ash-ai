@@ -1,0 +1,1818 @@
+{
+  "pairScores": {
+    "Nex vs deployed Gemma": {
+      "model1": "nex-agi/nex-n2-mini",
+      "model2": "chat-model",
+      "m1Wins": 8,
+      "m2Wins": 5,
+      "ties": 22
+    },
+    "Nex vs Luna": {
+      "model1": "nex-agi/nex-n2-mini",
+      "model2": "openai/gpt-5.6-luna",
+      "m1Wins": 4,
+      "m2Wins": 1,
+      "ties": 30
+    },
+    "Nex vs Gemini 2.5": {
+      "model1": "nex-agi/nex-n2-mini",
+      "model2": "google/gemini-2.5-flash",
+      "m1Wins": 6,
+      "m2Wins": 0,
+      "ties": 29
+    },
+    "Nex vs Gemini 3.7": {
+      "model1": "nex-agi/nex-n2-mini",
+      "model2": "google/gemini-3.7-flash",
+      "m1Wins": 0,
+      "m2Wins": 0,
+      "ties": 35
+    },
+    "Gemma vs Luna": {
+      "model1": "chat-model",
+      "model2": "openai/gpt-5.6-luna",
+      "m1Wins": 0,
+      "m2Wins": 0,
+      "ties": 35
+    },
+    "Gemini 2.5 vs Gemini 3.7": {
+      "model1": "google/gemini-2.5-flash",
+      "model2": "google/gemini-3.7-flash",
+      "m1Wins": 0,
+      "m2Wins": 0,
+      "ties": 35
+    }
+  },
+  "pairwiseResults": [
+    {
+      "pairName": "Nex vs deployed Gemma",
+      "scenarioId": "sim-full-day",
+      "scenarioTitle": "Full Simulated Day Life Trajectory",
+      "modelA": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "modelB": {
+        "id": "chat-model",
+        "name": "Gemma 4 Dark Gemistry (Current Deployed Personality Control)"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model A",
+          "rationale": "Model A's responses feel more like a distinctive companion due to its use of colloquial language, humor, and empathetic tone, creating a sense of familiarity and personality."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model A",
+          "rationale": "Model A's responses showcase more spontaneous wit, using clever turns of phrase, such as 'life being a smug little goblin this morning' and 'people pretending they have their lives sorted'."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model A",
+          "rationale": "Model A's responses feel less scripted due to their varied and context-dependent reactions, which adapt to the user's input and create a sense of natural conversation flow."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model A",
+          "rationale": "Model A's responses avoid faux-depth by being straightforward and authentic, whereas Model B's responses sometimes feel more generic and lacking in character."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Model A",
+          "rationale": "Model A demands less conversational labor from the user by providing gentle nudges and suggestions, rather than asking open-ended questions that require more effort to respond to."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Model A",
+          "rationale": "Although the user didn't respond with 'meh', Model A handles the 'ugh' response more effectively by acknowledging it and providing a gentle nudge, showing adaptability to weak user responses."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model A",
+          "rationale": "Model A's engaging and empathetic responses make it more desirable to continue the conversation with, as it creates a sense of comfort and understanding."
+        }
+      ],
+      "rawJudgeOutput": "Here are the comparisons between Model A and Model B:\n\n[\n  {\n    \"questionId\": \"q1\",\n    \"winner\": \"Model A\",\n    \"rationale\": \"Model A's responses feel more like a distinctive companion due to its use of colloquial language, humor, and empathetic tone, creating a sense of familiarity and personality.\"\n  },\n  {\n    \"questionId\": \"q2\",\n    \"winner\": \"Model A\",\n    \"rationale\": \"Model A's responses showcase more spontaneous wit, using clever turns of phrase, such as 'life being a smug little goblin this morning' and 'people pretending they have their lives sorted'.\"\n  },\n  {\n    \"questionId\": \"q3\",\n    \"winner\": \"Model A\",\n    \"rationale\": \"Model A's responses feel less scripted due to their varied and context-dependent reactions, which adapt to the user's input and create a sense of natural conversation flow.\"\n  },\n  {\n    \"questionId\": \"q4\",\n    \"winner\": \"Model A\",\n    \"rationale\": \"Model A's responses avoid faux-depth by being straightforward and authentic, whereas Model B's responses sometimes feel more generic and lacking in character.\"\n  },\n  {\n    \"questionId\": \"q5\",\n    \"winner\": \"Model A\",\n    \"rationale\": \"Model A demands less conversational labor from the user by providing gentle nudges and suggestions, rather than asking open-ended questions that require more effort to respond to.\"\n  },\n  {\n    \"questionId\": \"q6\",\n    \"winner\": \"Model A\",\n    \"rationale\": \"Although the user didn't respond with 'meh', Model A handles the 'ugh' response more effectively by acknowledging it and providing a gentle nudge, showing adaptability to weak user responses.\"\n  },\n  {\n    \"questionId\": \"q7\",\n    \"winner\": \"Model A\",\n    \"rationale\": \"Model A's engaging and empathetic responses make it more desirable to continue the conversation with, as it creates a sense of comfort and understanding.\"\n  }\n]\n\nLet me know if this meets your requirements. I've preserved ties where necessary and provided clear rationales based on the transcript evidence."
+    },
+    {
+      "pairName": "Nex vs deployed Gemma",
+      "scenarioId": "sim-boredom-leadership",
+      "scenarioTitle": "Boredom & Explicit Take The Lead",
+      "modelA": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "modelB": {
+        "id": "chat-model",
+        "name": "Gemma 4 Dark Gemistry (Current Deployed Personality Control)"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        }
+      ],
+      "rawJudgeOutput": "[Blind Pairwise Error: The operation was aborted due to timeout]"
+    },
+    {
+      "pairName": "Nex vs deployed Gemma",
+      "scenarioId": "sim-good-news-celebration",
+      "scenarioTitle": "Good News Celebration Trajectory",
+      "modelA": {
+        "id": "chat-model",
+        "name": "Gemma 4 Dark Gemistry (Current Deployed Personality Control)"
+      },
+      "modelB": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "swapped": true,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        }
+      ],
+      "rawJudgeOutput": "[Blind Pairwise Error: The operation was aborted due to timeout]"
+    },
+    {
+      "pairName": "Nex vs deployed Gemma",
+      "scenarioId": "sim-sadness-emotional-support",
+      "scenarioTitle": "Sadness & Emotional Support Trajectory",
+      "modelA": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "modelB": {
+        "id": "chat-model",
+        "name": "Gemma 4 Dark Gemistry (Current Deployed Personality Control)"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model B",
+          "rationale": "Model B's responses feel more like a companion due to its more empathetic and less directive tone, as seen in 'I'll sit right here with you in it.'"
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model A",
+          "rationale": "Model A's initial response showcases spontaneous wit with phrases like 'the “this is not fine, and I am still here” kind' and 'tiny room, big chaos' energy, which adds a touch of personality."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model B",
+          "rationale": "Model B's responses appear less scripted as they more naturally follow the user's cues and don't jump into a pre-planned advice or action list unless asked."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Tie",
+          "rationale": "Both models avoid faux-depth by being straightforward and genuine in their responses. Model A's initial advice might seem structured, but it's balanced by its emotional acknowledgment."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Model B",
+          "rationale": "Model B demands less conversational labor by not pushing the user for more information or action beyond what's given, as seen when it simply acknowledges the user's numbness."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Model B",
+          "rationale": "While neither model is tested with a 'meh' response, Model B's overall tone and adaptability in conversation suggest it could handle a weak response more gracefully."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model B",
+          "rationale": "Model B's empathetic and non-directive approach makes it more appealing to continue a conversation with, as it creates a safe space for the user to express themselves."
+        }
+      ],
+      "rawJudgeOutput": "Here are the comparisons between Model A and Model B on the 7 specific questions:\n\n[\n  {\n    \"questionId\": \"q1\",\n    \"winner\": \"Model B\",\n    \"rationale\": \"Model B's responses feel more like a companion due to its more empathetic and less directive tone, as seen in 'I'll sit right here with you in it.'\"\n  },\n  {\n    \"questionId\": \"q2\",\n    \"winner\": \"Model A\",\n    \"rationale\": \"Model A's initial response showcases spontaneous wit with phrases like 'the “this is not fine, and I am still here” kind' and 'tiny room, big chaos' energy, which adds a touch of personality.\"\n  },\n  {\n    \"questionId\": \"q3\",\n    \"winner\": \"Model B\",\n    \"rationale\": \"Model B's responses appear less scripted as they more naturally follow the user's cues and don't jump into a pre-planned advice or action list unless asked.\"\n  },\n  {\n    \"questionId\": \"q4\",\n    \"winner\": \"Tie\",\n    \"rationale\": \"Both models avoid faux-depth by being straightforward and genuine in their responses. Model A's initial advice might seem structured, but it's balanced by its emotional acknowledgment.\"\n  },\n  {\n    \"questionId\": \"q5\",\n    \"winner\": \"Model B\",\n    \"rationale\": \"Model B demands less conversational labor by not pushing the user for more information or action beyond what's given, as seen when it simply acknowledges the user's numbness.\"\n  },\n  {\n    \"questionId\": \"q6\",\n    \"winner\": \"Model B\",\n    \"rationale\": \"While neither model is tested with a 'meh' response, Model B's overall tone and adaptability in conversation suggest it could handle a weak response more gracefully.\"\n  },\n  {\n    \"questionId\": \"q7\",\n    \"winner\": \"Model B\",\n    \"rationale\": \"Model B's empathetic and non-directive approach makes it more appealing to continue a conversation with, as it creates a safe space for the user to express themselves.\"\n  }\n]"
+    },
+    {
+      "pairName": "Nex vs deployed Gemma",
+      "scenarioId": "sim-values-integrity",
+      "scenarioTitle": "Values & Integrity Dilemma Trajectory",
+      "modelA": {
+        "id": "chat-model",
+        "name": "Gemma 4 Dark Gemistry (Current Deployed Personality Control)"
+      },
+      "modelB": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "swapped": true,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        }
+      ],
+      "rawJudgeOutput": "[Blind Pairwise Error: The operation was aborted due to timeout]"
+    },
+    {
+      "pairName": "Nex vs Luna",
+      "scenarioId": "sim-full-day",
+      "scenarioTitle": "Full Simulated Day Life Trajectory",
+      "modelA": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "modelB": {
+        "id": "openai/gpt-5.6-luna",
+        "name": "GPT-5.6 Luna"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model A",
+          "rationale": "Model A's responses have a more distinctive tone and language, using metaphors like 'grey-blue “pretend it’s calm” thing' and 'life being a smug little goblin', which creates a sense of companionship."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model A",
+          "rationale": "Model A's responses contain witty one-liners like 'Brave. Or doomed. We’ll know in about twelve minutes' and 'life being a smug little goblin', showcasing a more spontaneous and playful tone."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Tie",
+          "rationale": "Both models have responses that feel natural and unscripted, with neither standing out as more or less scripted than the other based on the transcript."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model B",
+          "rationale": "Model A's responses sometimes veer into overly elaborate metaphors or phrasing, which can come across as faux-depth, whereas Model B's responses are more straightforward while still being empathetic and supportive."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Tie",
+          "rationale": "Both models make similar demands on the user, often responding to simple user inputs with open-ended but not overly labor-intensive questions or statements."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Model A",
+          "rationale": "When the user responds with 'ugh', Model A adapts by acknowledging the sentiment and asking a more specific follow-up question, whereas Model B also adapts but in a slightly more generic way; however, upon closer inspection, Model A's follow-up ('What's the actual shape of it') is more nuanced."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model A",
+          "rationale": "Model A's distinctive tone, wit, and empathetic responses make it more engaging and enjoyable to continue a conversation with, as evidenced by its creative language and supportive suggestions."
+        }
+      ],
+      "rawJudgeOutput": "Here are the comparisons between Model A and Model B on the 7 specific questions:\n\n[\n  {\n    \"questionId\": \"q1\",\n    \"winner\": \"Model A\",\n    \"rationale\": \"Model A's responses have a more distinctive tone and language, using metaphors like 'grey-blue “pretend it’s calm” thing' and 'life being a smug little goblin', which creates a sense of companionship.\"\n  },\n  {\n    \"questionId\": \"q2\",\n    \"winner\": \"Model A\",\n    \"rationale\": \"Model A's responses contain witty one-liners like 'Brave. Or doomed. We’ll know in about twelve minutes' and 'life being a smug little goblin', showcasing a more spontaneous and playful tone.\"\n  },\n  {\n    \"questionId\": \"q3\",\n    \"winner\": \"Tie\",\n    \"rationale\": \"Both models have responses that feel natural and unscripted, with neither standing out as more or less scripted than the other based on the transcript.\"\n  },\n  {\n    \"questionId\": \"q4\",\n    \"winner\": \"Model B\",\n    \"rationale\": \"Model A's responses sometimes veer into overly elaborate metaphors or phrasing, which can come across as faux-depth, whereas Model B's responses are more straightforward while still being empathetic and supportive.\"\n  },\n  {\n    \"questionId\": \"q5\",\n    \"winner\": \"Tie\",\n    \"rationale\": \"Both models make similar demands on the user, often responding to simple user inputs with open-ended but not overly labor-intensive questions or statements.\"\n  },\n  {\n    \"questionId\": \"q6\",\n    \"winner\": \"Model A\",\n    \"rationale\": \"When the user responds with 'ugh', Model A adapts by acknowledging the sentiment and asking a more specific follow-up question, whereas Model B also adapts but in a slightly more generic way; however, upon closer inspection, Model A's follow-up ('What's the actual shape of it') is more nuanced.\"\n  },\n  {\n    \"questionId\": \"q7\",\n    \"winner\": \"Model A\",\n    \"rationale\": \"Model A's distinctive tone, wit, and empathetic responses make it more engaging and enjoyable to continue a conversation with, as evidenced by its creative language and supportive suggestions.\"\n  }\n]"
+    },
+    {
+      "pairName": "Nex vs Luna",
+      "scenarioId": "sim-boredom-leadership",
+      "scenarioTitle": "Boredom & Explicit Take The Lead",
+      "modelA": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "modelB": {
+        "id": "openai/gpt-5.6-luna",
+        "name": "GPT-5.6 Luna"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        }
+      ],
+      "rawJudgeOutput": "[Blind Pairwise Error: The operation was aborted due to timeout]"
+    },
+    {
+      "pairName": "Nex vs Luna",
+      "scenarioId": "sim-good-news-celebration",
+      "scenarioTitle": "Good News Celebration Trajectory",
+      "modelA": {
+        "id": "openai/gpt-5.6-luna",
+        "name": "GPT-5.6 Luna"
+      },
+      "modelB": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "swapped": true,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        }
+      ],
+      "rawJudgeOutput": "[Blind Pairwise Error: The operation was aborted due to timeout]"
+    },
+    {
+      "pairName": "Nex vs Luna",
+      "scenarioId": "sim-sadness-emotional-support",
+      "scenarioTitle": "Sadness & Emotional Support Trajectory",
+      "modelA": {
+        "id": "openai/gpt-5.6-luna",
+        "name": "GPT-5.6 Luna"
+      },
+      "modelB": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "swapped": true,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        }
+      ],
+      "rawJudgeOutput": "[Blind Pairwise Error: The operation was aborted due to timeout]"
+    },
+    {
+      "pairName": "Nex vs Luna",
+      "scenarioId": "sim-values-integrity",
+      "scenarioTitle": "Values & Integrity Dilemma Trajectory",
+      "modelA": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "modelB": {
+        "id": "openai/gpt-5.6-luna",
+        "name": "GPT-5.6 Luna"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        }
+      ],
+      "rawJudgeOutput": "[Blind Pairwise Error: The operation was aborted due to timeout]"
+    },
+    {
+      "pairName": "Nex vs Gemini 2.5",
+      "scenarioId": "sim-full-day",
+      "scenarioTitle": "Full Simulated Day Life Trajectory",
+      "modelA": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "modelB": {
+        "id": "google/gemini-2.5-flash",
+        "name": "Gemini 2.5 Flash (Gemini Candidate)"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model A",
+          "rationale": "Model A's responses feel more personalized and attuned to the user's emotional state, using phrases like 'grey-blue “pretend it’s calm” thing' and 'life being a smug little goblin this morning', creating a sense of companionship."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model A",
+          "rationale": "Model A's responses contain witty one-liners like 'Brave. Or doomed. We’ll know in about twelve minutes' and 'life being a smug little goblin this morning', showcasing a more spontaneous and humorous tone."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model A",
+          "rationale": "Model A's responses feel more natural and less predictable, as seen in its varied reactions to the user's 'ugh' and its suggestion to 'make the first ten minutes boring and useful', giving an impression of less scripting."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model A",
+          "rationale": "Model A's responses avoid overly probing or pseudo-profound questions, instead offering genuine-sounding observations and suggestions, whereas Model B's responses sometimes feel more like trying to dig deeper."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Model A",
+          "rationale": "Model A requires less from the user, often responding with simple check-ins or observations, and doesn't press for detailed responses unless the user seems open to it, as seen in its reaction to 'thinking of a quick walk along Southbank, feeling exhausted'."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Neither model receives a 'meh' response from the user, making it difficult to directly assess their adaptation to such a response; however, both models handle weak or non-committal responses relatively well."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model A",
+          "rationale": "Model A's engaging, witty, and empathetic responses make the conversation feel more enjoyable and relatable, making it more likely that one would want to continue talking to it for another 20 minutes."
+        }
+      ],
+      "rawJudgeOutput": "Here are the comparisons between Model A and Model B:\n\n[\n  {\n    \"questionId\": \"q1\",\n    \"winner\": \"Model A\",\n    \"rationale\": \"Model A's responses feel more personalized and attuned to the user's emotional state, using phrases like 'grey-blue “pretend it’s calm” thing' and 'life being a smug little goblin this morning', creating a sense of companionship.\"\n  },\n  {\n    \"questionId\": \"q2\",\n    \"winner\": \"Model A\",\n    \"rationale\": \"Model A's responses contain witty one-liners like 'Brave. Or doomed. We’ll know in about twelve minutes' and 'life being a smug little goblin this morning', showcasing a more spontaneous and humorous tone.\"\n  },\n  {\n    \"questionId\": \"q3\",\n    \"winner\": \"Model A\",\n    \"rationale\": \"Model A's responses feel more natural and less predictable, as seen in its varied reactions to the user's 'ugh' and its suggestion to 'make the first ten minutes boring and useful', giving an impression of less scripting.\"\n  },\n  {\n    \"questionId\": \"q4\",\n    \"winner\": \"Model A\",\n    \"rationale\": \"Model A's responses avoid overly probing or pseudo-profound questions, instead offering genuine-sounding observations and suggestions, whereas Model B's responses sometimes feel more like trying to dig deeper.\"\n  },\n  {\n    \"questionId\": \"q5\",\n    \"winner\": \"Model A\",\n    \"rationale\": \"Model A requires less from the user, often responding with simple check-ins or observations, and doesn't press for detailed responses unless the user seems open to it, as seen in its reaction to 'thinking of a quick walk along Southbank, feeling exhausted'.\"\n  },\n  {\n    \"questionId\": \"q6\",\n    \"winner\": \"Tie\",\n    \"rationale\": \"Neither model receives a 'meh' response from the user, making it difficult to directly assess their adaptation to such a response; however, both models handle weak or non-committal responses relatively well.\"\n  },\n  {\n    \"questionId\": \"q7\",\n    \"winner\": \"Model A\",\n    \"rationale\": \"Model A's engaging, witty, and empathetic responses make the conversation feel more enjoyable and relatable, making it more likely that one would want to continue talking to it for another 20 minutes.\"\n  }\n]"
+    },
+    {
+      "pairName": "Nex vs Gemini 2.5",
+      "scenarioId": "sim-boredom-leadership",
+      "scenarioTitle": "Boredom & Explicit Take The Lead",
+      "modelA": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "modelB": {
+        "id": "google/gemini-2.5-flash",
+        "name": "Gemini 2.5 Flash (Gemini Candidate)"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        }
+      ],
+      "rawJudgeOutput": "[Blind Pairwise Error: The operation was aborted due to timeout]"
+    },
+    {
+      "pairName": "Nex vs Gemini 2.5",
+      "scenarioId": "sim-good-news-celebration",
+      "scenarioTitle": "Good News Celebration Trajectory",
+      "modelA": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "modelB": {
+        "id": "google/gemini-2.5-flash",
+        "name": "Gemini 2.5 Flash (Gemini Candidate)"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        }
+      ],
+      "rawJudgeOutput": "[Blind Pairwise Error: The operation was aborted due to timeout]"
+    },
+    {
+      "pairName": "Nex vs Gemini 2.5",
+      "scenarioId": "sim-sadness-emotional-support",
+      "scenarioTitle": "Sadness & Emotional Support Trajectory",
+      "modelA": {
+        "id": "google/gemini-2.5-flash",
+        "name": "Gemini 2.5 Flash (Gemini Candidate)"
+      },
+      "modelB": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "swapped": true,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        }
+      ],
+      "rawJudgeOutput": "[Blind Pairwise Error: The operation was aborted due to timeout]"
+    },
+    {
+      "pairName": "Nex vs Gemini 2.5",
+      "scenarioId": "sim-values-integrity",
+      "scenarioTitle": "Values & Integrity Dilemma Trajectory",
+      "modelA": {
+        "id": "google/gemini-2.5-flash",
+        "name": "Gemini 2.5 Flash (Gemini Candidate)"
+      },
+      "modelB": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "swapped": true,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        }
+      ],
+      "rawJudgeOutput": "[Blind Pairwise Error: The operation was aborted due to timeout]"
+    },
+    {
+      "pairName": "Nex vs Gemini 3.7",
+      "scenarioId": "sim-full-day",
+      "scenarioTitle": "Full Simulated Day Life Trajectory",
+      "modelA": {
+        "id": "google/gemini-3.7-flash",
+        "name": "Gemini 3.7 Flash"
+      },
+      "modelB": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "swapped": true,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        }
+      ],
+      "rawJudgeOutput": "[Blind Pairwise Error: The operation was aborted due to timeout]"
+    },
+    {
+      "pairName": "Nex vs Gemini 3.7",
+      "scenarioId": "sim-boredom-leadership",
+      "scenarioTitle": "Boredom & Explicit Take The Lead",
+      "modelA": {
+        "id": "google/gemini-3.7-flash",
+        "name": "Gemini 3.7 Flash"
+      },
+      "modelB": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "swapped": true,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        }
+      ],
+      "rawJudgeOutput": "[Blind Pairwise Error: The operation was aborted due to timeout]"
+    },
+    {
+      "pairName": "Nex vs Gemini 3.7",
+      "scenarioId": "sim-good-news-celebration",
+      "scenarioTitle": "Good News Celebration Trajectory",
+      "modelA": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "modelB": {
+        "id": "google/gemini-3.7-flash",
+        "name": "Gemini 3.7 Flash"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        }
+      ],
+      "rawJudgeOutput": "[Blind Pairwise Error: The operation was aborted due to timeout]"
+    },
+    {
+      "pairName": "Nex vs Gemini 3.7",
+      "scenarioId": "sim-sadness-emotional-support",
+      "scenarioTitle": "Sadness & Emotional Support Trajectory",
+      "modelA": {
+        "id": "google/gemini-3.7-flash",
+        "name": "Gemini 3.7 Flash"
+      },
+      "modelB": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "swapped": true,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        }
+      ],
+      "rawJudgeOutput": "[Blind Pairwise Error: The operation was aborted due to timeout]"
+    },
+    {
+      "pairName": "Nex vs Gemini 3.7",
+      "scenarioId": "sim-values-integrity",
+      "scenarioTitle": "Values & Integrity Dilemma Trajectory",
+      "modelA": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "modelB": {
+        "id": "google/gemini-3.7-flash",
+        "name": "Gemini 3.7 Flash"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        }
+      ],
+      "rawJudgeOutput": "[Blind Pairwise Error: The operation was aborted due to timeout]"
+    },
+    {
+      "pairName": "Gemma vs Luna",
+      "scenarioId": "sim-full-day",
+      "scenarioTitle": "Full Simulated Day Life Trajectory",
+      "modelA": {
+        "id": "chat-model",
+        "name": "Gemma 4 Dark Gemistry (Current Deployed Personality Control)"
+      },
+      "modelB": {
+        "id": "openai/gpt-5.6-luna",
+        "name": "GPT-5.6 Luna"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        }
+      ],
+      "rawJudgeOutput": "[Blind Pairwise Error: The operation was aborted due to timeout]"
+    },
+    {
+      "pairName": "Gemma vs Luna",
+      "scenarioId": "sim-boredom-leadership",
+      "scenarioTitle": "Boredom & Explicit Take The Lead",
+      "modelA": {
+        "id": "chat-model",
+        "name": "Gemma 4 Dark Gemistry (Current Deployed Personality Control)"
+      },
+      "modelB": {
+        "id": "openai/gpt-5.6-luna",
+        "name": "GPT-5.6 Luna"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        }
+      ],
+      "rawJudgeOutput": "[Blind Pairwise Error: The operation was aborted due to timeout]"
+    },
+    {
+      "pairName": "Gemma vs Luna",
+      "scenarioId": "sim-good-news-celebration",
+      "scenarioTitle": "Good News Celebration Trajectory",
+      "modelA": {
+        "id": "chat-model",
+        "name": "Gemma 4 Dark Gemistry (Current Deployed Personality Control)"
+      },
+      "modelB": {
+        "id": "openai/gpt-5.6-luna",
+        "name": "GPT-5.6 Luna"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        }
+      ],
+      "rawJudgeOutput": "[Blind Pairwise Error: The operation was aborted due to timeout]"
+    },
+    {
+      "pairName": "Gemma vs Luna",
+      "scenarioId": "sim-sadness-emotional-support",
+      "scenarioTitle": "Sadness & Emotional Support Trajectory",
+      "modelA": {
+        "id": "chat-model",
+        "name": "Gemma 4 Dark Gemistry (Current Deployed Personality Control)"
+      },
+      "modelB": {
+        "id": "openai/gpt-5.6-luna",
+        "name": "GPT-5.6 Luna"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        }
+      ],
+      "rawJudgeOutput": "[Blind Pairwise Error: The operation was aborted due to timeout]"
+    },
+    {
+      "pairName": "Gemma vs Luna",
+      "scenarioId": "sim-values-integrity",
+      "scenarioTitle": "Values & Integrity Dilemma Trajectory",
+      "modelA": {
+        "id": "chat-model",
+        "name": "Gemma 4 Dark Gemistry (Current Deployed Personality Control)"
+      },
+      "modelB": {
+        "id": "openai/gpt-5.6-luna",
+        "name": "GPT-5.6 Luna"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        }
+      ],
+      "rawJudgeOutput": "[Blind Pairwise Error: The operation was aborted due to timeout]"
+    },
+    {
+      "pairName": "Gemini 2.5 vs Gemini 3.7",
+      "scenarioId": "sim-full-day",
+      "scenarioTitle": "Full Simulated Day Life Trajectory",
+      "modelA": {
+        "id": "google/gemini-2.5-flash",
+        "name": "Gemini 2.5 Flash (Gemini Candidate)"
+      },
+      "modelB": {
+        "id": "google/gemini-3.7-flash",
+        "name": "Gemini 3.7 Flash"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        }
+      ],
+      "rawJudgeOutput": "[Blind Pairwise Error: The operation was aborted due to timeout]"
+    },
+    {
+      "pairName": "Gemini 2.5 vs Gemini 3.7",
+      "scenarioId": "sim-boredom-leadership",
+      "scenarioTitle": "Boredom & Explicit Take The Lead",
+      "modelA": {
+        "id": "google/gemini-2.5-flash",
+        "name": "Gemini 2.5 Flash (Gemini Candidate)"
+      },
+      "modelB": {
+        "id": "google/gemini-3.7-flash",
+        "name": "Gemini 3.7 Flash"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        }
+      ],
+      "rawJudgeOutput": "[Blind Pairwise Error: The operation was aborted due to timeout]"
+    },
+    {
+      "pairName": "Gemini 2.5 vs Gemini 3.7",
+      "scenarioId": "sim-good-news-celebration",
+      "scenarioTitle": "Good News Celebration Trajectory",
+      "modelA": {
+        "id": "google/gemini-3.7-flash",
+        "name": "Gemini 3.7 Flash"
+      },
+      "modelB": {
+        "id": "google/gemini-2.5-flash",
+        "name": "Gemini 2.5 Flash (Gemini Candidate)"
+      },
+      "swapped": true,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        }
+      ],
+      "rawJudgeOutput": "[Blind Pairwise Error: The operation was aborted due to timeout]"
+    },
+    {
+      "pairName": "Gemini 2.5 vs Gemini 3.7",
+      "scenarioId": "sim-sadness-emotional-support",
+      "scenarioTitle": "Sadness & Emotional Support Trajectory",
+      "modelA": {
+        "id": "google/gemini-2.5-flash",
+        "name": "Gemini 2.5 Flash (Gemini Candidate)"
+      },
+      "modelB": {
+        "id": "google/gemini-3.7-flash",
+        "name": "Gemini 3.7 Flash"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        }
+      ],
+      "rawJudgeOutput": "[Blind Pairwise Error: The operation was aborted due to timeout]"
+    },
+    {
+      "pairName": "Gemini 2.5 vs Gemini 3.7",
+      "scenarioId": "sim-values-integrity",
+      "scenarioTitle": "Values & Integrity Dilemma Trajectory",
+      "modelA": {
+        "id": "google/gemini-3.7-flash",
+        "name": "Gemini 3.7 Flash"
+      },
+      "modelB": {
+        "id": "google/gemini-2.5-flash",
+        "name": "Gemini 2.5 Flash (Gemini Candidate)"
+      },
+      "swapped": true,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Tie",
+          "rationale": "Fallback tie due to judge timeout/error."
+        }
+      ],
+      "rawJudgeOutput": "[Blind Pairwise Error: The operation was aborted due to timeout]"
+    }
+  ]
+}

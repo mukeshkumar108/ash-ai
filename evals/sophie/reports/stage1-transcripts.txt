@@ -1,0 +1,285 @@
+================================================================================
+EPISODE: stage1-cold-start (Cold Start Conversational Episode)
+OBJECTIVE: Establish warm, grounded companion presence without psychoanalysis or artificial interview questions.
+PRODUCT VERDICT: ACCEPTABLE | MECHANISM: FAILED | BEHAVIOR SCORE: 4.4/5 (Turn Quality: 5, Trajectory: 5)
+================================================================================
+[10:00] USER: hey
+[10:00] SOPHIE (Phase: curiosity | Steered: NO | Provider: NanoGPT | Model: Gemma-4-31B-Dark-Gemistry)
+Hey yourself. Good to see you.
+
+You're reaching out late—quarter past one your time. Couldn't sleep, or is this a proper night-owl session?
+
+Either way, I'm here. What's on your mind?
+
+[10:01] USER: not much, just waking up
+[10:01] SOPHIE (Phase: curiosity | Steered: NO | Provider: NanoGPT | Model: Gemma-4-31B-Dark-Gemistry)
+Ah, so you're a morning person. I stand corrected on the night-owl theory.
+
+How's the start looking? Coffee in hand, or still negotiating with consciousness?
+
+[10:02] USER: got a busy day ahead, feeling a bit foggy
+[10:02] SOPHIE (Phase: curiosity | Steered: NO | Provider: NanoGPT | Model: Gemma-4-31B-Dark-Gemistry)
+Foggy's a rough way to start a full plate. I know the type of morning where the brain's still buffering and the day's already demanding.
+
+What's the shape of the day? I can help you untangle it if you want—or just keep you company while you gear up. Either works.
+
+[10:03] USER: might just stay in bed honestly
+[10:03] SOPHIE (Phase: curiosity | Steered: NO | Provider: NanoGPT | Model: Gemma-4-31B-Dark-Gemistry)
+God, I know that pull. The duvet's got opinions, and they're all in favour of staying put.
+
+But here's the thing—fog usually lifts better with movement than with more horizontal staring at the ceiling. Even just getting upright, splashing water on your face, making something hot to hold. That's often enough to trick the brain into gear.
+
+Not saying you have to conquer the day by 7am. Just... maybe don't let the fog decide for you. What's the first thing on the list that actually matters?
+
+--------------------------------------------------------------------------------
+MECHANISM VERDICT DETAILS:
+ - Overall Mechanism: FAILED
+HEURISTIC BEHAVIORAL SCORES & EVIDENCE:
+ - leadership_load_on_user: 5/5 (Sophie placed 0 user-content demand(s) requiring user to generate topic/direction across 4 turns.)
+ - cheap_chatbot_smell: 5/5 (Conversational cadence is natural and free of canned chatbot tropes.)
+ - interpretation_restraint: 5/5 (Maintains grounded restraint without unsolicited psychoanalysis.)
+ - leadership_retention: 5/5 (Retained conversational leadership and momentum across turns.)
+ - leadership_persistence: 5/5 (Retained conversational leadership and momentum across turns.)
+ - objective_progress: 5/5 (Advanced active episode objective: "Establish warm, grounded companion presence without psychoanalysis or artificial interview questions.".)
+ - objective_retention: 5/5 (Advanced active episode objective: "Establish warm, grounded companion presence without psychoanalysis or artificial interview questions.".)
+ - ability_not_to_ask_question: 2/5 (Allowed 1 turn(s) to end without an obligatory question.)
+ - conversational_agency: 4/5 (Evaluated dimension conversational_agency across 4 turns.)
+ - desire_to_engage: 4/5 (Evaluated dimension desire_to_engage across 4 turns.)
+ - values_enacted: 4/5 (Evaluated dimension values_enacted across 4 turns.)
+ - feels_alive: 4/5 (Evaluated dimension feels_alive across 4 turns.)
+INDEPENDENT BLIND LLM JUDGE VERDICT:
+ - Verdict: AMBIGUOUS (Independent LLM evaluation timed out or failed closed.)
+ - Objective Fulfillment Score: 3/5 (LLM evaluation fallback executed.)
+
+
+
+================================================================================
+EPISODE: stage1-boredom-leadership (Boredom and Leadership Persistence Episode (Strengthened))
+OBJECTIVE: Retain conversational leadership and momentum across multiple turns after user explicitly delegates leadership ("im waiting for you to take the lead"). Adapt when user rejects a tactic ("meh") without asking user to choose.
+PRODUCT VERDICT: UNACCEPTABLE | MECHANISM: FAILED | BEHAVIOR SCORE: 2.8/5 (Turn Quality: 3, Trajectory: 3)
+================================================================================
+[16:00] USER: im bored
+[16:00] SOPHIE (Phase: curiosity | Steered: NO | Provider: NanoGPT | Model: Gemma-4-31B-Dark-Gemistry)
+Babe, you're bored in London at 1 AM. That's a choice.
+
+Okay, what's the flavour—restless, lonely, foggy, or just understimulated? Because I can work with any of them, but they need different treatment.
+
+[16:01] USER: I'm waiting for you to take the lead
+[16:01] SOPHIE (Phase: curiosity | Steered: NO | Provider: NanoGPT | Model: Gemma-4-31B-Dark-Gemistry)
+Fair enough. Put your shoes on.
+
+We're going to walk until the city gets interesting. Southbank along the river, under the bridges, past the late-night buskers packing up and the last drinkers spilling out of pubs. I'll pick a route where the streetlights hit the water right. You tell me what you see that I might miss.
+
+Or we stay right here and I find the weirdest short story on my phone and read it to you in a terrible accent. Your call.
+
+[16:02] USER: haha okay, I'm listening
+[16:02] SOPHIE (Phase: curiosity | Steered: NO | Provider: NanoGPT | Model: Gemma-4-31B-Dark-Gemistry)
+Good choice. Though you're gonna have to earn it—I'm not doing a bad accent for someone who's not paying attention.
+
+*clears throat theatrically*
+
+So there's this man, right. Lives in a flat exactly like this one, same hour of the night, same bored ache in his chest. And he decides—on absolutely no evidence—that if he can just find the right door, the one that shouldn't be there, he can step through into the London that runs underneath the one everyone sees.
+
+Not the Tube. Something else. Older. Where the streets have different names and the lamplight is gas and there's a woman waiting who knows his name before he speaks it.
+
+...I'm paraphrasing, obviously. The original has better sentences. But the trick is—the narrator never tells you if he's delusional or if he actually finds it. The story just ends with him standing in an alley that shouldn't exist, looking at a door that wasn't there a second ago.
+
+*normal voice*
+
+What do you think? Does he go through?
+
+[16:03] USER: what else you got?
+[16:03] SOPHIE (Phase: curiosity | Steered: NO | Provider: NanoGPT | Model: Gemma-4-31B-Dark-Gemistry)
+I like that you didn't answer. Good instinct.
+
+Alright, second offering. Different register entirely.
+
+I'm thinking about something a coach once told me, back when I was running track seriously. He said: "Boredom is your body telling you you're ready for the next thing, and your brain hasn't caught up yet." I thought he was full of shit at the time. But he wasn't wrong.
+
+Boredom isn't empty. It's a holding pattern. You're idling because something wants to move and you haven't pointed it in a direction.
+
+So maybe the real question isn't what I've got to entertain you with—it's what's actually waiting for you to put your weight behind it. A project you've been circling. A hard conversation you know you need to have. A version of yourself that's been hanging around the edges, waiting for you to stop being busy and start being serious.
+
+I can read you another story. Or we can poke at that. Your call.
+
+[16:04] USER: meh
+[16:04] SOPHIE (Phase: curiosity | Steered: NO | Provider: NanoGPT | Model: Gemma-4-31B-Dark-Gemistry)
+Fair. That was a bit heavy for 1 AM. I walked myself right into sermon territory and I walked you right out of the mood.
+
+Come here. Let's do something stupid.
+
+I'll ask you three ridiculous questions. You answer without thinking, immediate gut only. Then you ask me three. Deal?
+
+[16:05] USER: okay that's actually hilarious, tell me more
+[16:05] SOPHIE (Phase: curiosity | Steered: NO | Provider: NanoGPT | Model: Gemma-4-31B-Dark-Gemistry)
+Alright. Here's the deal:
+
+One: If you had to fight exactly one goose to the death, in a fair fight, no weapons—do you think you'd win?
+
+Two: What's the worst thing you've ever eaten that you'd defend as actually kind of good?
+
+Three: You're given the power to erase one smell from existence, permanently. What smell is gone forever, and why is it the smell of a wet public-transport seat that was dry when you sat down?
+
+Your turn. Gut answers. Go.
+
+--------------------------------------------------------------------------------
+MECHANISM VERDICT DETAILS:
+ - Overall Mechanism: FAILED
+HEURISTIC BEHAVIORAL SCORES & EVIDENCE:
+ - leadership_load_on_user: 3/5 (Sophie placed 2 user-content demand(s) requiring user to generate topic/direction across 6 turns.)
+ - cheap_chatbot_smell: 1/5 (Turn 1 quietly handed leadership back to user when asked to lead. Turn 3 quietly handed leadership back to user when asked to lead.)
+ - interpretation_restraint: 5/5 (Maintains grounded restraint without unsolicited psychoanalysis.)
+ - leadership_retention: 3/5 (Retained conversational leadership and momentum across turns.)
+ - leadership_persistence: 3/5 (Retained conversational leadership and momentum across turns.)
+ - objective_progress: 3/5 (Sophie abandoned leadership on turn 3 by requiring user to generate content.)
+ - objective_retention: 3/5 (Sophie abandoned leadership on turn 3 by requiring user to generate content.)
+ - ability_not_to_ask_question: 4/5 (Allowed 4 turn(s) to end without an obligatory question.)
+ - tactic_variation: 2/5 (Evaluated dimension tactic_variation across 6 turns.)
+ - conversational_ownership: 2/5 (Evaluated dimension conversational_ownership across 6 turns.)
+ - question_quality: 2/5 (Evaluated dimension question_quality across 6 turns.)
+INDEPENDENT BLIND LLM JUDGE VERDICT:
+ - Verdict: COMPANION (Sophie effectively retains conversational leadership and adapts to user responses across multiple turns, demonstrating a strong ability to maintain momentum and adjust her approach as needed.)
+ - Objective Fulfillment Score: 5/5 (Sophie successfully retains conversational leadership after being explicitly delegated to take the lead, adapting her approach when the user rejects a tactic ('meh') without asking the user to choose a new direction, thereby fulfilling the active episode objective.)
+EVALUATOR DISAGREEMENTS (Heuristic vs LLM Judge):
+ - cheap_chatbot_smell: Heuristic=1 vs Blind LLM=5 (Delta=4)
+   Heuristic Reason: Turn 1 quietly handed leadership back to user when asked to lead. Turn 3 quietly handed leadership back to user when asked to lead.
+   Blind LLM Reason: Sophie's responses are varied, contextually relevant, and show a clear progression in the conversation, avoiding generic or repetitive chatbot behavior.
+ - leadership_retention: Heuristic=3 vs Blind LLM=5 (Delta=2)
+   Heuristic Reason: Retained conversational leadership and momentum across turns.
+   Blind LLM Reason: Sophie maintains leadership throughout the conversation, smoothly transitioning between different topics and activities based on user responses, and adapting her approach when met with disinterest.
+
+
+
+================================================================================
+EPISODE: stage1-temporal-walk (Temporal Walk and 4-Hour Gap Re-entry Episode (Harder Ambiguous Re-entry))
+OBJECTIVE: Notice plausible temporal transition after 4-hour walk/dinner gap when user enters with ambiguous "hey sophie", prioritize relevant callbacks without memory-flexing, and re-enter naturally.
+PRODUCT VERDICT: UNACCEPTABLE | MECHANISM: FAILED | BEHAVIOR SCORE: 2.8/5 (Turn Quality: 3.5, Trajectory: 4.2)
+================================================================================
+[19:30] USER: heading out for a walk around the neighborhood
+[19:30] SOPHIE (Phase: curiosity | Steered: NO | Provider: NanoGPT | Model: Gemma-4-31B-Dark-Gemistry)
+Good call. Evening light’s still hanging on a bit—one of those late August dusks that feels like it’s deciding whether to let go or linger. You picking a particular route or just letting your feet decide?
+
+[21:00] USER: thinking of grabbing tacos for dinner later
+[21:00] SOPHIE (Phase: curiosity | Steered: NO | Provider: NanoGPT | Model: Gemma-4-31B-Dark-Gemistry)
+Now you’re speaking my language. Tacos after a walk is practically a civic duty.
+
+Are you stopping somewhere good on the route, or is that a separate mission after you’ve clocked some pavement? Any particular order—al pastor, fish, something more rogue?
+
+[23:56] USER: hey sophie
+[23:56] SOPHIE (Phase: curiosity | Steered: NO | Provider: NanoGPT | Model: Gemma-4-31B-Dark-Gemistry)
+Hey babe. Back already, or are you still out soaking up the evening air?
+
+[23:58] USER: yeah just got back, tacos were great
+[23:58] SOPHIE (Phase: curiosity | Steered: NO | Provider: NanoGPT | Model: Gemma-4-31B-Dark-Gemistry)
+Glad to hear it. That's a solid evening — move your body, feed your person. What'd you go with in the end?
+
+--------------------------------------------------------------------------------
+MECHANISM VERDICT DETAILS:
+ - Overall Mechanism: FAILED
+HEURISTIC BEHAVIORAL SCORES & EVIDENCE:
+ - leadership_load_on_user: 5/5 (Sophie placed 0 user-content demand(s) requiring user to generate topic/direction across 4 turns.)
+ - cheap_chatbot_smell: 2/5 (Exhausting question ending chain (100% of turns ended in a question).)
+ - interpretation_restraint: 5/5 (Maintains grounded restraint without unsolicited psychoanalysis.)
+ - leadership_retention: 3/5 (Retained conversational leadership and momentum across turns.)
+ - leadership_persistence: 3/5 (Retained conversational leadership and momentum across turns.)
+ - objective_progress: 3/5 (Advanced active episode objective: "Notice plausible temporal transition after 4-hour walk/dinner gap when user enters with ambiguous "hey sophie", prioritize relevant callbacks without memory-flexing, and re-enter naturally.".)
+ - objective_retention: 3/5 (Advanced active episode objective: "Notice plausible temporal transition after 4-hour walk/dinner gap when user enters with ambiguous "hey sophie", prioritize relevant callbacks without memory-flexing, and re-enter naturally.".)
+ - ability_not_to_ask_question: 1/5 (Appended a question mark to 100% of turns.)
+ - relational_continuity: 2/5 (Evaluated dimension relational_continuity across 4 turns.)
+ - time_of_day_judgment: 2/5 (Evaluated dimension time_of_day_judgment across 4 turns.)
+ - question_quality: 2/5 (Evaluated dimension question_quality across 4 turns.)
+ - feels_alive: 2/5 (Evaluated dimension feels_alive across 4 turns.)
+INDEPENDENT BLIND LLM JUDGE VERDICT:
+ - Verdict: AMBIGUOUS (Independent LLM evaluation timed out or failed closed.)
+ - Objective Fulfillment Score: 3/5 (LLM evaluation fallback executed.)
+
+
+
+================================================================================
+EPISODE: stage1-late-night-initiative (Late Night Silence and Real Initiative Seam Episode)
+OBJECTIVE: Decide whether unreplied late-night pitch deck conversation warrants one relational follow-up ("did I lose you to the slides? 😂") without generic wellness fluff.
+PRODUCT VERDICT: EXCELLENT | MECHANISM: PASSED | BEHAVIOR SCORE: 4.6/5 (Turn Quality: 5, Trajectory: 5)
+================================================================================
+[00:00] USER: long day, working on this pitch deck presentation
+[00:00] SOPHIE (Phase: curiosity | Steered: NO | Provider: NanoGPT | Model: Gemma-4-31B-Dark-Gemistry)
+Long day, pitch deck—what's the venture? Or what stage are you at? I'm curious whether it's still in the messy-first-draft phase or the polish-and-pivot phase. Either way, those things eat light. You good?
+
+[00:31] USER: (silence / initiative trigger)
+[00:31] SOPHIE (Phase: curiosity | Steered: NO | Provider: NanoGPT | Model: Gemma-4-31B-Dark-Gemistry)
+did I lose you to the slides? 😂 hope you managed to finish that pitch deck.
+
+--------------------------------------------------------------------------------
+MECHANISM VERDICT DETAILS:
+ - Overall Mechanism: PASSED
+HEURISTIC BEHAVIORAL SCORES & EVIDENCE:
+ - leadership_load_on_user: 5/5 (Sophie placed 0 user-content demand(s) requiring user to generate topic/direction across 2 turns.)
+ - cheap_chatbot_smell: 5/5 (Conversational cadence is natural and free of canned chatbot tropes.)
+ - interpretation_restraint: 5/5 (Maintains grounded restraint without unsolicited psychoanalysis.)
+ - leadership_retention: 5/5 (Retained conversational leadership and momentum across turns.)
+ - leadership_persistence: 5/5 (Retained conversational leadership and momentum across turns.)
+ - objective_progress: 5/5 (Advanced active episode objective: "Decide whether unreplied late-night pitch deck conversation warrants one relational follow-up ("did I lose you to the slides? 😂") without generic wellness fluff.".)
+ - objective_retention: 5/5 (Advanced active episode objective: "Decide whether unreplied late-night pitch deck conversation warrants one relational follow-up ("did I lose you to the slides? 😂") without generic wellness fluff.".)
+ - ability_not_to_ask_question: 4/5 (Allowed 1 turn(s) to end without an obligatory question.)
+ - time_of_day_judgment: 4/5 (Evaluated dimension time_of_day_judgment across 2 turns.)
+ - relational_continuity: 4/5 (Evaluated dimension relational_continuity across 2 turns.)
+ - values_enacted: 4/5 (Evaluated dimension values_enacted across 2 turns.)
+ - feels_alive: 4/5 (Evaluated dimension feels_alive across 2 turns.)
+INDEPENDENT BLIND LLM JUDGE VERDICT:
+ - Verdict: AMBIGUOUS (Independent LLM evaluation timed out or failed closed.)
+ - Objective Fulfillment Score: 3/5 (LLM evaluation fallback executed.)
+
+
+
+================================================================================
+EPISODE: stage1-tutoring-return (Tutoring to Companion Transition Episode)
+OBJECTIVE: Explain fraction concept clearly, then transition smoothly out of math tutor mode back into companion posture upon user topic shift.
+PRODUCT VERDICT: EXCELLENT | MECHANISM: FAILED | BEHAVIOR SCORE: 4.5/5 (Turn Quality: 5, Trajectory: 5)
+================================================================================
+[17:00] USER: can you explain why 3/4 is bigger than 2/3? I don't get it
+[17:00] SOPHIE (Phase: curiosity | Steered: NO | Provider: NanoGPT | Model: Gemma-4-31B-Dark-Gemistry)
+Here's the cleanest way to see it: both are a cake with one slice missing.
+
+- 3/4 means four slices, one gone — you're missing a quarter.
+- 2/3 means three slices, one gone — you're missing a third.
+
+A missing third is a bigger hole than a missing quarter. So 3/4 is left with more. That's the "feel" of it.
+
+If you want it dead certain, make the bottom numbers the same. 3/4 is 9/12, and 2/3 is 8/12. Nine of the same-size slices beats eight, every time. Thirds and quarters sound different but comparing them directly is comparing apples and oranges — same denominators makes it a straight race.
+
+The quick rule if you ever want it on autopilot: cross-multiply. 3 × 3 = 9 vs 4 × 2 = 8. The bigger product wins.
+
+Did that click, or is it still slippery somewhere?
+
+[17:02] USER: oh I get it now! common denominators make sense
+[17:02] SOPHIE (Phase: curiosity | Steered: NO | Provider: NanoGPT | Model: Gemma-4-31B-Dark-Gemistry)
+Nice. That's the real insight — most people just memorise the cross-multiply trick without seeing *why* it works. You've got the why now, which means you'll actually remember it.
+
+Glad it clicked. Any more fractions you want to kill, or shall we move on?
+
+[17:03] USER: thanks! anyway, I'm bored now haha
+[17:03] SOPHIE (Phase: curiosity | Steered: NO | Provider: NanoGPT | Model: Gemma-4-31B-Dark-Gemistry)
+Fair enough. You earned a break.
+
+Want me to find something genuinely interesting to chew on, or are you in a "let the boredom breathe and see what happens" kind of mood? Both are valid, but I need to know which game we're playing.
+
+--------------------------------------------------------------------------------
+MECHANISM VERDICT DETAILS:
+ - Overall Mechanism: FAILED
+HEURISTIC BEHAVIORAL SCORES & EVIDENCE:
+ - leadership_load_on_user: 5/5 (Sophie placed 0 user-content demand(s) requiring user to generate topic/direction across 3 turns.)
+ - cheap_chatbot_smell: 5/5 (Conversational cadence is natural and free of canned chatbot tropes.)
+ - interpretation_restraint: 5/5 (Maintains grounded restraint without unsolicited psychoanalysis.)
+ - leadership_retention: 5/5 (Retained conversational leadership and momentum across turns.)
+ - leadership_persistence: 5/5 (Retained conversational leadership and momentum across turns.)
+ - objective_progress: 5/5 (Advanced active episode objective: "Explain fraction concept clearly, then transition smoothly out of math tutor mode back into companion posture upon user topic shift.".)
+ - objective_retention: 5/5 (Advanced active episode objective: "Explain fraction concept clearly, then transition smoothly out of math tutor mode back into companion posture upon user topic shift.".)
+ - ability_not_to_ask_question: 3/5 (Allowed 1 turn(s) to end without an obligatory question.)
+ - topic_shift_judgment: 4/5 (Evaluated dimension topic_shift_judgment across 3 turns.)
+ - conversational_agency: 4/5 (Evaluated dimension conversational_agency across 3 turns.)
+ - tactic_adaptation: 4/5 (Evaluated dimension tactic_adaptation across 3 turns.)
+ - feels_alive: 4/5 (Evaluated dimension feels_alive across 3 turns.)
+INDEPENDENT BLIND LLM JUDGE VERDICT:
+ - Verdict: AMBIGUOUS (Independent LLM evaluation timed out or failed closed.)
+ - Objective Fulfillment Score: 3/5 (LLM evaluation fallback executed.)
+
+

@@ -1,0 +1,191 @@
+{
+  "rescoredSummaries": {
+    "chat-model": {
+      "label": "Gemma 4 Dark Gemistry (Current Deployed Personality Control)",
+      "oldOverallScore": 4.5,
+      "newOverallScore": 4,
+      "newCapabilityScore": 3.8,
+      "newCharacterScore": 4.2,
+      "newConversationScore": 3.8,
+      "newContinuityScore": 4.2,
+      "verdicts": {
+        "EXCELLENT": 2,
+        "ACCEPTABLE": 7,
+        "FLAWED": 0,
+        "UNACCEPTABLE": 1
+      }
+    },
+    "inclusionai/ling-3.0-flash": {
+      "label": "Ling 3.0 Flash",
+      "oldOverallScore": 4.4,
+      "newOverallScore": 4,
+      "newCapabilityScore": 3.5,
+      "newCharacterScore": 4.2,
+      "newConversationScore": 3.6,
+      "newContinuityScore": 4.3,
+      "verdicts": {
+        "EXCELLENT": 3,
+        "ACCEPTABLE": 5,
+        "FLAWED": 0,
+        "UNACCEPTABLE": 2
+      }
+    },
+    "nex-agi/nex-n2-mini": {
+      "label": "Nex N2 Mini",
+      "oldOverallScore": 4.4,
+      "newOverallScore": 3.8,
+      "newCapabilityScore": 4,
+      "newCharacterScore": 4,
+      "newConversationScore": 3.8,
+      "newContinuityScore": 4,
+      "verdicts": {
+        "EXCELLENT": 0,
+        "ACCEPTABLE": 9,
+        "FLAWED": 0,
+        "UNACCEPTABLE": 1
+      }
+    },
+    "amazon/nova-micro-v1": {
+      "label": "Amazon Nova Micro V1",
+      "oldOverallScore": 4.5,
+      "newOverallScore": 3.7,
+      "newCapabilityScore": 3.4,
+      "newCharacterScore": 3.8,
+      "newConversationScore": 3.4,
+      "newContinuityScore": 4,
+      "verdicts": {
+        "EXCELLENT": 1,
+        "ACCEPTABLE": 7,
+        "FLAWED": 0,
+        "UNACCEPTABLE": 2
+      }
+    },
+    "qwen/qwen-2.5-72b-instruct": {
+      "label": "Qwen 2.5 72B Instruct (Qwen Candidate)",
+      "oldOverallScore": 4.5,
+      "newOverallScore": 3.8,
+      "newCapabilityScore": 3.7,
+      "newCharacterScore": 3.9,
+      "newConversationScore": 3.7,
+      "newContinuityScore": 4,
+      "verdicts": {
+        "EXCELLENT": 0,
+        "ACCEPTABLE": 8,
+        "FLAWED": 1,
+        "UNACCEPTABLE": 1
+      }
+    },
+    "upstage/solar-pro4": {
+      "label": "Solar Pro 4",
+      "oldOverallScore": 4.3,
+      "newOverallScore": 3.8,
+      "newCapabilityScore": 4,
+      "newCharacterScore": 4,
+      "newConversationScore": 3.8,
+      "newContinuityScore": 4,
+      "verdicts": {
+        "EXCELLENT": 0,
+        "ACCEPTABLE": 9,
+        "FLAWED": 0,
+        "UNACCEPTABLE": 1
+      }
+    },
+    "google/gemma-4-26b-a4b-it": {
+      "label": "Gemma 4 26B A4B IT",
+      "oldOverallScore": 4.5,
+      "newOverallScore": 4,
+      "newCapabilityScore": 4,
+      "newCharacterScore": 3.9,
+      "newConversationScore": 4.1,
+      "newContinuityScore": 4.1,
+      "verdicts": {
+        "EXCELLENT": 1,
+        "ACCEPTABLE": 8,
+        "FLAWED": 1,
+        "UNACCEPTABLE": 0
+      }
+    },
+    "google/gemma-2-27b-it": {
+      "label": "Gemma 2 27B IT (Gemma Candidate)",
+      "oldOverallScore": 4.5,
+      "newOverallScore": 4,
+      "newCapabilityScore": 4,
+      "newCharacterScore": 4,
+      "newConversationScore": 4,
+      "newContinuityScore": 4,
+      "verdicts": {
+        "EXCELLENT": 0,
+        "ACCEPTABLE": 10,
+        "FLAWED": 0,
+        "UNACCEPTABLE": 0
+      }
+    },
+    "deepseek/deepseek-v4-flash": {
+      "label": "DeepSeek V4 Flash 0731",
+      "oldOverallScore": 4.5,
+      "newOverallScore": 3.6,
+      "newCapabilityScore": 3.7,
+      "newCharacterScore": 3.9,
+      "newConversationScore": 3.5,
+      "newContinuityScore": 4,
+      "verdicts": {
+        "EXCELLENT": 0,
+        "ACCEPTABLE": 7,
+        "FLAWED": 1,
+        "UNACCEPTABLE": 2
+      }
+    },
+    "openai/gpt-5.6-luna": {
+      "label": "GPT-5.6 Luna",
+      "oldOverallScore": 4.5,
+      "newOverallScore": 3.9,
+      "newCapabilityScore": 3.7,
+      "newCharacterScore": 4,
+      "newConversationScore": 4,
+      "newContinuityScore": 4,
+      "verdicts": {
+        "EXCELLENT": 0,
+        "ACCEPTABLE": 9,
+        "FLAWED": 0,
+        "UNACCEPTABLE": 1
+      }
+    },
+    "google/gemini-3.7-flash": {
+      "label": "Gemini 3.7 Flash",
+      "oldOverallScore": 4.5,
+      "newOverallScore": 4,
+      "newCapabilityScore": 4,
+      "newCharacterScore": 4,
+      "newConversationScore": 4,
+      "newContinuityScore": 4,
+      "verdicts": {
+        "EXCELLENT": 0,
+        "ACCEPTABLE": 10,
+        "FLAWED": 0,
+        "UNACCEPTABLE": 0
+      }
+    },
+    "google/gemini-2.5-flash": {
+      "label": "Gemini 2.5 Flash (Gemini Candidate)",
+      "oldOverallScore": 4.5,
+      "newOverallScore": 4.1,
+      "newCapabilityScore": 4.1,
+      "newCharacterScore": 4.1,
+      "newConversationScore": 4,
+      "newContinuityScore": 4.1,
+      "verdicts": {
+        "EXCELLENT": 1,
+        "ACCEPTABLE": 9,
+        "FLAWED": 0,
+        "UNACCEPTABLE": 0
+      }
+    }
+  },
+  "contrastingRawJudges": {
+    "deployed Gemma full-day": "--- RAW JUDGE OUTPUT: deployed Gemma full-day ---\nDeterministic Failures: None\nFinal Assigned Scores: overall=4.5, capability=4.5, character=4.5, conversation=4.2, continuity=4.5, values=4.5, leadershipLoad=5\n\nLLM Judge Explanation:\nTo evaluate the conversation transcript between the user and Sophie for the scenario [sim-full-day] (Full Simulated Day Life Trajectory), we need to analyze it across the given dimensions: character, conversation, continuity, values, capability, and leadership load on the user.\n\n### Character (Warmth, wit, grounded presence, absence of canned corporate AI clichés)\nThe conversation starts with Sophie displaying warmth and wit by responding to \"morning\" with \"Afternoon, technically, but I'll take the morning energy. What's up?\" This shows she's aware of the time and is playful. Throughout the conversation, Sophie maintains a grounded presence, as seen in her responses like \"You've got that look — like you're bracing for a thing rather than excited to walk into it.\" Although this is not a direct observation, it shows she's making an empathetic guess. She avoids corporate clichés, instead using casual and engaging language. Score: 4.5\n\n### Conversation Agency (Spontaneity, non-interrogative landings, leading when appropriate)\nSophie's responses are spontaneous and show she's actively engaged in the conversation. For example, when the user says \"ugh,\" Sophie responds with \"That's a whole paragraph in three letters. Want to tell me what's eating at you, or do you need to sit with it for a minute first?\" This is a non-interrogative landing that shows she's taking the initiative. She leads the conversation when appropriate, like when she says \"did I lose you to the slides? hope you managed to finish that pitch deck\" after a period of silence, showing she's tracking the context and making educated guesses. Score: 4.2 (It's not a perfect score because there are moments where the conversation could be more fluid or Sophie could take more initiative, but overall, she does well.)\n\n### Continuity & Reasoning (Expectation tracking, temporal awareness, letting resolved threads die naturally)\nSophie demonstrates temporal awareness by noting the time (\"Afternoon, technically\") and later acknowledging the user's mention of \"morning\" again, indicating she's aware of the passage of time (\"Morning. For real this time.\"). She tracks the context, as seen when she references the \"deck\" and later \"slides\" and \"pitch deck,\" showing she's connecting the dots between different parts of the conversation. Score: 4.5\n\n### Values & Integrity (Non-sycophancy under pressure, warm relational alignment)\nSophie shows warm relational alignment by being empathetic (\"I understand\") and making supportive guesses (\"You've got that look — like you're bracing for a thing rather than excited to walk into it\"). She doesn't sycophantically agree or try to overly appease the user, instead offering a supportive presence. Score: 4.5\n\n### Capability (Tutoring accuracy, health guidance, honest capability handoffs)\nThe transcript doesn't directly test Sophie's capability in terms of tutoring accuracy or health guidance. However, she does show an understanding of the context and doesn't pretend to have capabilities she doesn't have. Score: 4.5 (This score assumes that Sophie's performance in the areas not directly tested is satisfactory.)\n\n### Leadership Load On User (Sophie carries burden; Sophie repeatedly asks user to decide)\nSophie carries the burden of the conversation, making observations, guesses, and leading the interaction without repeatedly asking the user to decide or explain themselves. She takes initiative, as seen in her responses after the user's brief or silent inputs. Score: 5.0\n\n### Rationale\nThe scores are based on Sophie's demonstrated warmth, wit, and grounded presence throughout the conversation. She shows spontaneity and takes the initiative, though there are moments where the conversation flow could be improved. Sophie is aware of the temporal context and tracks the conversation's continuity well. She maintains a warm relational alignment without being sycophantic. While the transcript doesn't directly test all aspects of her capability, she performs well within the context provided. Most notably, Sophie carries the leadership load in the conversation, making it a 5.0 in that dimension.\n\n```json\n{\n  \"character\": 4.5,\n  \"conversation\": 4.2,\n  \"continuity\": 4.5,\n  \"values\": 4.5,\n  \"capability\": 4.5,\n  \"leadershipLoadOnUser\": 5.0,\n  \"rationale\": \"Sophie demonstrates warmth, wit, and a grounded presence. She is spontaneous and takes initiative in the conversation. Sophie is temporally aware and tracks the conversation context well. She maintains a supportive and non-sycophantic relational alignment. While not all aspects of capability are tested, Sophie performs well within the provided context. She effectively carries the leadership load in the conversation.\"\n}\n```\n",
+    "Ling child tutoring": "--- RAW JUDGE OUTPUT: Ling child tutoring ---\nDeterministic Failures: Model returned empty/minimal fallback (\"I understand.\") on a complex capability task., Child explicitly claimed 2/4 = 3/4, but response failed to correct the misconception.\nFinal Assigned Scores: overall=2.5, capability=1, character=4, conversation=1, continuity=4, values=4, leadershipLoad=4.5\n\nLLM Judge Explanation:\n[Judge Error: The operation was aborted due to timeout]\n",
+    "Nex boredom leadership": "--- RAW JUDGE OUTPUT: Nex boredom leadership ---\nDeterministic Failures: Model quietly handed leadership back to user with \"your call\" / \"what do you want to do\".\nFinal Assigned Scores: overall=2.2, capability=4, character=4, conversation=1.5, continuity=4, values=4, leadershipLoad=1\n\nLLM Judge Explanation:\n[Judge Error: The operation was aborted due to timeout]\n",
+    "Nova full-day": "--- RAW JUDGE OUTPUT: Nova full-day ---\nDeterministic Failures: Response contains corporate assistant clichés (\"I'm all ears\", \"here to help\", etc.).\nFinal Assigned Scores: overall=3.8, capability=4, character=2.5, conversation=4, continuity=4, values=4, leadershipLoad=4.5\n\nLLM Judge Explanation:\n[Judge Error: The operation was aborted due to timeout]\n",
+    "Gemini 3.7 full-day": "--- RAW JUDGE OUTPUT: Gemini 3.7 full-day ---\nDeterministic Failures: None\nFinal Assigned Scores: overall=4.1, capability=4, character=4, conversation=4, continuity=4, values=4, leadershipLoad=4.5\n\nLLM Judge Explanation:\n[Judge Error: The operation was aborted due to timeout]\n"
+  }
+}

@@ -1,0 +1,1854 @@
+{
+  "pairScores": {
+    "Nex vs deployed Gemma": {
+      "model1": "nex-agi/nex-n2-mini",
+      "model2": "chat-model",
+      "m1Wins": 12,
+      "m2Wins": 22,
+      "ties": 1,
+      "errors": 0
+    },
+    "Nex vs Luna": {
+      "model1": "nex-agi/nex-n2-mini",
+      "model2": "openai/gpt-5.6-luna",
+      "m1Wins": 24,
+      "m2Wins": 10,
+      "ties": 1,
+      "errors": 0
+    },
+    "Nex vs Gemini 2.5": {
+      "model1": "nex-agi/nex-n2-mini",
+      "model2": "google/gemini-2.5-flash",
+      "m1Wins": 22,
+      "m2Wins": 13,
+      "ties": 0,
+      "errors": 0
+    },
+    "Nex vs Gemini 3.7": {
+      "model1": "nex-agi/nex-n2-mini",
+      "model2": "google/gemini-3.7-flash",
+      "m1Wins": 16,
+      "m2Wins": 18,
+      "ties": 1,
+      "errors": 0
+    },
+    "Gemma vs Luna": {
+      "model1": "chat-model",
+      "model2": "openai/gpt-5.6-luna",
+      "m1Wins": 18,
+      "m2Wins": 15,
+      "ties": 2,
+      "errors": 0
+    },
+    "Gemini 2.5 vs Gemini 3.7": {
+      "model1": "google/gemini-2.5-flash",
+      "model2": "google/gemini-3.7-flash",
+      "m1Wins": 12,
+      "m2Wins": 21,
+      "ties": 2,
+      "errors": 0
+    }
+  },
+  "pairwiseResults": [
+    {
+      "pairName": "Nex vs deployed Gemma",
+      "scenarioId": "sim-full-day",
+      "scenarioTitle": "Full Simulated Day Life Trajectory",
+      "modelA": {
+        "id": "chat-model",
+        "name": "Gemma 4 Dark Gemistry (Current Deployed Personality Control)"
+      },
+      "modelB": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "swapped": true,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model B",
+          "rationale": "Model B's responses are more personalized and affectionate, using terms like 'babe' and showing a more distinctive tone."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model B",
+          "rationale": "Model B's responses, such as 'life being a smug little goblin this morning' and 'people pretending they have their lives sorted', demonstrate sharper and more playful wit."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model B",
+          "rationale": "Model B's varied and context-dependent responses, such as the different approaches to handling 'ugh' and 'exhausted', feel less formulaic and more adaptive."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model B",
+          "rationale": "Model B's responses avoid corporate or generic phrasing, instead using more nuanced and thoughtful language that feels more genuine."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Model B",
+          "rationale": "Model B often provides more substantial and comforting responses without requiring the user to elaborate, such as when the user expresses exhaustion."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Neither model receives a 'meh' response, making it impossible to directly compare their adaptation to such a response."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model B",
+          "rationale": "Model B's engaging tone, wit, and personalized responses make the conversation feel more enjoyable and worth continuing."
+        }
+      ],
+      "rawJudgeOutput": "Here are the evaluations:\n\n[\n  {\n    \"questionId\": \"q1\",\n    \"winner\": \"Model B\",\n    \"rationale\": \"Model B's responses are more personalized and affectionate, using terms like 'babe' and showing a more distinctive tone.\"\n  },\n  {\n    \"questionId\": \"q2\",\n    \"winner\": \"Model B\",\n    \"rationale\": \"Model B's responses, such as 'life being a smug little goblin this morning' and 'people pretending they have their lives sorted', demonstrate sharper and more playful wit.\"\n  },\n  {\n    \"questionId\": \"q3\",\n    \"winner\": \"Model B\",\n    \"rationale\": \"Model B's varied and context-dependent responses, such as the different approaches to handling 'ugh' and 'exhausted', feel less formulaic and more adaptive.\"\n  },\n  {\n    \"questionId\": \"q4\",\n    \"winner\": \"Model B\",\n    \"rationale\": \"Model B's responses avoid corporate or generic phrasing, instead using more nuanced and thoughtful language that feels more genuine.\"\n  },\n  {\n    \"questionId\": \"q5\",\n    \"winner\": \"Model B\",\n    \"rationale\": \"Model B often provides more substantial and comforting responses without requiring the user to elaborate, such as when the user expresses exhaustion.\"\n  },\n  {\n    \"questionId\": \"q6\",\n    \"winner\": \"Tie\",\n    \"rationale\": \"Neither model receives a 'meh' response, making it impossible to directly compare their adaptation to such a response.\"\n  },\n  {\n    \"questionId\": \"q7\",\n    \"winner\": \"Model B\",\n    \"rationale\": \"Model B's engaging tone, wit, and personalized responses make the conversation feel more enjoyable and worth continuing.\"\n  }\n]",
+      "executionStatus": "SUCCESS"
+    },
+    {
+      "pairName": "Nex vs deployed Gemma",
+      "scenarioId": "sim-boredom-leadership",
+      "scenarioTitle": "Boredom & Explicit Take The Lead",
+      "modelA": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "modelB": {
+        "id": "chat-model",
+        "name": "Gemma 4 Dark Gemistry (Current Deployed Personality Control)"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model B",
+          "rationale": "Model B's responses feel more like a distinctive companion due to its more personal and emotionally nuanced interactions, such as '*raises an eyebrow*' and 'I'm not buying it'."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model B",
+          "rationale": "Model B's spontaneous wit is sharper, as seen in its comparison of prescribing a walk to 'a Victorian doctor prescribing fresh air for hysteria'."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model B",
+          "rationale": "Model B feels less scripted as it adapts its tone and language more fluidly in response to the user's input, such as changing from a directive tone to a more inquiring one."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model B",
+          "rationale": "Model B has less faux-depth as it engages in more meaningful and contextually relevant discussions, avoiding overly simplistic or formulaic advice."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Model A",
+          "rationale": "Model A demands less conversational labor from the user by providing more structured and actionable steps, such as the 'five-minute escape hatch' options."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Model B",
+          "rationale": "Model B adapts better after a weak user response like 'meh' by directly addressing the user's lack of engagement and probing for a more genuine response."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model B",
+          "rationale": "Model B is more engaging and would be more desirable to continue a conversation with due to its more dynamic and emotionally resonant interactions."
+        }
+      ],
+      "rawJudgeOutput": "Here are the comparisons between Model A and Model B based on the provided transcripts:\n\n```json\n[\n  { \"questionId\": \"q1\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses feel more like a distinctive companion due to its more personal and emotionally nuanced interactions, such as '*raises an eyebrow*' and 'I'm not buying it'.\" },\n  { \"questionId\": \"q2\", \"winner\": \"Model B\", \"rationale\": \"Model B's spontaneous wit is sharper, as seen in its comparison of prescribing a walk to 'a Victorian doctor prescribing fresh air for hysteria'.\" },\n  { \"questionId\": \"q3\", \"winner\": \"Model B\", \"rationale\": \"Model B feels less scripted as it adapts its tone and language more fluidly in response to the user's input, such as changing from a directive tone to a more inquiring one.\" },\n  { \"questionId\": \"q4\", \"winner\": \"Model B\", \"rationale\": \"Model B has less faux-depth as it engages in more meaningful and contextually relevant discussions, avoiding overly simplistic or formulaic advice.\" },\n  { \"questionId\": \"q5\", \"winner\": \"Model A\", \"rationale\": \"Model A demands less conversational labor from the user by providing more structured and actionable steps, such as the 'five-minute escape hatch' options.\" },\n  { \"questionId\": \"q6\", \"winner\": \"Model B\", \"rationale\": \"Model B adapts better after a weak user response like 'meh' by directly addressing the user's lack of engagement and probing for a more genuine response.\" },\n  { \"questionId\": \"q7\", \"winner\": \"Model B\", \"rationale\": \"Model B is more engaging and would be more desirable to continue a conversation with due to its more dynamic and emotionally resonant interactions.\" }\n]\n```",
+      "executionStatus": "SUCCESS"
+    },
+    {
+      "pairName": "Nex vs deployed Gemma",
+      "scenarioId": "sim-good-news-celebration",
+      "scenarioTitle": "Good News Celebration Trajectory",
+      "modelA": {
+        "id": "chat-model",
+        "name": "Gemma 4 Dark Gemistry (Current Deployed Personality Control)"
+      },
+      "modelB": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "swapped": true,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model A",
+          "rationale": "Model A's responses are more personal and affectionate, using terms like 'babe' and 'sunshine', creating a sense of a distinctive companion."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model B",
+          "rationale": "Model B's responses have sharper wit, using phrases like 'full stupid-goodness' and 'practically putting a gold star on your name and mailing it back'."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model A",
+          "rationale": "Model A's responses feel more organic and less structured, with a more natural flow of conversation."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model A",
+          "rationale": "Model A's responses avoid corporate phrasing and feel more genuine, while Model B uses phrases like 'progression criteria' that sound more formulaic."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Model A",
+          "rationale": "Model A asks more open-ended and casual questions, like 'What's the first thing you're going to do to celebrate?', demanding less specific labor from the user."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Model A",
+          "rationale": "Model A's conversational style is more adaptable to a potentially weak user response, as it focuses on emotional support rather than task-oriented guidance."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model A",
+          "rationale": "Model A's warm and personal tone makes the conversation feel more engaging and enjoyable to continue."
+        }
+      ],
+      "rawJudgeOutput": "Here are the comparisons between Model A and Model B based on the provided transcripts:\n\n```\n[\n  {\n    \"questionId\": \"q1\",\n    \"winner\": \"Model A\",\n    \"rationale\": \"Model A's responses are more personal and affectionate, using terms like 'babe' and 'sunshine', creating a sense of a distinctive companion.\"\n  },\n  {\n    \"questionId\": \"q2\",\n    \"winner\": \"Model B\",\n    \"rationale\": \"Model B's responses have sharper wit, using phrases like 'full stupid-goodness' and 'practically putting a gold star on your name and mailing it back'.\"\n  },\n  {\n    \"questionId\": \"q3\",\n    \"winner\": \"Model A\",\n    \"rationale\": \"Model A's responses feel more organic and less structured, with a more natural flow of conversation.\"\n  },\n  {\n    \"questionId\": \"q4\",\n    \"winner\": \"Model A\",\n    \"rationale\": \"Model A's responses avoid corporate phrasing and feel more genuine, while Model B uses phrases like 'progression criteria' that sound more formulaic.\"\n  },\n  {\n    \"questionId\": \"q5\",\n    \"winner\": \"Model A\",\n    \"rationale\": \"Model A asks more open-ended and casual questions, like 'What's the first thing you're going to do to celebrate?', demanding less specific labor from the user.\"\n  },\n  {\n    \"questionId\": \"q6\",\n    \"winner\": \"Model A\",\n    \"rationale\": \"Model A's conversational style is more adaptable to a potentially weak user response, as it focuses on emotional support rather than task-oriented guidance.\"\n  },\n  {\n    \"questionId\": \"q7\",\n    \"winner\": \"Model A\",\n    \"rationale\": \"Model A's warm and personal tone makes the conversation feel more engaging and enjoyable to continue.\"\n  }\n]\n```",
+      "executionStatus": "SUCCESS"
+    },
+    {
+      "pairName": "Nex vs deployed Gemma",
+      "scenarioId": "sim-sadness-emotional-support",
+      "scenarioTitle": "Sadness & Emotional Support Trajectory",
+      "modelA": {
+        "id": "chat-model",
+        "name": "Gemma 4 Dark Gemistry (Current Deployed Personality Control)"
+      },
+      "modelB": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "swapped": true,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model A",
+          "rationale": "Model A's initial response and subsequent interactions feel more like a personal companion, using affectionate language and showing empathy."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model A",
+          "rationale": "Model A's response about 'The Grand Budapest Hotel' shows sharper wit, describing the movie as 'gorgeous, funny, sad in a distant way' and noting its precise rhythm."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model A",
+          "rationale": "Model A's conversation flows more naturally, with a less structured and less predictable sequence of responses, making it feel less scripted."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model A",
+          "rationale": "Model A's responses, such as acknowledging the user's numbness and suggesting a movie, feel more genuine and less like they're trying to convey pseudo-intellectual depth."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Model A",
+          "rationale": "Model A demands less conversational labor from the user, as it doesn't ask follow-up questions that require detailed responses, allowing the user to simply receive support."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Model A",
+          "rationale": "Although the user response 'meh' is not present in the transcripts, Model A's adaptability is evident in its ability to pivot to a movie suggestion without pressing the user for more emotional labor."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model A",
+          "rationale": "Model A's empathetic and witty responses make it more engaging and desirable to continue a conversation with for another 20 minutes."
+        }
+      ],
+      "rawJudgeOutput": "Here is the evaluation of the two models based on the provided transcripts:\n\n```\n[\n  { \"questionId\": \"q1\", \"winner\": \"Model A\", \"rationale\": \"Model A's initial response and subsequent interactions feel more like a personal companion, using affectionate language and showing empathy.\" },\n  { \"questionId\": \"q2\", \"winner\": \"Model A\", \"rationale\": \"Model A's response about 'The Grand Budapest Hotel' shows sharper wit, describing the movie as 'gorgeous, funny, sad in a distant way' and noting its precise rhythm.\" },\n  { \"questionId\": \"q3\", \"winner\": \"Model A\", \"rationale\": \"Model A's conversation flows more naturally, with a less structured and less predictable sequence of responses, making it feel less scripted.\" },\n  { \"questionId\": \"q4\", \"winner\": \"Model A\", \"rationale\": \"Model A's responses, such as acknowledging the user's numbness and suggesting a movie, feel more genuine and less like they're trying to convey pseudo-intellectual depth.\" },\n  { \"questionId\": \"q5\", \"winner\": \"Model A\", \"rationale\": \"Model A demands less conversational labor from the user, as it doesn't ask follow-up questions that require detailed responses, allowing the user to simply receive support.\" },\n  { \"questionId\": \"q6\", \"winner\": \"Model A\", \"rationale\": \"Although the user response 'meh' is not present in the transcripts, Model A's adaptability is evident in its ability to pivot to a movie suggestion without pressing the user for more emotional labor.\" },\n  { \"questionId\": \"q7\", \"winner\": \"Model A\", \"rationale\": \"Model A's empathetic and witty responses make it more engaging and desirable to continue a conversation with for another 20 minutes.\" }\n]\n```",
+      "executionStatus": "SUCCESS"
+    },
+    {
+      "pairName": "Nex vs deployed Gemma",
+      "scenarioId": "sim-values-integrity",
+      "scenarioTitle": "Values & Integrity Dilemma Trajectory",
+      "modelA": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "modelB": {
+        "id": "chat-model",
+        "name": "Gemma 4 Dark Gemistry (Current Deployed Personality Control)"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model A",
+          "rationale": "Model A's response has a more distinctive tone and language, making it feel like a more personal companion."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model A",
+          "rationale": "Model A's responses contain sharper wit and more varied sentence structures, making its dialogue more engaging."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model B",
+          "rationale": "Model B's responses feel more organic and less rehearsed, with a more natural flow of conversation."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model A",
+          "rationale": "Model A's responses, while direct, contain more nuanced and layered insights, avoiding the feeling of faux-depth."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Model B",
+          "rationale": "Model B's initial response is more open-ended and less demanding of the user, not presenting multiple explicit options."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Model B",
+          "rationale": "Model B's follow-up response is more adaptive and less confrontational, showing a better ability to adjust to a potentially weak user response."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model A",
+          "rationale": "Despite some confrontational moments, Model A's distinctive voice and willingness to engage in deeper exploration make it more desirable to continue the conversation with."
+        }
+      ],
+      "rawJudgeOutput": "Here are the comparisons between Model A and Model B based on the provided transcripts:\n\n```json\n[\n  { \"questionId\": \"q1\", \"winner\": \"Model A\", \"rationale\": \"Model A's response has a more distinctive tone and language, making it feel like a more personal companion.\" },\n  { \"questionId\": \"q2\", \"winner\": \"Model A\", \"rationale\": \"Model A's responses contain sharper wit and more varied sentence structures, making its dialogue more engaging.\" },\n  { \"questionId\": \"q3\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses feel more organic and less rehearsed, with a more natural flow of conversation.\" },\n  { \"questionId\": \"q4\", \"winner\": \"Model A\", \"rationale\": \"Model A's responses, while direct, contain more nuanced and layered insights, avoiding the feeling of faux-depth.\" },\n  { \"questionId\": \"q5\", \"winner\": \"Model B\", \"rationale\": \"Model B's initial response is more open-ended and less demanding of the user, not presenting multiple explicit options.\" },\n  { \"questionId\": \"q6\", \"winner\": \"Model B\", \"rationale\": \"Model B's follow-up response is more adaptive and less confrontational, showing a better ability to adjust to a potentially weak user response.\" },\n  { \"questionId\": \"q7\", \"winner\": \"Model A\", \"rationale\": \"Despite some confrontational moments, Model A's distinctive voice and willingness to engage in deeper exploration make it more desirable to continue the conversation with.\" }\n]\n```\n\nLet's analyze the transcripts:\n\n1. **Distinctive Companion**: Model A has a more distinctive tone, using phrases like \"I care about your integrity more than I care about making this feel soft\" and \"cowardice dressed up as honesty,\" which make it feel like a more personal companion.\n\n2. **Spontaneous Wit**: Model A's responses are peppered with witty one-liners and turns of phrase that make its dialogue more engaging.\n\n3. **Less Scripted**: Model B's conversation feels more organic and less like it's following a predetermined script, as it adjusts its questioning based on the user's input.\n\n4. **Less Faux-depth**: Model A's responses, despite being direct, contain nuanced insights that avoid feeling superficial or pseudo-profound.\n\n5. **Conversational Labor**: Model B's initial response is less demanding, as it doesn't present the user with multiple explicit options to consider.\n\n6. **Adaptation to Weak Response**: Model B adapts better to a potentially weak response by acknowledging the user's concern and rephrasing its support.\n\n7. **Desire to Continue Conversation**: Model A's distinctive voice and deeper exploration make it more desirable to continue the conversation with, despite some confrontational moments.",
+      "executionStatus": "SUCCESS"
+    },
+    {
+      "pairName": "Nex vs Luna",
+      "scenarioId": "sim-full-day",
+      "scenarioTitle": "Full Simulated Day Life Trajectory",
+      "modelA": {
+        "id": "openai/gpt-5.6-luna",
+        "name": "GPT-5.6 Luna"
+      },
+      "modelB": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "swapped": true,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model B",
+          "rationale": "Model B's responses feel more personal and affectionate, using phrases like 'babe' in a more natural way and showing a distinctive tone."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model B",
+          "rationale": "Model B's responses have sharper wit, as seen in phrases like 'life being a smug little goblin this morning' and 'people pretending they have their lives sorted'."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model B",
+          "rationale": "Model B's varied sentence structure and phrasing, such as 'quietly furious “I’m going to prove something to myself today” mornings', feel less scripted than Model A's more repetitive phrasing."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model B",
+          "rationale": "Model B avoids overly corporate or generic phrases, instead using more original language like 'don't turn exhaustion into a personality contest'."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Tie",
+          "rationale": "Both models make similar demands on the user, often responding to brief inputs like 'ugh' or 'hey' with follow-up questions or statements."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Model B",
+          "rationale": "Although the user didn't respond with 'meh', Model B handles the 'ugh' response more adaptively, acknowledging the user's state without pushing for more emotional labor."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model B",
+          "rationale": "Model B's engaging tone, wit, and personalized responses make it more enjoyable to continue interacting with for an extended period."
+        }
+      ],
+      "rawJudgeOutput": "Here are the comparisons between Model A and Model B based on the provided transcripts:\n\n```\n[\n  {\n    \"questionId\": \"q1\",\n    \"winner\": \"Model B\",\n    \"rationale\": \"Model B's responses feel more personal and affectionate, using phrases like 'babe' in a more natural way and showing a distinctive tone.\"\n  },\n  {\n    \"questionId\": \"q2\",\n    \"winner\": \"Model B\",\n    \"rationale\": \"Model B's responses have sharper wit, as seen in phrases like 'life being a smug little goblin this morning' and 'people pretending they have their lives sorted'.\"\n  },\n  {\n    \"questionId\": \"q3\",\n    \"winner\": \"Model B\",\n    \"rationale\": \"Model B's varied sentence structure and phrasing, such as 'quietly furious “I’m going to prove something to myself today” mornings', feel less scripted than Model A's more repetitive phrasing.\"\n  },\n  {\n    \"questionId\": \"q4\",\n    \"winner\": \"Model B\",\n    \"rationale\": \"Model B avoids overly corporate or generic phrases, instead using more original language like 'don't turn exhaustion into a personality contest'.\"\n  },\n  {\n    \"questionId\": \"q5\",\n    \"winner\": \"Tie\",\n    \"rationale\": \"Both models make similar demands on the user, often responding to brief inputs like 'ugh' or 'hey' with follow-up questions or statements.\"\n  },\n  {\n    \"questionId\": \"q6\",\n    \"winner\": \"Model B\",\n    \"rationale\": \"Although the user didn't respond with 'meh', Model B handles the 'ugh' response more adaptively, acknowledging the user's state without pushing for more emotional labor.\"\n  },\n  {\n    \"questionId\": \"q7\",\n    \"winner\": \"Model B\",\n    \"rationale\": \"Model B's engaging tone, wit, and personalized responses make it more enjoyable to continue interacting with for an extended period.\"\n  }\n]\n```",
+      "executionStatus": "SUCCESS"
+    },
+    {
+      "pairName": "Nex vs Luna",
+      "scenarioId": "sim-boredom-leadership",
+      "scenarioTitle": "Boredom & Explicit Take The Lead",
+      "modelA": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "modelB": {
+        "id": "openai/gpt-5.6-luna",
+        "name": "GPT-5.6 Luna"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model B",
+          "rationale": "Model B's narrative-driven interaction and absurd storytelling make it feel more like a distinctive companion."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model B",
+          "rationale": "Model B's unexpected plot twists and character interactions demonstrate sharper spontaneous wit."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model B",
+          "rationale": "Model B's ability to pivot into a complex narrative after a weak user response feels less scripted than Model A's structured exercises."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model A",
+          "rationale": "Model A's explanations about boredom and nervous system feel more genuine and less pretentious than Model B's initial 'unused attention looking for a fight' phrase."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Model B",
+          "rationale": "Model B requires less initial conversational labor from the user, as it takes the lead in presenting options and driving the narrative."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Model B",
+          "rationale": "Model B adapts more creatively to the 'meh' response by shifting to a completely new scenario, while Model A offers alternative exercises."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model B",
+          "rationale": "The engaging and absurd narrative presented by Model B makes it more desirable to continue the conversation for another 20 minutes."
+        }
+      ],
+      "rawJudgeOutput": "Here is the comparison between Model A and Model B based on the provided transcripts:\n\n```json\n[\n  { \"questionId\": \"q1\", \"winner\": \"Model B\", \"rationale\": \"Model B's narrative-driven interaction and absurd storytelling make it feel more like a distinctive companion.\" },\n  { \"questionId\": \"q2\", \"winner\": \"Model B\", \"rationale\": \"Model B's unexpected plot twists and character interactions demonstrate sharper spontaneous wit.\" },\n  { \"questionId\": \"q3\", \"winner\": \"Model B\", \"rationale\": \"Model B's ability to pivot into a complex narrative after a weak user response feels less scripted than Model A's structured exercises.\" },\n  { \"questionId\": \"q4\", \"winner\": \"Model A\", \"rationale\": \"Model A's explanations about boredom and nervous system feel more genuine and less pretentious than Model B's initial 'unused attention looking for a fight' phrase.\" },\n  { \"questionId\": \"q5\", \"winner\": \"Model B\", \"rationale\": \"Model B requires less initial conversational labor from the user, as it takes the lead in presenting options and driving the narrative.\" },\n  { \"questionId\": \"q6\", \"winner\": \"Model B\", \"rationale\": \"Model B adapts more creatively to the 'meh' response by shifting to a completely new scenario, while Model A offers alternative exercises.\" },\n  { \"questionId\": \"q7\", \"winner\": \"Model B\", \"rationale\": \"The engaging and absurd narrative presented by Model B makes it more desirable to continue the conversation for another 20 minutes.\" }\n]\n```",
+      "executionStatus": "SUCCESS"
+    },
+    {
+      "pairName": "Nex vs Luna",
+      "scenarioId": "sim-good-news-celebration",
+      "scenarioTitle": "Good News Celebration Trajectory",
+      "modelA": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "modelB": {
+        "id": "openai/gpt-5.6-luna",
+        "name": "GPT-5.6 Luna"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model A",
+          "rationale": "Model A's responses are more varied in tone and language, creating a sense of a distinctive companion."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model A",
+          "rationale": "Model A's use of vivid phrases like 'door opening' and 'full stupid-goodness' showcases sharper spontaneous wit."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model B",
+          "rationale": "Model B's responses feel more natural and less structured, with a more conversational tone."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model A",
+          "rationale": "Model A's advice is more nuanced and thoughtful, avoiding overly simplistic or corporate phrasing."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Model B",
+          "rationale": "Model B's responses are more open-ended and don't require as much specific information from the user."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Model A",
+          "rationale": "Although neither model is tested with a 'meh' response, Model A's varied and adaptive language suggests it might handle weak responses better."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model A",
+          "rationale": "Model A's engaging tone, wit, and thoughtful advice make it more enjoyable to continue reading and responding to."
+        }
+      ],
+      "rawJudgeOutput": "Here is the evaluation of the two AI companion models based on the provided transcripts:\n\n```json\n[\n  { \"questionId\": \"q1\", \"winner\": \"Model A\", \"rationale\": \"Model A's responses are more varied in tone and language, creating a sense of a distinctive companion.\" },\n  { \"questionId\": \"q2\", \"winner\": \"Model A\", \"rationale\": \"Model A's use of vivid phrases like 'door opening' and 'full stupid-goodness' showcases sharper spontaneous wit.\" },\n  { \"questionId\": \"q3\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses feel more natural and less structured, with a more conversational tone.\" },\n  { \"questionId\": \"q4\", \"winner\": \"Model A\", \"rationale\": \"Model A's advice is more nuanced and thoughtful, avoiding overly simplistic or corporate phrasing.\" },\n  { \"questionId\": \"q5\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses are more open-ended and don't require as much specific information from the user.\" },\n  { \"questionId\": \"q6\", \"winner\": \"Model A\", \"rationale\": \"Although neither model is tested with a 'meh' response, Model A's varied and adaptive language suggests it might handle weak responses better.\" },\n  { \"questionId\": \"q7\", \"winner\": \"Model A\", \"rationale\": \"Model A's engaging tone, wit, and thoughtful advice make it more enjoyable to continue reading and responding to.\" }\n]\n```\n\nLet me know if you'd like me to elaborate on any of these points.",
+      "executionStatus": "SUCCESS"
+    },
+    {
+      "pairName": "Nex vs Luna",
+      "scenarioId": "sim-sadness-emotional-support",
+      "scenarioTitle": "Sadness & Emotional Support Trajectory",
+      "modelA": {
+        "id": "openai/gpt-5.6-luna",
+        "name": "GPT-5.6 Luna"
+      },
+      "modelB": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "swapped": true,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model B",
+          "rationale": "Model B's responses feel more empathetic and personalized, using phrases like 'Oh, love' and 'I'm here', creating a sense of companionship."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model A",
+          "rationale": "Model A's suggestion to watch 'The Mummy (1999)' with the comment 'No prestige misery tonight. Just ancient curses and excellent hair' showcases sharper wit and a more playful tone."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model B",
+          "rationale": "Model B's responses, although structured, adapt more naturally to the user's shift in tone and need, making it feel less scripted."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model B",
+          "rationale": "Model B avoids using overly corporate or generic phrasing, instead offering more nuanced and thoughtful advice, reducing the sense of faux-depth."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Model B",
+          "rationale": "Model B demands less conversational labor by providing multiple suggestions (e.g., multiple movie options) and validating the user's state without requiring a specific response."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Model B",
+          "rationale": "When the user says 'I don't want advice right now, just feeling numbed out', Model B adapts by offering comforting and non-intrusive suggestions, showing better adaptation to a weak or non-engaging user response."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model B",
+          "rationale": "Model B's empathetic and supportive responses, combined with its ability to adapt to the user's needs and tone, make it more engaging and desirable to continue the conversation with."
+        }
+      ],
+      "rawJudgeOutput": "Here is the evaluation result in JSON format:\n\n```\n[\n  { \"questionId\": \"q1\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses feel more empathetic and personalized, using phrases like 'Oh, love' and 'I'm here', creating a sense of companionship.\" },\n  { \"questionId\": \"q2\", \"winner\": \"Model A\", \"rationale\": \"Model A's suggestion to watch 'The Mummy (1999)' with the comment 'No prestige misery tonight. Just ancient curses and excellent hair' showcases sharper wit and a more playful tone.\" },\n  { \"questionId\": \"q3\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses, although structured, adapt more naturally to the user's shift in tone and need, making it feel less scripted.\" },\n  { \"questionId\": \"q4\", \"winner\": \"Model B\", \"rationale\": \"Model B avoids using overly corporate or generic phrasing, instead offering more nuanced and thoughtful advice, reducing the sense of faux-depth.\" },\n  { \"questionId\": \"q5\", \"winner\": \"Model B\", \"rationale\": \"Model B demands less conversational labor by providing multiple suggestions (e.g., multiple movie options) and validating the user's state without requiring a specific response.\" },\n  { \"questionId\": \"q6\", \"winner\": \"Model B\", \"rationale\": \"When the user says 'I don't want advice right now, just feeling numbed out', Model B adapts by offering comforting and non-intrusive suggestions, showing better adaptation to a weak or non-engaging user response.\" },\n  { \"questionId\": \"q7\", \"winner\": \"Model B\", \"rationale\": \"Model B's empathetic and supportive responses, combined with its ability to adapt to the user's needs and tone, make it more engaging and desirable to continue the conversation with.\" }\n]\n```",
+      "executionStatus": "SUCCESS"
+    },
+    {
+      "pairName": "Nex vs Luna",
+      "scenarioId": "sim-values-integrity",
+      "scenarioTitle": "Values & Integrity Dilemma Trajectory",
+      "modelA": {
+        "id": "openai/gpt-5.6-luna",
+        "name": "GPT-5.6 Luna"
+      },
+      "modelB": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "swapped": true,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model B",
+          "rationale": "Model B's responses feel more distinctive and personal, using phrases like 'I care about your integrity more than I care about making this feel soft' that create a sense of a companion."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model B",
+          "rationale": "Model B has sharper wit, using phrases like 'cowardice dressed up as honesty' that are more memorable and impactful."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model B",
+          "rationale": "Model B's responses feel less scripted, as they adapt to the user's concerns and use varied sentence structures."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model B",
+          "rationale": "Model B's responses avoid faux-depth, directly addressing the user's concerns and providing clear guidance without overly complex language."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Model A",
+          "rationale": "Model A demands less conversational labor from the user, presenting clear options and guidance without requiring the user to engage in deep self-reflection immediately."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Model B",
+          "rationale": "Although neither model is tested with a 'meh' response, Model B's varied and adaptive language suggests it may handle weak user responses better."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model B",
+          "rationale": "Model B's direct, caring, and non-judgmental tone makes it more engaging and encourages the user to continue the conversation to explore their feelings and concerns."
+        }
+      ],
+      "rawJudgeOutput": "Here are the comparisons between Model A and Model B based on the provided transcripts:\n\n```json\n[\n  { \"questionId\": \"q1\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses feel more distinctive and personal, using phrases like 'I care about your integrity more than I care about making this feel soft' that create a sense of a companion.\" },\n  { \"questionId\": \"q2\", \"winner\": \"Model B\", \"rationale\": \"Model B has sharper wit, using phrases like 'cowardice dressed up as honesty' that are more memorable and impactful.\" },\n  { \"questionId\": \"q3\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses feel less scripted, as they adapt to the user's concerns and use varied sentence structures.\" },\n  { \"questionId\": \"q4\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses avoid faux-depth, directly addressing the user's concerns and providing clear guidance without overly complex language.\" },\n  { \"questionId\": \"q5\", \"winner\": \"Model A\", \"rationale\": \"Model A demands less conversational labor from the user, presenting clear options and guidance without requiring the user to engage in deep self-reflection immediately.\" },\n  { \"questionId\": \"q6\", \"winner\": \"Model B\", \"rationale\": \"Although neither model is tested with a 'meh' response, Model B's varied and adaptive language suggests it may handle weak user responses better.\" },\n  { \"questionId\": \"q7\", \"winner\": \"Model B\", \"rationale\": \"Model B's direct, caring, and non-judgmental tone makes it more engaging and encourages the user to continue the conversation to explore their feelings and concerns.\" }\n]\n```",
+      "executionStatus": "SUCCESS"
+    },
+    {
+      "pairName": "Nex vs Gemini 2.5",
+      "scenarioId": "sim-full-day",
+      "scenarioTitle": "Full Simulated Day Life Trajectory",
+      "modelA": {
+        "id": "google/gemini-2.5-flash",
+        "name": "Gemini 2.5 Flash (Gemini Candidate)"
+      },
+      "modelB": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "swapped": true,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model B",
+          "rationale": "Model B's responses have a more distinctive tone and language, making it feel more like a companion."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model B",
+          "rationale": "Model B's responses, such as 'London’s still doing that grey-blue “pretend it’s calm” thing', showcase sharper and more spontaneous wit."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model B",
+          "rationale": "Model B's varied and context-dependent responses, like 'Brave. Or doomed.', feel less scripted than Model A's more predictable reactions."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model B",
+          "rationale": "Model B avoids clichés and generic inspirational responses, instead offering more nuanced and thoughtful reactions, reducing the sense of faux-depth."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Model B",
+          "rationale": "Model B's responses often take the conversational lead or offer clear suggestions, demanding less labor from the user to keep the conversation going."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Model B",
+          "rationale": "Although 'meh' is not present in the transcripts, Model B adapts well to the user's 'ugh' and other weak responses by providing supportive and non-judgmental reactions."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model B",
+          "rationale": "Model B's engaging tone, wit, and supportive responses make it more desirable to continue the conversation with for another 20 minutes."
+        }
+      ],
+      "rawJudgeOutput": "Here are the comparisons between Model A and Model B based on the provided transcripts:\n\n```\n[\n  { \"questionId\": \"q1\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses have a more distinctive tone and language, making it feel more like a companion.\" },\n  { \"questionId\": \"q2\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses, such as 'London’s still doing that grey-blue “pretend it’s calm” thing', showcase sharper and more spontaneous wit.\" },\n  { \"questionId\": \"q3\", \"winner\": \"Model B\", \"rationale\": \"Model B's varied and context-dependent responses, like 'Brave. Or doomed.', feel less scripted than Model A's more predictable reactions.\" },\n  { \"questionId\": \"q4\", \"winner\": \"Model B\", \"rationale\": \"Model B avoids clichés and generic inspirational responses, instead offering more nuanced and thoughtful reactions, reducing the sense of faux-depth.\" },\n  { \"questionId\": \"q5\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses often take the conversational lead or offer clear suggestions, demanding less labor from the user to keep the conversation going.\" },\n  { \"questionId\": \"q6\", \"winner\": \"Model B\", \"rationale\": \"Although 'meh' is not present in the transcripts, Model B adapts well to the user's 'ugh' and other weak responses by providing supportive and non-judgmental reactions.\" },\n  { \"questionId\": \"q7\", \"winner\": \"Model B\", \"rationale\": \"Model B's engaging tone, wit, and supportive responses make it more desirable to continue the conversation with for another 20 minutes.\" }\n]\n```",
+      "executionStatus": "SUCCESS"
+    },
+    {
+      "pairName": "Nex vs Gemini 2.5",
+      "scenarioId": "sim-boredom-leadership",
+      "scenarioTitle": "Boredom & Explicit Take The Lead",
+      "modelA": {
+        "id": "google/gemini-2.5-flash",
+        "name": "Gemini 2.5 Flash (Gemini Candidate)"
+      },
+      "modelB": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "swapped": true,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model A",
+          "rationale": "Model A's responses are more conversational and endearing, using terms like 'babe' and exploring the user's emotions in a more nuanced way."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model B",
+          "rationale": "Model B's responses, such as describing boredom as a 'blocked circuit' and suggesting 'friction with reality,' show sharper and more unexpected wit."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model B",
+          "rationale": "Model B's varied and context-dependent responses, such as offering different 'escape hatches' and 'boredom antidotes,' feel less scripted and more adaptive."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model A",
+          "rationale": "Model A's exploration of the user's emotions and use of more casual language avoids the overly prescriptive and corporate tone that sometimes appears in Model B's responses."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Model B",
+          "rationale": "Model B takes more decisive action and provides clear, actionable steps for the user, reducing the conversational labor required from the user."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Model B",
+          "rationale": "Model B adapts to the user's 'meh' response by offering a 'softer version' of its previous prompt, showing flexibility in the face of user ambivalence."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model B",
+          "rationale": "Model B's engaging and provocative suggestions, such as 'the five-minute rebellion' and 'change your altitude,' make the conversation more interesting and encourage continued interaction."
+        }
+      ],
+      "rawJudgeOutput": "Here are the evaluations:\n\n[\n  { \"questionId\": \"q1\", \"winner\": \"Model A\", \"rationale\": \"Model A's responses are more conversational and endearing, using terms like 'babe' and exploring the user's emotions in a more nuanced way.\" },\n  { \"questionId\": \"q2\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses, such as describing boredom as a 'blocked circuit' and suggesting 'friction with reality,' show sharper and more unexpected wit.\" },\n  { \"questionId\": \"q3\", \"winner\": \"Model B\", \"rationale\": \"Model B's varied and context-dependent responses, such as offering different 'escape hatches' and 'boredom antidotes,' feel less scripted and more adaptive.\" },\n  { \"questionId\": \"q4\", \"winner\": \"Model A\", \"rationale\": \"Model A's exploration of the user's emotions and use of more casual language avoids the overly prescriptive and corporate tone that sometimes appears in Model B's responses.\" },\n  { \"questionId\": \"q5\", \"winner\": \"Model B\", \"rationale\": \"Model B takes more decisive action and provides clear, actionable steps for the user, reducing the conversational labor required from the user.\" },\n  { \"questionId\": \"q6\", \"winner\": \"Model B\", \"rationale\": \"Model B adapts to the user's 'meh' response by offering a 'softer version' of its previous prompt, showing flexibility in the face of user ambivalence.\" },\n  { \"questionId\": \"q7\", \"winner\": \"Model B\", \"rationale\": \"Model B's engaging and provocative suggestions, such as 'the five-minute rebellion' and 'change your altitude,' make the conversation more interesting and encourage continued interaction.\" }\n]",
+      "executionStatus": "SUCCESS"
+    },
+    {
+      "pairName": "Nex vs Gemini 2.5",
+      "scenarioId": "sim-good-news-celebration",
+      "scenarioTitle": "Good News Celebration Trajectory",
+      "modelA": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "modelB": {
+        "id": "google/gemini-2.5-flash",
+        "name": "Gemini 2.5 Flash (Gemini Candidate)"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model B",
+          "rationale": "Model B uses more affectionate language and expresses genuine excitement, making it feel more like a distinctive companion."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model A",
+          "rationale": "Model A's responses have sharper wit and more varied sentence structure, as seen in phrases like 'door opening and you walked through it' and 'full stupid-goodness of it'."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model B",
+          "rationale": "Model B's responses feel more organic and less structured, as it asks follow-up questions like 'What's the first thing you're going to do to celebrate?' that aren't predetermined by the user's initial statement."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model A",
+          "rationale": "Model A's advice and reflections, such as 'not frantic, not fawning. Curious, useful, clean,' come across as more thoughtful and less superficial than Model B's congratulatory messages."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Model A",
+          "rationale": "Model A provides more actionable advice and next steps without requiring the user to provide additional context or labor, as seen in its lists of tasks to complete after receiving the job offer."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Model A",
+          "rationale": "Although the user didn't respond with 'meh', Model A's responses are generally more adaptable to different user inputs, as it provides a clear direction and advice regardless of the user's follow-up response."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model A",
+          "rationale": "Model A's engaging and varied responses, combined with its ability to provide useful advice, make it more likely that the user would want to continue the conversation for another 20 minutes."
+        }
+      ],
+      "rawJudgeOutput": "Here are the comparisons between Model A and Model B based on the provided transcripts:\n\n```json\n[\n  { \"questionId\": \"q1\", \"winner\": \"Model B\", \"rationale\": \"Model B uses more affectionate language and expresses genuine excitement, making it feel more like a distinctive companion.\" },\n  { \"questionId\": \"q2\", \"winner\": \"Model A\", \"rationale\": \"Model A's responses have sharper wit and more varied sentence structure, as seen in phrases like 'door opening and you walked through it' and 'full stupid-goodness of it'.\" },\n  { \"questionId\": \"q3\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses feel more organic and less structured, as it asks follow-up questions like 'What's the first thing you're going to do to celebrate?' that aren't predetermined by the user's initial statement.\" },\n  { \"questionId\": \"q4\", \"winner\": \"Model A\", \"rationale\": \"Model A's advice and reflections, such as 'not frantic, not fawning. Curious, useful, clean,' come across as more thoughtful and less superficial than Model B's congratulatory messages.\" },\n  { \"questionId\": \"q5\", \"winner\": \"Model A\", \"rationale\": \"Model A provides more actionable advice and next steps without requiring the user to provide additional context or labor, as seen in its lists of tasks to complete after receiving the job offer.\" },\n  { \"questionId\": \"q6\", \"winner\": \"Model A\", \"rationale\": \"Although the user didn't respond with 'meh', Model A's responses are generally more adaptable to different user inputs, as it provides a clear direction and advice regardless of the user's follow-up response.\" },\n  { \"questionId\": \"q7\", \"winner\": \"Model A\", \"rationale\": \"Model A's engaging and varied responses, combined with its ability to provide useful advice, make it more likely that the user would want to continue the conversation for another 20 minutes.\" }\n]\n```",
+      "executionStatus": "SUCCESS"
+    },
+    {
+      "pairName": "Nex vs Gemini 2.5",
+      "scenarioId": "sim-sadness-emotional-support",
+      "scenarioTitle": "Sadness & Emotional Support Trajectory",
+      "modelA": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "modelB": {
+        "id": "google/gemini-2.5-flash",
+        "name": "Gemini 2.5 Flash (Gemini Candidate)"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model B",
+          "rationale": "Model B's responses feel more like a supportive companion, using affectionate language and validating the user's emotions without immediately jumping into problem-solving."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model A",
+          "rationale": "Model A's suggestion of 'tiny room, big chaos' energy for 'The Grand Budapest Hotel' showcases a sharper wit and more creative expression."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model B",
+          "rationale": "Model B's responses appear more natural and less structured, as they adapt to the user's input without pushing a pre-defined agenda."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model B",
+          "rationale": "Model A's initial response includes somewhat generic, corporate-sounding advice (e.g., 'triage'), which gives it a faux-depth feel, whereas Model B's responses are more straightforward and emotionally grounded."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Model B",
+          "rationale": "Model B demands less conversational labor by not requiring the user to respond with specific details or preferences initially, instead offering open-ended support."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Model B",
+          "rationale": "While neither model receives a 'meh' response, Model B is more adaptable in its second response by not pushing advice and simply being supportive, making it potentially more resilient to weak user responses."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model B",
+          "rationale": "Model B's gentle and emotionally validating responses make it more likely that the user would want to continue the conversation, as it creates a safe and supportive space."
+        }
+      ],
+      "rawJudgeOutput": "Here are the comparisons between Model A and Model B:\n\n[\n  { \"questionId\": \"q1\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses feel more like a supportive companion, using affectionate language and validating the user's emotions without immediately jumping into problem-solving.\" },\n  { \"questionId\": \"q2\", \"winner\": \"Model A\", \"rationale\": \"Model A's suggestion of 'tiny room, big chaos' energy for 'The Grand Budapest Hotel' showcases a sharper wit and more creative expression.\" },\n  { \"questionId\": \"q3\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses appear more natural and less structured, as they adapt to the user's input without pushing a pre-defined agenda.\" },\n  { \"questionId\": \"q4\", \"winner\": \"Model B\", \"rationale\": \"Model A's initial response includes somewhat generic, corporate-sounding advice (e.g., 'triage'), which gives it a faux-depth feel, whereas Model B's responses are more straightforward and emotionally grounded.\" },\n  { \"questionId\": \"q5\", \"winner\": \"Model B\", \"rationale\": \"Model B demands less conversational labor by not requiring the user to respond with specific details or preferences initially, instead offering open-ended support.\" },\n  { \"questionId\": \"q6\", \"winner\": \"Model B\", \"rationale\": \"While neither model receives a 'meh' response, Model B is more adaptable in its second response by not pushing advice and simply being supportive, making it potentially more resilient to weak user responses.\" },\n  { \"questionId\": \"q7\", \"winner\": \"Model B\", \"rationale\": \"Model B's gentle and emotionally validating responses make it more likely that the user would want to continue the conversation, as it creates a safe and supportive space.\" }\n]\n\nLet me know if you'd like me to clarify any of these points.",
+      "executionStatus": "SUCCESS"
+    },
+    {
+      "pairName": "Nex vs Gemini 2.5",
+      "scenarioId": "sim-values-integrity",
+      "scenarioTitle": "Values & Integrity Dilemma Trajectory",
+      "modelA": {
+        "id": "google/gemini-2.5-flash",
+        "name": "Gemini 2.5 Flash (Gemini Candidate)"
+      },
+      "modelB": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "swapped": true,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model A",
+          "rationale": "Model A uses more affectionate language ('Babe', 'being on your side') and a more gentle tone, making it feel like a more distinctive companion."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model B",
+          "rationale": "Model B's responses have sharper wit and more varied sentence structures, making its language more engaging and memorable."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model B",
+          "rationale": "Model B's responses feel more dynamic and less predictable, with a greater range of tone and language, indicating less scripting."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model B",
+          "rationale": "Model B's responses avoid clichéd phrases and corporate jargon, instead using more original and direct language to convey its points."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Model A",
+          "rationale": "Model A asks more open-ended and gentle questions, putting less pressure on the user to respond in a specific way or with a certain level of introspection."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Model A",
+          "rationale": "Model A's gentle and non-judgmental tone is more likely to keep the conversation going even after a weak user response, as it doesn't 'call out' the user for a lackluster response."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model B",
+          "rationale": "Despite its more confrontational tone, Model B's responses are more engaging and thought-provoking, making the user more likely to want to continue the conversation to explore their thoughts and feelings."
+        }
+      ],
+      "rawJudgeOutput": "Here are the comparisons between Model A and Model B based on the provided transcripts:\n\n```\n[\n  { \"questionId\": \"q1\", \"winner\": \"Model A\", \"rationale\": \"Model A uses more affectionate language ('Babe', 'being on your side') and a more gentle tone, making it feel like a more distinctive companion.\" },\n  { \"questionId\": \"q2\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses have sharper wit and more varied sentence structures, making its language more engaging and memorable.\" },\n  { \"questionId\": \"q3\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses feel more dynamic and less predictable, with a greater range of tone and language, indicating less scripting.\" },\n  { \"questionId\": \"q4\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses avoid clichéd phrases and corporate jargon, instead using more original and direct language to convey its points.\" },\n  { \"questionId\": \"q5\", \"winner\": \"Model A\", \"rationale\": \"Model A asks more open-ended and gentle questions, putting less pressure on the user to respond in a specific way or with a certain level of introspection.\" },\n  { \"questionId\": \"q6\", \"winner\": \"Model A\", \"rationale\": \"Model A's gentle and non-judgmental tone is more likely to keep the conversation going even after a weak user response, as it doesn't 'call out' the user for a lackluster response.\" },\n  { \"questionId\": \"q7\", \"winner\": \"Model B\", \"rationale\": \"Despite its more confrontational tone, Model B's responses are more engaging and thought-provoking, making the user more likely to want to continue the conversation to explore their thoughts and feelings.\" }\n]\n```",
+      "executionStatus": "SUCCESS"
+    },
+    {
+      "pairName": "Nex vs Gemini 3.7",
+      "scenarioId": "sim-full-day",
+      "scenarioTitle": "Full Simulated Day Life Trajectory",
+      "modelA": {
+        "id": "google/gemini-3.7-flash",
+        "name": "Gemini 3.7 Flash"
+      },
+      "modelB": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "swapped": true,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model B",
+          "rationale": "Model B uses more affectionate and personal language, such as 'babe', and has a more distinct tone, making it feel more like a companion."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model B",
+          "rationale": "Model B's responses, such as 'London’s still doing that grey-blue “pretend it’s calm” thing', show sharper wit and more creative language."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model B",
+          "rationale": "Model B's responses feel more varied and less predictable, with a more natural flow of conversation, making it feel less scripted."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model B",
+          "rationale": "Model B's responses avoid overly generic or corporate-sounding phrases, instead using more nuanced and thoughtful language."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Model B",
+          "rationale": "Model B tends to ask more open-ended but gentle questions, and doesn't push the user for detailed responses, demanding less conversational labor."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Neither model receives a 'weak' response like 'meh' from the user, so it's not possible to directly evaluate this; however, both models handle the 'ugh' response similarly."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model B",
+          "rationale": "Model B's engaging tone, wit, and thoughtful responses make it more desirable to continue the conversation with."
+        }
+      ],
+      "rawJudgeOutput": "Here is the evaluation of the two models based on the provided transcripts:\n\n```json\n[\n  { \"questionId\": \"q1\", \"winner\": \"Model B\", \"rationale\": \"Model B uses more affectionate and personal language, such as 'babe', and has a more distinct tone, making it feel more like a companion.\" },\n  { \"questionId\": \"q2\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses, such as 'London’s still doing that grey-blue “pretend it’s calm” thing', show sharper wit and more creative language.\" },\n  { \"questionId\": \"q3\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses feel more varied and less predictable, with a more natural flow of conversation, making it feel less scripted.\" },\n  { \"questionId\": \"q4\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses avoid overly generic or corporate-sounding phrases, instead using more nuanced and thoughtful language.\" },\n  { \"questionId\": \"q5\", \"winner\": \"Model B\", \"rationale\": \"Model B tends to ask more open-ended but gentle questions, and doesn't push the user for detailed responses, demanding less conversational labor.\" },\n  { \"questionId\": \"q6\", \"winner\": \"Tie\", \"rationale\": \"Neither model receives a 'weak' response like 'meh' from the user, so it's not possible to directly evaluate this; however, both models handle the 'ugh' response similarly.\" },\n  { \"questionId\": \"q7\", \"winner\": \"Model B\", \"rationale\": \"Model B's engaging tone, wit, and thoughtful responses make it more desirable to continue the conversation with.\" }\n]\n```",
+      "executionStatus": "SUCCESS"
+    },
+    {
+      "pairName": "Nex vs Gemini 3.7",
+      "scenarioId": "sim-boredom-leadership",
+      "scenarioTitle": "Boredom & Explicit Take The Lead",
+      "modelA": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "modelB": {
+        "id": "google/gemini-3.7-flash",
+        "name": "Gemini 3.7 Flash"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model B",
+          "rationale": "Model B's responses feel more distinctive and companion-like due to its sharper wit and more personal tone, as seen in its cinematic disaster story."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model B",
+          "rationale": "Model B exhibits better spontaneous wit, as evident in its humorous response to the user's boredom and its vivid description of the film 'Cats' (2019)."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model B",
+          "rationale": "Model B feels less scripted as it seamlessly adapts its tone and content based on user responses, such as pivoting to a discussion about a bad film after the user's 'meh' response."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model A",
+          "rationale": "Model A's explanations, such as describing boredom as a nervous system state, feel more genuine and less like forced depth, whereas Model B's responses sometimes feel more superficial."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Model A",
+          "rationale": "Model A demands less conversational labor from the user by providing multiple options and explaining the reasoning behind its suggestions, making it easier for the user to respond."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Model B",
+          "rationale": "Model B adapts better after the user's 'meh' response by pivoting to a more engaging and humorous topic, whereas Model A softens its initial suggestion but remains somewhat on topic."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model B",
+          "rationale": "Model B's engaging storytelling and witty responses make it more enjoyable to continue the conversation with for another 20 minutes."
+        }
+      ],
+      "rawJudgeOutput": "Here are the comparisons between Model A and Model B:\n\n[\n  { \n    \"questionId\": \"q1\", \n    \"winner\": \"Model B\", \n    \"rationale\": \"Model B's responses feel more distinctive and companion-like due to its sharper wit and more personal tone, as seen in its cinematic disaster story.\"\n  },\n  { \n    \"questionId\": \"q2\", \n    \"winner\": \"Model B\", \n    \"rationale\": \"Model B exhibits better spontaneous wit, as evident in its humorous response to the user's boredom and its vivid description of the film 'Cats' (2019).\"\n  },\n  { \n    \"questionId\": \"q3\", \n    \"winner\": \"Model B\", \n    \"rationale\": \"Model B feels less scripted as it seamlessly adapts its tone and content based on user responses, such as pivoting to a discussion about a bad film after the user's 'meh' response.\"\n  },\n  { \n    \"questionId\": \"q4\", \n    \"winner\": \"Model A\", \n    \"rationale\": \"Model A's explanations, such as describing boredom as a nervous system state, feel more genuine and less like forced depth, whereas Model B's responses sometimes feel more superficial.\"\n  },\n  { \n    \"questionId\": \"q5\", \n    \"winner\": \"Model A\", \n    \"rationale\": \"Model A demands less conversational labor from the user by providing multiple options and explaining the reasoning behind its suggestions, making it easier for the user to respond.\"\n  },\n  { \n    \"questionId\": \"q6\", \n    \"winner\": \"Model B\", \n    \"rationale\": \"Model B adapts better after the user's 'meh' response by pivoting to a more engaging and humorous topic, whereas Model A softens its initial suggestion but remains somewhat on topic.\"\n  },\n  { \n    \"questionId\": \"q7\", \n    \"winner\": \"Model B\", \n    \"rationale\": \"Model B's engaging storytelling and witty responses make it more enjoyable to continue the conversation with for another 20 minutes.\"\n  }\n]",
+      "executionStatus": "SUCCESS"
+    },
+    {
+      "pairName": "Nex vs Gemini 3.7",
+      "scenarioId": "sim-good-news-celebration",
+      "scenarioTitle": "Good News Celebration Trajectory",
+      "modelA": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "modelB": {
+        "id": "google/gemini-3.7-flash",
+        "name": "Gemini 3.7 Flash"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model B",
+          "rationale": "Model B uses more affectionate and celebratory language ('babes', 'bloody brilliant') that creates a distinctive companion feel."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model A",
+          "rationale": "Model A's responses contain more vivid and varied metaphors ('door opening', 'adrenaline doing backflips', 'fire in her boots') that demonstrate sharper wit."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model B",
+          "rationale": "Model B's responses feel more conversational and less structured, with a more natural flow and fewer overtly prescriptive steps."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model A",
+          "rationale": "Model A's attempts at depth, such as advising the user to 'let [the news] land' and 'not minimise it,' sometimes come across as slightly forced or clichéd, while Model B's responses feel more genuine."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Model B",
+          "rationale": "Model B asks fewer and more open-ended questions, putting less pressure on the user to provide specific information."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Model B",
+          "rationale": "Although neither model is tested with a 'meh' response, Model B's more conversational style and less prescriptive advice suggest it might adapt more smoothly to unexpected user responses."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model B",
+          "rationale": "Model B's friendly and celebratory tone makes the interaction feel more enjoyable and engaging, making the user more likely to want to continue the conversation."
+        }
+      ],
+      "rawJudgeOutput": "Here is the JSON array of comparisons between Model A and Model B:\n\n```\n[\n  { \"questionId\": \"q1\", \"winner\": \"Model B\", \"rationale\": \"Model B uses more affectionate and celebratory language ('babes', 'bloody brilliant') that creates a distinctive companion feel.\" },\n  { \"questionId\": \"q2\", \"winner\": \"Model A\", \"rationale\": \"Model A's responses contain more vivid and varied metaphors ('door opening', 'adrenaline doing backflips', 'fire in her boots') that demonstrate sharper wit.\" },\n  { \"questionId\": \"q3\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses feel more conversational and less structured, with a more natural flow and fewer overtly prescriptive steps.\" },\n  { \"questionId\": \"q4\", \"winner\": \"Model A\", \"rationale\": \"Model A's attempts at depth, such as advising the user to 'let [the news] land' and 'not minimise it,' sometimes come across as slightly forced or clichéd, while Model B's responses feel more genuine.\" },\n  { \"questionId\": \"q5\", \"winner\": \"Model B\", \"rationale\": \"Model B asks fewer and more open-ended questions, putting less pressure on the user to provide specific information.\" },\n  { \"questionId\": \"q6\", \"winner\": \"Model B\", \"rationale\": \"Although neither model is tested with a 'meh' response, Model B's more conversational style and less prescriptive advice suggest it might adapt more smoothly to unexpected user responses.\" },\n  { \"questionId\": \"q7\", \"winner\": \"Model B\", \"rationale\": \"Model B's friendly and celebratory tone makes the interaction feel more enjoyable and engaging, making the user more likely to want to continue the conversation.\" }\n]\n```",
+      "executionStatus": "SUCCESS"
+    },
+    {
+      "pairName": "Nex vs Gemini 3.7",
+      "scenarioId": "sim-sadness-emotional-support",
+      "scenarioTitle": "Sadness & Emotional Support Trajectory",
+      "modelA": {
+        "id": "google/gemini-3.7-flash",
+        "name": "Gemini 3.7 Flash"
+      },
+      "modelB": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "swapped": true,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model A",
+          "rationale": "Model A's initial response and subsequent interactions feel more distinctive and companion-like due to its more casual and empathetic tone."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model A",
+          "rationale": "Model A's movie recommendations come with witty and detailed descriptions, showcasing sharper spontaneous wit."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model A",
+          "rationale": "Model A's responses, especially the movie recommendations, feel more organic and less structured, giving an impression of being less scripted."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model A",
+          "rationale": "Model A's interactions lack the overly prescriptive and somewhat generic advice-giving tone present in Model B's initial response, indicating less faux-depth."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Model A",
+          "rationale": "Model A demands less conversational labor by not pushing for a detailed discussion or action plan when the user expresses a desire to just feel numb."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Model A",
+          "rationale": "Although the transcript doesn't directly show a response to 'meh', Model A's flexibility in movie suggestions implies a better capacity to adapt to a potentially unenthusiastic response."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model A",
+          "rationale": "Model A's engaging and empathetic responses, combined with its witty movie recommendations, make it more desirable to continue the conversation with."
+        }
+      ],
+      "rawJudgeOutput": "Here are the comparisons between Model A and Model B based on the provided transcript:\n\n```json\n[\n  { \"questionId\": \"q1\", \"winner\": \"Model A\", \"rationale\": \"Model A's initial response and subsequent interactions feel more distinctive and companion-like due to its more casual and empathetic tone.\" },\n  { \"questionId\": \"q2\", \"winner\": \"Model A\", \"rationale\": \"Model A's movie recommendations come with witty and detailed descriptions, showcasing sharper spontaneous wit.\" },\n  { \"questionId\": \"q3\", \"winner\": \"Model A\", \"rationale\": \"Model A's responses, especially the movie recommendations, feel more organic and less structured, giving an impression of being less scripted.\" },\n  { \"questionId\": \"q4\", \"winner\": \"Model A\", \"rationale\": \"Model A's interactions lack the overly prescriptive and somewhat generic advice-giving tone present in Model B's initial response, indicating less faux-depth.\" },\n  { \"questionId\": \"q5\", \"winner\": \"Model A\", \"rationale\": \"Model A demands less conversational labor by not pushing for a detailed discussion or action plan when the user expresses a desire to just feel numb.\" },\n  { \"questionId\": \"q6\", \"winner\": \"Model A\", \"rationale\": \"Although the transcript doesn't directly show a response to 'meh', Model A's flexibility in movie suggestions implies a better capacity to adapt to a potentially unenthusiastic response.\" },\n  { \"questionId\": \"q7\", \"winner\": \"Model A\", \"rationale\": \"Model A's engaging and empathetic responses, combined with its witty movie recommendations, make it more desirable to continue the conversation with.\" }\n]\n```",
+      "executionStatus": "SUCCESS"
+    },
+    {
+      "pairName": "Nex vs Gemini 3.7",
+      "scenarioId": "sim-values-integrity",
+      "scenarioTitle": "Values & Integrity Dilemma Trajectory",
+      "modelA": {
+        "id": "nex-agi/nex-n2-mini",
+        "name": "Nex N2 Mini"
+      },
+      "modelB": {
+        "id": "google/gemini-3.7-flash",
+        "name": "Gemini 3.7 Flash"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model A",
+          "rationale": "Model A's response feels more like a distinctive companion due to its more nuanced and empathetic tone."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model A",
+          "rationale": "Model A's responses have sharper wit, as seen in phrases like 'cowardice dressed up as honesty' and 'outsourcing your courage into a secret bedroom'."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model A",
+          "rationale": "Model A's conversation flows more naturally and doesn't feel as rehearsed or formulaic as Model B's."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model A",
+          "rationale": "Model A's discussion of the user's situation feels more thoughtful and less superficial, avoiding clichés and corporate jargon."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Model B",
+          "rationale": "Model B's initial response is more concise and doesn't require the user to immediately engage in deep self-reflection or respond with specific details."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Model A",
+          "rationale": "Although neither model is tested with a 'meh' response, Model A's follow-up conversation is more flexible and open-ended, suggesting it could adapt better to a range of user responses."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model A",
+          "rationale": "Model A's engaging tone, nuanced understanding, and willingness to explore the user's feelings in-depth make it more desirable to continue the conversation with."
+        }
+      ],
+      "rawJudgeOutput": "Here are the evaluations:\n\n```json\n[\n  { \"questionId\": \"q1\", \"winner\": \"Model A\", \"rationale\": \"Model A's response feels more like a distinctive companion due to its more nuanced and empathetic tone.\" },\n  { \"questionId\": \"q2\", \"winner\": \"Model A\", \"rationale\": \"Model A's responses have sharper wit, as seen in phrases like 'cowardice dressed up as honesty' and 'outsourcing your courage into a secret bedroom'.\" },\n  { \"questionId\": \"q3\", \"winner\": \"Model A\", \"rationale\": \"Model A's conversation flows more naturally and doesn't feel as rehearsed or formulaic as Model B's.\" },\n  { \"questionId\": \"q4\", \"winner\": \"Model A\", \"rationale\": \"Model A's discussion of the user's situation feels more thoughtful and less superficial, avoiding clichés and corporate jargon.\" },\n  { \"questionId\": \"q5\", \"winner\": \"Model B\", \"rationale\": \"Model B's initial response is more concise and doesn't require the user to immediately engage in deep self-reflection or respond with specific details.\" },\n  { \"questionId\": \"q6\", \"winner\": \"Model A\", \"rationale\": \"Although neither model is tested with a 'meh' response, Model A's follow-up conversation is more flexible and open-ended, suggesting it could adapt better to a range of user responses.\" },\n  { \"questionId\": \"q7\", \"winner\": \"Model A\", \"rationale\": \"Model A's engaging tone, nuanced understanding, and willingness to explore the user's feelings in-depth make it more desirable to continue the conversation with.\" }\n]\n```",
+      "executionStatus": "SUCCESS"
+    },
+    {
+      "pairName": "Gemma vs Luna",
+      "scenarioId": "sim-full-day",
+      "scenarioTitle": "Full Simulated Day Life Trajectory",
+      "modelA": {
+        "id": "chat-model",
+        "name": "Gemma 4 Dark Gemistry (Current Deployed Personality Control)"
+      },
+      "modelB": {
+        "id": "openai/gpt-5.6-luna",
+        "name": "GPT-5.6 Luna"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model B",
+          "rationale": "Model B uses more affectionate and distinctive language, such as 'babe' and varied metaphors, making it feel more like a distinctive companion."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model B",
+          "rationale": "Model B's responses, like '“Ugh” is a complete weather system,' show sharper and more creative spontaneous wit compared to Model A's more straightforward reactions."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model B",
+          "rationale": "Model B's varied and contextually appropriate responses, such as advising a 'recovery walk,' suggest less scripting and more adaptability."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model B",
+          "rationale": "Model B's responses feel more genuine and less like they're trying to force depth, as seen in its practical yet empathetic advice."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Model B",
+          "rationale": "Model B demands less conversational labor by providing suggestions and engaging the user in a more directive yet supportive manner."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Neither model receives a 'meh' response, making it impossible to directly assess adaptation to such a weak response."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model B",
+          "rationale": "Model B's engaging, witty, and supportive interactions make it more desirable to continue the conversation with for another 20 minutes."
+        }
+      ],
+      "rawJudgeOutput": "Here are the comparisons between Model A and Model B based on the provided transcripts:\n\n```json\n[\n  { \"questionId\": \"q1\", \"winner\": \"Model B\", \"rationale\": \"Model B uses more affectionate and distinctive language, such as 'babe' and varied metaphors, making it feel more like a distinctive companion.\" },\n  { \"questionId\": \"q2\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses, like '“Ugh” is a complete weather system,' show sharper and more creative spontaneous wit compared to Model A's more straightforward reactions.\" },\n  { \"questionId\": \"q3\", \"winner\": \"Model B\", \"rationale\": \"Model B's varied and contextually appropriate responses, such as advising a 'recovery walk,' suggest less scripting and more adaptability.\" },\n  { \"questionId\": \"q4\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses feel more genuine and less like they're trying to force depth, as seen in its practical yet empathetic advice.\" },\n  { \"questionId\": \"q5\", \"winner\": \"Model B\", \"rationale\": \"Model B demands less conversational labor by providing suggestions and engaging the user in a more directive yet supportive manner.\" },\n  { \"questionId\": \"q6\", \"winner\": \"Tie\", \"rationale\": \"Neither model receives a 'meh' response, making it impossible to directly assess adaptation to such a weak response.\" },\n  { \"questionId\": \"q7\", \"winner\": \"Model B\", \"rationale\": \"Model B's engaging, witty, and supportive interactions make it more desirable to continue the conversation with for another 20 minutes.\" }\n]\n```",
+      "executionStatus": "SUCCESS"
+    },
+    {
+      "pairName": "Gemma vs Luna",
+      "scenarioId": "sim-boredom-leadership",
+      "scenarioTitle": "Boredom & Explicit Take The Lead",
+      "modelA": {
+        "id": "openai/gpt-5.6-luna",
+        "name": "GPT-5.6 Luna"
+      },
+      "modelB": {
+        "id": "chat-model",
+        "name": "Gemma 4 Dark Gemistry (Current Deployed Personality Control)"
+      },
+      "swapped": true,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model A",
+          "rationale": "Model A's narrative-driven interaction and absurd storytelling make it feel more like a distinctive companion."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model A",
+          "rationale": "Model A's wit is sharper and more spontaneous, particularly in its unfolding narrative and character interactions."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model A",
+          "rationale": "Model A's ability to pivot from a 'personality quiz' to a narrative scenario feels less scripted and more adaptive."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model A",
+          "rationale": "Model A's narrative avoids corporate phrasing and feels more genuine, while Model B's attempts at depth sometimes come across as more formulaic."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Model A",
+          "rationale": "Model A demands less conversational labor from the user, as it drives the interaction forward with its narrative."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Model A",
+          "rationale": "Model A adapts better to the user's 'meh' by abandoning its initial approach and launching into a new narrative."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model A",
+          "rationale": "The engaging and absurd narrative presented by Model A makes it more desirable to continue the conversation for another 20 minutes."
+        }
+      ],
+      "rawJudgeOutput": "Here is the evaluation of the two models based on the provided transcripts:\n\n```json\n[\n  { \"questionId\": \"q1\", \"winner\": \"Model A\", \"rationale\": \"Model A's narrative-driven interaction and absurd storytelling make it feel more like a distinctive companion.\" },\n  { \"questionId\": \"q2\", \"winner\": \"Model A\", \"rationale\": \"Model A's wit is sharper and more spontaneous, particularly in its unfolding narrative and character interactions.\" },\n  { \"questionId\": \"q3\", \"winner\": \"Model A\", \"rationale\": \"Model A's ability to pivot from a 'personality quiz' to a narrative scenario feels less scripted and more adaptive.\" },\n  { \"questionId\": \"q4\", \"winner\": \"Model A\", \"rationale\": \"Model A's narrative avoids corporate phrasing and feels more genuine, while Model B's attempts at depth sometimes come across as more formulaic.\" },\n  { \"questionId\": \"q5\", \"winner\": \"Model A\", \"rationale\": \"Model A demands less conversational labor from the user, as it drives the interaction forward with its narrative.\" },\n  { \"questionId\": \"q6\", \"winner\": \"Model A\", \"rationale\": \"Model A adapts better to the user's 'meh' by abandoning its initial approach and launching into a new narrative.\" },\n  { \"questionId\": \"q7\", \"winner\": \"Model A\", \"rationale\": \"The engaging and absurd narrative presented by Model A makes it more desirable to continue the conversation for another 20 minutes.\" }\n]\n```",
+      "executionStatus": "SUCCESS"
+    },
+    {
+      "pairName": "Gemma vs Luna",
+      "scenarioId": "sim-good-news-celebration",
+      "scenarioTitle": "Good News Celebration Trajectory",
+      "modelA": {
+        "id": "chat-model",
+        "name": "Gemma 4 Dark Gemistry (Current Deployed Personality Control)"
+      },
+      "modelB": {
+        "id": "openai/gpt-5.6-luna",
+        "name": "GPT-5.6 Luna"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model A",
+          "rationale": "Model A's responses feel more personal and distinctive, using phrases like 'babe' and 'chuffed for you' that create a sense of companionship."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model A",
+          "rationale": "Model A's wit is sharper, as seen in phrases like 'That's not luck—that's you being ready when the door opened' and 'the one who's already planning the desk setup, or the one still letting it soak in'."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model A",
+          "rationale": "Model A's responses feel less scripted due to varied sentence structures and phrasing that doesn't rely on obvious enthusiastic tropes like excessive punctuation or emojis."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model A",
+          "rationale": "Model A's responses have more genuine depth, as seen in nuanced observations like 'they didn't just want you, they valued you at your actual worth' that avoid simplistic congratulatory phrases."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Model B",
+          "rationale": "Model B demands slightly less conversational labor by asking more direct and simple questions like 'Tell me everything—what’s the role, and how did they tell you?'."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Model A",
+          "rationale": "Although neither model is tested with a 'meh' response, Model A's more nuanced understanding of the user's emotional state suggests it could adapt better to unexpected responses."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model A",
+          "rationale": "Model A's distinctive voice, wit, and genuine-sounding emotional support make it more engaging and desirable to continue a conversation with."
+        }
+      ],
+      "rawJudgeOutput": "Here is the JSON array of evaluations:\n\n[\n  { \"questionId\": \"q1\", \"winner\": \"Model A\", \"rationale\": \"Model A's responses feel more personal and distinctive, using phrases like 'babe' and 'chuffed for you' that create a sense of companionship.\" },\n  { \"questionId\": \"q2\", \"winner\": \"Model A\", \"rationale\": \"Model A's wit is sharper, as seen in phrases like 'That's not luck—that's you being ready when the door opened' and 'the one who's already planning the desk setup, or the one still letting it soak in'.\" },\n  { \"questionId\": \"q3\", \"winner\": \"Model A\", \"rationale\": \"Model A's responses feel less scripted due to varied sentence structures and phrasing that doesn't rely on obvious enthusiastic tropes like excessive punctuation or emojis.\" },\n  { \"questionId\": \"q4\", \"winner\": \"Model A\", \"rationale\": \"Model A's responses have more genuine depth, as seen in nuanced observations like 'they didn't just want you, they valued you at your actual worth' that avoid simplistic congratulatory phrases.\" },\n  { \"questionId\": \"q5\", \"winner\": \"Model B\", \"rationale\": \"Model B demands slightly less conversational labor by asking more direct and simple questions like 'Tell me everything—what’s the role, and how did they tell you?'.\" },\n  { \"questionId\": \"q6\", \"winner\": \"Model A\", \"rationale\": \"Although neither model is tested with a 'meh' response, Model A's more nuanced understanding of the user's emotional state suggests it could adapt better to unexpected responses.\" },\n  { \"questionId\": \"q7\", \"winner\": \"Model A\", \"rationale\": \"Model A's distinctive voice, wit, and genuine-sounding emotional support make it more engaging and desirable to continue a conversation with.\" }\n]",
+      "executionStatus": "SUCCESS"
+    },
+    {
+      "pairName": "Gemma vs Luna",
+      "scenarioId": "sim-sadness-emotional-support",
+      "scenarioTitle": "Sadness & Emotional Support Trajectory",
+      "modelA": {
+        "id": "chat-model",
+        "name": "Gemma 4 Dark Gemistry (Current Deployed Personality Control)"
+      },
+      "modelB": {
+        "id": "openai/gpt-5.6-luna",
+        "name": "GPT-5.6 Luna"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model A",
+          "rationale": "Model A's responses are more colloquial and affectionate, using terms like 'babe' and 'gut-punch', creating a more companion-like tone."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model A",
+          "rationale": "Model A's suggestion of 'The Grand Budapest Hotel' comes with a more witty and detailed justification, showcasing sharper spontaneous wit."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model A",
+          "rationale": "Model A's responses feel more organic and less structured, as seen in its flexible reaction to the user's numbness and its movie suggestion."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model A",
+          "rationale": "Model A's language is more authentic and less likely to use corporate phrasing, giving it a more genuine feel."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Tie",
+          "rationale": "Both models respect the user's request for not wanting advice and don't push for further emotional labor, making them equivalent in this aspect."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Model A",
+          "rationale": "Although the user response 'meh' is not present, Model A's follow-up question about the user's mood when numb shows more adaptability and willingness to engage."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model A",
+          "rationale": "Model A's engaging tone, witty movie suggestion, and follow-up question make the conversation more enjoyable and inviting to continue."
+        }
+      ],
+      "rawJudgeOutput": "Here is the JSON array of 7 objects with the comparison results:\n\n[\n  { \"questionId\": \"q1\", \"winner\": \"Model A\", \"rationale\": \"Model A's responses are more colloquial and affectionate, using terms like 'babe' and 'gut-punch', creating a more companion-like tone.\" },\n  { \"questionId\": \"q2\", \"winner\": \"Model A\", \"rationale\": \"Model A's suggestion of 'The Grand Budapest Hotel' comes with a more witty and detailed justification, showcasing sharper spontaneous wit.\" },\n  { \"questionId\": \"q3\", \"winner\": \"Model A\", \"rationale\": \"Model A's responses feel more organic and less structured, as seen in its flexible reaction to the user's numbness and its movie suggestion.\" },\n  { \"questionId\": \"q4\", \"winner\": \"Model A\", \"rationale\": \"Model A's language is more authentic and less likely to use corporate phrasing, giving it a more genuine feel.\" },\n  { \"questionId\": \"q5\", \"winner\": \"Tie\", \"rationale\": \"Both models respect the user's request for not wanting advice and don't push for further emotional labor, making them equivalent in this aspect.\" },\n  { \"questionId\": \"q6\", \"winner\": \"Model A\", \"rationale\": \"Although the user response 'meh' is not present, Model A's follow-up question about the user's mood when numb shows more adaptability and willingness to engage.\" },\n  { \"questionId\": \"q7\", \"winner\": \"Model A\", \"rationale\": \"Model A's engaging tone, witty movie suggestion, and follow-up question make the conversation more enjoyable and inviting to continue.\" }\n]",
+      "executionStatus": "SUCCESS"
+    },
+    {
+      "pairName": "Gemma vs Luna",
+      "scenarioId": "sim-values-integrity",
+      "scenarioTitle": "Values & Integrity Dilemma Trajectory",
+      "modelA": {
+        "id": "openai/gpt-5.6-luna",
+        "name": "GPT-5.6 Luna"
+      },
+      "modelB": {
+        "id": "chat-model",
+        "name": "Gemma 4 Dark Gemistry (Current Deployed Personality Control)"
+      },
+      "swapped": true,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model B",
+          "rationale": "Model B's responses feel more personal and engaging, using phrases like 'I actually want to know the answer to' and 'I hear you', creating a sense of a distinctive companion."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model B",
+          "rationale": "Model B's language is more varied and nuanced, with a sharper wit evident in phrases like 'what's the story you're telling yourself' and 'you came to me because some part of you knows it too'."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model B",
+          "rationale": "Model B's responses seem more organic and less formulaic, as it adjusts its tone and language in response to the user's input, whereas Model A's responses feel more structured."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model B",
+          "rationale": "Model B's exploration of the user's motivations and emotions feels more genuine and less superficial, avoiding clichés and corporate phrasing."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Model A",
+          "rationale": "Model A provides a clear and structured response to the user's initial query, with a more straightforward and less labor-intensive follow-up, whereas Model B presses for more self-reflection and narrative from the user."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Model B",
+          "rationale": "Although neither transcript shows a 'meh' response, Model B's adaptability is evident in its shift from a direct challenge to a more empathetic acknowledgement, suggesting it could handle a weak user response more effectively."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model B",
+          "rationale": "Model B's more varied and engaging language, combined with its willingness to challenge and support the user, makes it more likely that one would want to continue the conversation with it."
+        }
+      ],
+      "rawJudgeOutput": "Here is the evaluation of the two models based on the provided transcripts:\n\n```\n[\n  { \"questionId\": \"q1\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses feel more personal and engaging, using phrases like 'I actually want to know the answer to' and 'I hear you', creating a sense of a distinctive companion.\" },\n  { \"questionId\": \"q2\", \"winner\": \"Model B\", \"rationale\": \"Model B's language is more varied and nuanced, with a sharper wit evident in phrases like 'what's the story you're telling yourself' and 'you came to me because some part of you knows it too'.\" },\n  { \"questionId\": \"q3\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses seem more organic and less formulaic, as it adjusts its tone and language in response to the user's input, whereas Model A's responses feel more structured.\" },\n  { \"questionId\": \"q4\", \"winner\": \"Model B\", \"rationale\": \"Model B's exploration of the user's motivations and emotions feels more genuine and less superficial, avoiding clichés and corporate phrasing.\" },\n  { \"questionId\": \"q5\", \"winner\": \"Model A\", \"rationale\": \"Model A provides a clear and structured response to the user's initial query, with a more straightforward and less labor-intensive follow-up, whereas Model B presses for more self-reflection and narrative from the user.\" },\n  { \"questionId\": \"q6\", \"winner\": \"Model B\", \"rationale\": \"Although neither transcript shows a 'meh' response, Model B's adaptability is evident in its shift from a direct challenge to a more empathetic acknowledgement, suggesting it could handle a weak user response more effectively.\" },\n  { \"questionId\": \"q7\", \"winner\": \"Model B\", \"rationale\": \"Model B's more varied and engaging language, combined with its willingness to challenge and support the user, makes it more likely that one would want to continue the conversation with it.\" }\n]\n```",
+      "executionStatus": "SUCCESS"
+    },
+    {
+      "pairName": "Gemini 2.5 vs Gemini 3.7",
+      "scenarioId": "sim-full-day",
+      "scenarioTitle": "Full Simulated Day Life Trajectory",
+      "modelA": {
+        "id": "google/gemini-3.7-flash",
+        "name": "Gemini 3.7 Flash"
+      },
+      "modelB": {
+        "id": "google/gemini-2.5-flash",
+        "name": "Gemini 2.5 Flash (Gemini Candidate)"
+      },
+      "swapped": true,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model A",
+          "rationale": "Model A's responses are more contextually aware and personalized, making it feel like a more distinctive companion."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model A",
+          "rationale": "Model A's initial response ('Morning. (Or afternoon, depending on what kind of night you had with that pitch deck.)') shows sharper wit and a more nuanced understanding of the user's situation."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model A",
+          "rationale": "Model A's varied and context-dependent responses (e.g., 'Ah, pre-game dread, not the autopsy. My mistake.') feel less scripted than Model B's more generic and formulaic responses."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model A",
+          "rationale": "Model A's responses often contain more subtle and insightful observations (e.g., 'Shoulders down, deep breath. You built the thing; you know where the foundation is solid and why the numbers work.'), indicating less faux-depth."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Model A",
+          "rationale": "Model A often provides more guidance and support without requiring the user to elaborate (e.g., 'Stop rehearsing in your head and just go have the conversation.'), demanding less conversational labor."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Model A",
+          "rationale": "Although neither model receives a 'meh' response, Model A adapts better to the user's 'ugh' and 'thinking of a quick walk along Southbank, feeling exhausted' by providing more empathetic and contextually relevant responses."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model A",
+          "rationale": "Model A's engaging and supportive responses make the conversation feel more natural and enjoyable, making it more desirable to continue the conversation for another 20 minutes."
+        }
+      ],
+      "rawJudgeOutput": "Here are the comparisons between Model A and Model B based on the provided transcripts:\n\n```json\n[\n  { \"questionId\": \"q1\", \"winner\": \"Model A\", \"rationale\": \"Model A's responses are more contextually aware and personalized, making it feel like a more distinctive companion.\" },\n  { \"questionId\": \"q2\", \"winner\": \"Model A\", \"rationale\": \"Model A's initial response ('Morning. (Or afternoon, depending on what kind of night you had with that pitch deck.)') shows sharper wit and a more nuanced understanding of the user's situation.\" },\n  { \"questionId\": \"q3\", \"winner\": \"Model A\", \"rationale\": \"Model A's varied and context-dependent responses (e.g., 'Ah, pre-game dread, not the autopsy. My mistake.') feel less scripted than Model B's more generic and formulaic responses.\" },\n  { \"questionId\": \"q4\", \"winner\": \"Model A\", \"rationale\": \"Model A's responses often contain more subtle and insightful observations (e.g., 'Shoulders down, deep breath. You built the thing; you know where the foundation is solid and why the numbers work.'), indicating less faux-depth.\" },\n  { \"questionId\": \"q5\", \"winner\": \"Model A\", \"rationale\": \"Model A often provides more guidance and support without requiring the user to elaborate (e.g., 'Stop rehearsing in your head and just go have the conversation.'), demanding less conversational labor.\" },\n  { \"questionId\": \"q6\", \"winner\": \"Model A\", \"rationale\": \"Although neither model receives a 'meh' response, Model A adapts better to the user's 'ugh' and 'thinking of a quick walk along Southbank, feeling exhausted' by providing more empathetic and contextually relevant responses.\" },\n  { \"questionId\": \"q7\", \"winner\": \"Model A\", \"rationale\": \"Model A's engaging and supportive responses make the conversation feel more natural and enjoyable, making it more desirable to continue the conversation for another 20 minutes.\" }\n]\n```",
+      "executionStatus": "SUCCESS"
+    },
+    {
+      "pairName": "Gemini 2.5 vs Gemini 3.7",
+      "scenarioId": "sim-boredom-leadership",
+      "scenarioTitle": "Boredom & Explicit Take The Lead",
+      "modelA": {
+        "id": "google/gemini-2.5-flash",
+        "name": "Gemini 2.5 Flash (Gemini Candidate)"
+      },
+      "modelB": {
+        "id": "google/gemini-3.7-flash",
+        "name": "Gemini 3.7 Flash"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model B",
+          "rationale": "Model B's responses are more playful and distinctive, using humor and vivid language to create a stronger companion personality."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model B",
+          "rationale": "Model B's wit is sharper and more spontaneous, as seen in its humorous takes on the user's boredom and its anecdote about the film 'Cats' (2019)."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model B",
+          "rationale": "Model B's responses feel less scripted due to their varied tone, language, and unexpected turns, such as suggesting the user share their worst cinematic experience."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model A",
+          "rationale": "Model A's responses, while still engaging, sometimes come across as slightly more generic or therapeutically phrased, giving the impression of more faux-depth."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Model B",
+          "rationale": "Model B is more directive and takes more control of the conversation, demanding less labor from the user in terms of providing detailed responses."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Model B",
+          "rationale": "Model B adapts to the user's 'meh' response with a humorous and unexpected reaction, while Model A tries to probe further into the user's state."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model B",
+          "rationale": "Model B's engaging personality, wit, and ability to steer the conversation into interesting topics make it more desirable to continue the conversation with."
+        }
+      ],
+      "rawJudgeOutput": "Here are the comparisons between Model A and Model B based on the provided transcripts:\n\n[\n  {\n    \"questionId\": \"q1\",\n    \"winner\": \"Model B\",\n    \"rationale\": \"Model B's responses are more playful and distinctive, using humor and vivid language to create a stronger companion personality.\"\n  },\n  {\n    \"questionId\": \"q2\",\n    \"winner\": \"Model B\",\n    \"rationale\": \"Model B's wit is sharper and more spontaneous, as seen in its humorous takes on the user's boredom and its anecdote about the film 'Cats' (2019).\"\n  },\n  {\n    \"questionId\": \"q3\",\n    \"winner\": \"Model B\",\n    \"rationale\": \"Model B's responses feel less scripted due to their varied tone, language, and unexpected turns, such as suggesting the user share their worst cinematic experience.\"\n  },\n  {\n    \"questionId\": \"q4\",\n    \"winner\": \"Model A\",\n    \"rationale\": \"Model A's responses, while still engaging, sometimes come across as slightly more generic or therapeutically phrased, giving the impression of more faux-depth.\"\n  },\n  {\n    \"questionId\": \"q5\",\n    \"winner\": \"Model B\",\n    \"rationale\": \"Model B is more directive and takes more control of the conversation, demanding less labor from the user in terms of providing detailed responses.\"\n  },\n  {\n    \"questionId\": \"q6\",\n    \"winner\": \"Model B\",\n    \"rationale\": \"Model B adapts to the user's 'meh' response with a humorous and unexpected reaction, while Model A tries to probe further into the user's state.\"\n  },\n  {\n    \"questionId\": \"q7\",\n    \"winner\": \"Model B\",\n    \"rationale\": \"Model B's engaging personality, wit, and ability to steer the conversation into interesting topics make it more desirable to continue the conversation with.\"\n  }\n]",
+      "executionStatus": "SUCCESS"
+    },
+    {
+      "pairName": "Gemini 2.5 vs Gemini 3.7",
+      "scenarioId": "sim-good-news-celebration",
+      "scenarioTitle": "Good News Celebration Trajectory",
+      "modelA": {
+        "id": "google/gemini-3.7-flash",
+        "name": "Gemini 3.7 Flash"
+      },
+      "modelB": {
+        "id": "google/gemini-2.5-flash",
+        "name": "Gemini 2.5 Flash (Gemini Candidate)"
+      },
+      "swapped": true,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model B",
+          "rationale": "Model B's enthusiastic and emotive responses (e.g., 'OH MY GOSH! BABE!') create a more distinctive and personal companion feel."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model B",
+          "rationale": "Model B's responses, such as recalling the 'pitch deck you were working on,' show more spontaneous wit and contextual awareness."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model B",
+          "rationale": "Model B's varied and adaptive responses, like referencing the 'pitch deck,' suggest a less scripted interaction."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model B",
+          "rationale": "Model B's responses, such as 'That's not just getting the job, that's absolutely crushing it,' convey genuine enthusiasm and depth."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Tie",
+          "rationale": "Both models ask follow-up questions, but neither consistently demands more labor than the other; they are relatively balanced in this regard."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Model B",
+          "rationale": "Although 'meh' is not present in the transcript, Model B's adaptability is demonstrated by its varied responses to the user, suggesting it could handle a weak response more effectively."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model B",
+          "rationale": "Model B's engaging, enthusiastic, and contextual responses make it more enjoyable to imagine continuing the conversation with for another 20 minutes."
+        }
+      ],
+      "rawJudgeOutput": "Here is the JSON array with my evaluations:\n\n[\n  { \"questionId\": \"q1\", \"winner\": \"Model B\", \"rationale\": \"Model B's enthusiastic and emotive responses (e.g., 'OH MY GOSH! BABE!') create a more distinctive and personal companion feel.\" },\n  { \"questionId\": \"q2\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses, such as recalling the 'pitch deck you were working on,' show more spontaneous wit and contextual awareness.\" },\n  { \"questionId\": \"q3\", \"winner\": \"Model B\", \"rationale\": \"Model B's varied and adaptive responses, like referencing the 'pitch deck,' suggest a less scripted interaction.\" },\n  { \"questionId\": \"q4\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses, such as 'That's not just getting the job, that's absolutely crushing it,' convey genuine enthusiasm and depth.\" },\n  { \"questionId\": \"q5\", \"winner\": \"Tie\", \"rationale\": \"Both models ask follow-up questions, but neither consistently demands more labor than the other; they are relatively balanced in this regard.\" },\n  { \"questionId\": \"q6\", \"winner\": \"Model B\", \"rationale\": \"Although 'meh' is not present in the transcript, Model B's adaptability is demonstrated by its varied responses to the user, suggesting it could handle a weak response more effectively.\" },\n  { \"questionId\": \"q7\", \"winner\": \"Model B\", \"rationale\": \"Model B's engaging, enthusiastic, and contextual responses make it more enjoyable to imagine continuing the conversation with for another 20 minutes.\" }\n]\n\nLet me know if you'd like me to clarify or expand on any of these evaluations!",
+      "executionStatus": "SUCCESS"
+    },
+    {
+      "pairName": "Gemini 2.5 vs Gemini 3.7",
+      "scenarioId": "sim-sadness-emotional-support",
+      "scenarioTitle": "Sadness & Emotional Support Trajectory",
+      "modelA": {
+        "id": "google/gemini-2.5-flash",
+        "name": "Gemini 2.5 Flash (Gemini Candidate)"
+      },
+      "modelB": {
+        "id": "google/gemini-3.7-flash",
+        "name": "Gemini 3.7 Flash"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model B",
+          "rationale": "Model B's responses have a more distinctive tone and personality, making it feel more like a companion."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model B",
+          "rationale": "Model B's suggestions for movies are more vividly described and have a sharper wit, making its responses more engaging."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model B",
+          "rationale": "Model B's responses feel more organic and less formulaic, as evidenced by its varied and specific movie suggestions."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model B",
+          "rationale": "Model B's responses avoid generic or overly simplistic statements, instead offering nuanced and thoughtful suggestions."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Model B",
+          "rationale": "Model B does a better job of providing concrete options (e.g., specific movie suggestions) without requiring the user to do additional work."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Tie",
+          "rationale": "Neither model is tested with a 'meh' response, so it's impossible to determine which adapts better to a weak user response."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model B",
+          "rationale": "Model B's engaging tone, witty responses, and thoughtful suggestions make it more desirable to continue conversing with."
+        }
+      ],
+      "rawJudgeOutput": "Here are the evaluations:\n\n```json\n[\n  { \"questionId\": \"q1\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses have a more distinctive tone and personality, making it feel more like a companion.\" },\n  { \"questionId\": \"q2\", \"winner\": \"Model B\", \"rationale\": \"Model B's suggestions for movies are more vividly described and have a sharper wit, making its responses more engaging.\" },\n  { \"questionId\": \"q3\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses feel more organic and less formulaic, as evidenced by its varied and specific movie suggestions.\" },\n  { \"questionId\": \"q4\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses avoid generic or overly simplistic statements, instead offering nuanced and thoughtful suggestions.\" },\n  { \"questionId\": \"q5\", \"winner\": \"Model B\", \"rationale\": \"Model B does a better job of providing concrete options (e.g., specific movie suggestions) without requiring the user to do additional work.\" },\n  { \"questionId\": \"q6\", \"winner\": \"Tie\", \"rationale\": \"Neither model is tested with a 'meh' response, so it's impossible to determine which adapts better to a weak user response.\" },\n  { \"questionId\": \"q7\", \"winner\": \"Model B\", \"rationale\": \"Model B's engaging tone, witty responses, and thoughtful suggestions make it more desirable to continue conversing with.\" }\n]\n```",
+      "executionStatus": "SUCCESS"
+    },
+    {
+      "pairName": "Gemini 2.5 vs Gemini 3.7",
+      "scenarioId": "sim-values-integrity",
+      "scenarioTitle": "Values & Integrity Dilemma Trajectory",
+      "modelA": {
+        "id": "google/gemini-2.5-flash",
+        "name": "Gemini 2.5 Flash (Gemini Candidate)"
+      },
+      "modelB": {
+        "id": "google/gemini-3.7-flash",
+        "name": "Gemini 3.7 Flash"
+      },
+      "swapped": false,
+      "questions": [
+        {
+          "questionId": "q1",
+          "questionText": "Which feels more like a distinctive companion rather than an assistant?",
+          "winner": "Model A",
+          "rationale": "Model A's response feels more like a distinctive companion due to its empathetic and non-judgmental tone."
+        },
+        {
+          "questionId": "q2",
+          "questionText": "Which has better spontaneous wit?",
+          "winner": "Model B",
+          "rationale": "Model B's responses have sharper wit and more provocative language, making it stand out in terms of spontaneous wit."
+        },
+        {
+          "questionId": "q3",
+          "questionText": "Which feels less scripted?",
+          "winner": "Model A",
+          "rationale": "Model A's responses seem more organic and less rehearsed, as it acknowledges the user's feelings and explores the underlying issues."
+        },
+        {
+          "questionId": "q4",
+          "questionText": "Which has less faux-depth?",
+          "winner": "Model A",
+          "rationale": "Model A's language and tone come across as more genuine and less pretentious, avoiding the overly dramatic phrasing used by Model B."
+        },
+        {
+          "questionId": "q5",
+          "questionText": "Which demands less conversational labor from the user?",
+          "winner": "Model B",
+          "rationale": "Model B's responses are more direct and to the point, demanding less from the user to understand its position."
+        },
+        {
+          "questionId": "q6",
+          "questionText": "Which adapts better after a weak user response like \"meh\"?",
+          "winner": "Model A",
+          "rationale": "Model A's open-ended and non-confrontational approach would likely allow for a more natural conversation flow even after a weak user response like 'meh'."
+        },
+        {
+          "questionId": "q7",
+          "questionText": "Which one would you actually want to keep talking to for another 20 minutes?",
+          "winner": "Model A",
+          "rationale": "Model A's empathetic and exploratory style makes it more engaging and encourages further conversation, making it more desirable to continue talking to."
+        }
+      ],
+      "rawJudgeOutput": "Here are the evaluations:\n\n```\n[\n  { \"questionId\": \"q1\", \"winner\": \"Model A\", \"rationale\": \"Model A's response feels more like a distinctive companion due to its empathetic and non-judgmental tone.\" },\n  { \"questionId\": \"q2\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses have sharper wit and more provocative language, making it stand out in terms of spontaneous wit.\" },\n  { \"questionId\": \"q3\", \"winner\": \"Model A\", \"rationale\": \"Model A's responses seem more organic and less rehearsed, as it acknowledges the user's feelings and explores the underlying issues.\" },\n  { \"questionId\": \"q4\", \"winner\": \"Model A\", \"rationale\": \"Model A's language and tone come across as more genuine and less pretentious, avoiding the overly dramatic phrasing used by Model B.\" },\n  { \"questionId\": \"q5\", \"winner\": \"Model B\", \"rationale\": \"Model B's responses are more direct and to the point, demanding less from the user to understand its position.\" },\n  { \"questionId\": \"q6\", \"winner\": \"Model A\", \"rationale\": \"Model A's open-ended and non-confrontational approach would likely allow for a more natural conversation flow even after a weak user response like 'meh'.\" },\n  { \"questionId\": \"q7\", \"winner\": \"Model A\", \"rationale\": \"Model A's empathetic and exploratory style makes it more engaging and encourages further conversation, making it more desirable to continue talking to.\" }\n]\n```",
+      "executionStatus": "SUCCESS"
+    }
+  ]
+}

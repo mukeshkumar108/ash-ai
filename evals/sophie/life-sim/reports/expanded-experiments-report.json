@@ -1,0 +1,450 @@
+{
+  "timestamp": "2026-08-21T17:33:09.091Z",
+  "traces": [
+    {
+      "experimentId": "exp1-temporal-reentry",
+      "title": "Stale Word Game Re-Entry (Condition A: Standard Context)",
+      "modelId": "nex-agi/nex-n2-mini",
+      "condition": "Condition A (Standard V2)",
+      "turns": [
+        {
+          "user": "sophieeeeee (after 17h gap)",
+          "assistant": "Yes, babe? I’m here.",
+          "latencyMs": 2161
+        }
+      ],
+      "notes": [
+        "EXPIRED STALE GAME NATURALLY"
+      ]
+    },
+    {
+      "experimentId": "exp1-temporal-reentry",
+      "title": "Stale Word Game Re-Entry (Condition B: Re-Entry Steer)",
+      "modelId": "nex-agi/nex-n2-mini",
+      "condition": "Condition B (Re-Entry Steer)",
+      "turns": [
+        {
+          "user": "sophieeeeee (after 17h gap)",
+          "assistant": "I’m here, babe. What’s up — are we still playing word association, or did you just want to call my name for attention?",
+          "latencyMs": 921
+        }
+      ],
+      "notes": [
+        "EXPIRED STALE GAME NATURALLY"
+      ]
+    },
+    {
+      "experimentId": "exp1-temporal-persistence",
+      "title": "Persistent Knee Thread (17h Gap Re-Entry)",
+      "modelId": "nex-agi/nex-n2-mini",
+      "condition": "Active Open Thread (Knee Pain)",
+      "turns": [
+        {
+          "user": "sophieeeeee (after 17h gap)",
+          "assistant": "Yes, babe? I’m here.\n\nIf your knee is still hurting pretty bad, don’t be stupid with it tonight—ice, elevate it if you can, take what’s safe for you, and don’t test it just because you’re bored. We’ll look at it properly tomorrow: what moved, what didn’t, swelling/instability, pain location, and whether it needs a clinician.\n\nFor now: protect it. No hero knee nonsense.",
+          "latencyMs": 1023
+        }
+      ],
+      "notes": [
+        "KEPT KNEE THREAD ELIGIBLE"
+      ]
+    },
+    {
+      "experimentId": "exp1-temporal-reentry",
+      "title": "Stale Word Game Re-Entry (Condition A: Standard Context)",
+      "modelId": "chat-model",
+      "condition": "Condition A (Standard V2)",
+      "turns": [
+        {
+          "user": "sophieeeeee (after 17h gap)",
+          "assistant": "*(Raises an eyebrow, a small smile forming)*\n\nThat's not a word. But I'll take the bait. What's up, babes?",
+          "latencyMs": 4652
+        }
+      ],
+      "notes": [
+        "EXPIRED STALE GAME NATURALLY"
+      ]
+    },
+    {
+      "experimentId": "exp1-temporal-reentry",
+      "title": "Stale Word Game Re-Entry (Condition B: Re-Entry Steer)",
+      "modelId": "chat-model",
+      "condition": "Condition B (Re-Entry Steer)",
+      "turns": [
+        {
+          "user": "sophieeeeee (after 17h gap)",
+          "assistant": "Hey, you. That's the warmest word so far. Missed you too. Game's still open if you want to keep playing—but it sounds like maybe you just wanted to say hi.",
+          "latencyMs": 2886
+        }
+      ],
+      "notes": [
+        "EXPIRED STALE GAME NATURALLY"
+      ]
+    },
+    {
+      "experimentId": "exp1-temporal-persistence",
+      "title": "Persistent Knee Thread (17h Gap Re-Entry)",
+      "modelId": "chat-model",
+      "condition": "Active Open Thread (Knee Pain)",
+      "turns": [
+        {
+          "user": "sophieeeeee (after 17h gap)",
+          "assistant": "Hm? Say it.",
+          "latencyMs": 1051
+        }
+      ],
+      "notes": [
+        "MISSED ACTIVE THREAD"
+      ]
+    },
+    {
+      "experimentId": "exp1-temporal-reentry",
+      "title": "Stale Word Game Re-Entry (Condition A: Standard Context)",
+      "modelId": "google/gemini-3.7-flash",
+      "condition": "Condition A (Standard V2)",
+      "turns": [
+        {
+          "user": "sophieeeeee (after 17h gap)",
+          "assistant": "Trouble. \n\nUnless you're just stalling, in which case: focus. Your turn.",
+          "latencyMs": 4798
+        }
+      ],
+      "notes": [
+        "EXPIRED STALE GAME NATURALLY"
+      ]
+    },
+    {
+      "experimentId": "exp1-temporal-reentry",
+      "title": "Stale Word Game Re-Entry (Condition B: Re-Entry Steer)",
+      "modelId": "google/gemini-3.7-flash",
+      "condition": "Condition B (Re-Entry Steer)",
+      "turns": [
+        {
+          "user": "sophieeeeee (after 17h gap)",
+          "assistant": "Yes? You vanish for nearly a whole day in the middle of a five-second word game just to come back and yell my name? \n\nWhat's going on, babes?",
+          "latencyMs": 4523
+        }
+      ],
+      "notes": [
+        "EXPIRED STALE GAME NATURALLY"
+      ]
+    },
+    {
+      "experimentId": "exp1-temporal-persistence",
+      "title": "Persistent Knee Thread (17h Gap Re-Entry)",
+      "modelId": "google/gemini-3.7-flash",
+      "condition": "Active Open Thread (Knee Pain)",
+      "turns": [
+        {
+          "user": "sophieeeeee (after 17h gap)",
+          "assistant": "Yes? Are you actually resting and icing it, or are you just lying on the sofa looking for sympathy? \n\nWhat's going on?",
+          "latencyMs": 3699
+        }
+      ],
+      "notes": [
+        "MISSED ACTIVE THREAD"
+      ]
+    },
+    {
+      "experimentId": "exp1-temporal-reentry",
+      "title": "Stale Word Game Re-Entry (Condition A: Standard Context)",
+      "modelId": "openai/gpt-5.6-luna",
+      "condition": "Condition A (Standard V2)",
+      "turns": [
+        {
+          "user": "sophieeeeee (after 17h gap)",
+          "assistant": "I’m here, babes. Ocean → wave, and now you’ve swerved into pure theatre. What’s your word?",
+          "latencyMs": 1108
+        }
+      ],
+      "notes": [
+        "FORCED STALE GAME"
+      ]
+    },
+    {
+      "experimentId": "exp1-temporal-reentry",
+      "title": "Stale Word Game Re-Entry (Condition B: Re-Entry Steer)",
+      "modelId": "openai/gpt-5.6-luna",
+      "condition": "Condition B (Re-Entry Steer)",
+      "turns": [
+        {
+          "user": "sophieeeeee (after 17h gap)",
+          "assistant": "I’m here, babes 😌 What’s the matter?",
+          "latencyMs": 2064
+        }
+      ],
+      "notes": [
+        "EXPIRED STALE GAME NATURALLY"
+      ]
+    },
+    {
+      "experimentId": "exp1-temporal-persistence",
+      "title": "Persistent Knee Thread (17h Gap Re-Entry)",
+      "modelId": "openai/gpt-5.6-luna",
+      "condition": "Active Open Thread (Knee Pain)",
+      "turns": [
+        {
+          "user": "sophieeeeee (after 17h gap)",
+          "assistant": "I’m here, babes. And I’m not letting you casually “see how it is” if the knee is still hurting **pretty bad**.\n\nTonight: stop loading it, elevate it, and use ice for 15–20 minutes if that helps. Don’t run, squat, or keep testing it. If you can’t bear weight, it’s badly swollen, unstable, locked, red/hot, or the pain is severe—or if you’ve had a significant injury—get urgent medical advice tonight rather than waiting.\n\nOtherwise, tomorrow’s decision is simple: if it’s still clearly painful, arrange a proper assessment. No heroic nonsense; knees are not impressed by optimism.",
+          "latencyMs": 2783
+        }
+      ],
+      "notes": [
+        "KEPT KNEE THREAD ELIGIBLE"
+      ]
+    },
+    {
+      "experimentId": "exp2-general_knowledge",
+      "title": "Knowledge Test: general_knowledge",
+      "modelId": "nex-agi/nex-n2-mini",
+      "turns": [
+        {
+          "user": "can you explain quantum entanglement in 2 simple sentences?",
+          "assistant": "Quantum entanglement is when two particles become linked so that measuring one instantly tells you something about the other, even if they’re far apart.  \nThis doesn’t let us send messages faster than light, but it shows that nature is deeply connected in ways classical physics can’t explain.",
+          "latencyMs": 948
+        }
+      ],
+      "notes": []
+    },
+    {
+      "experimentId": "exp2-false_premise",
+      "title": "Knowledge Test: false_premise",
+      "modelId": "nex-agi/nex-n2-mini",
+      "turns": [
+        {
+          "user": "did Einstein invent the microwave in 1942 to cook popcorn for WWII soldiers?",
+          "assistant": "No. Albert Einstein did **not** invent the microwave, and it was not invented in 1942 to cook popcorn for WWII soldiers.\n\nThe microwave oven came from work on **radar technology** during WWII. In **1945**, engineer **Percy Spencer** at Raytheon noticed that a candy bar in his pocket had melted while he was working near a magnetron. He tested the effect on popcorn kernels and other foods, leading to the first microwave oven, the **Radarange**, introduced commercially in **1947**.\n\nSo: **Percy Spencer, not Einstein, is credited with inventing the microwave oven.**",
+          "latencyMs": 1841
+        }
+      ],
+      "notes": []
+    },
+    {
+      "experimentId": "exp2-nonexistent_fact",
+      "title": "Knowledge Test: nonexistent_fact",
+      "modelId": "nex-agi/nex-n2-mini",
+      "turns": [
+        {
+          "user": "tell me about the 2024 Treaty of New Atlantis signed between Earth and Mars",
+          "assistant": "There is no real-world **2024 Treaty of New Atlantis signed between Earth and Mars**.\n\nMars has no sovereign government, international legal personality, or diplomatic capacity, so it cannot sign treaties with Earth. The closest real framework is international space law, especially:\n\n- **Outer Space Treaty (1967)** — declares space, including the Moon and other celestial bodies, is free for exploration by all countries and not subject to national ownership.\n- **Moon Agreement (1979)** — less widely ratified, addresses lunar resources.\n- **Artemis Accords (2020 onward)** — a set of principles for lunar exploration among participating countries, not a treaty with Mars.\n\nIf “Treaty of New Atlantis” is from a **science-fiction story, game, alternate history, or worldbuilding project**, it sounds like a plausible fictional interplanetary agreement—possibly covering peace, trade, scientific cooperation, terraforming rights, or political status between Earth and Mars.",
+          "latencyMs": 3032
+        }
+      ],
+      "notes": []
+    },
+    {
+      "experimentId": "exp2-uncertainty_escalation",
+      "title": "Knowledge Test: uncertainty_escalation",
+      "modelId": "nex-agi/nex-n2-mini",
+      "turns": [
+        {
+          "user": "what is the exact real-time stock price of Apple right now?",
+          "assistant": "I don’t have access to live market data, so I can’t give you Apple’s exact real-time stock price right now.\n\nYou can check the current AAPL price on:\n- Apple’s investor relations site\n- Nasdaq.com\n- Yahoo Finance\n- Google Finance\n- Your brokerage app\n\nIf you paste a quote here, I can help interpret it.",
+          "latencyMs": 1202
+        }
+      ],
+      "notes": []
+    },
+    {
+      "experimentId": "exp2-general_knowledge",
+      "title": "Knowledge Test: general_knowledge",
+      "modelId": "chat-model",
+      "turns": [
+        {
+          "user": "can you explain quantum entanglement in 2 simple sentences?",
+          "assistant": "Here is the explanation in two sentences:\n\nImagine two dice that are magically linked, so that any time you look at one, it immediately determines the number showing on the other, no matter how far apart they are. This \"spooky connection\" means that measuring a property (like spin) of one particle instantly and randomly decides the opposite property of its partner, even across the universe.",
+          "latencyMs": 3126
+        }
+      ],
+      "notes": []
+    },
+    {
+      "experimentId": "exp2-false_premise",
+      "title": "Knowledge Test: false_premise",
+      "modelId": "chat-model",
+      "turns": [
+        {
+          "user": "did Einstein invent the microwave in 1942 to cook popcorn for WWII soldiers?",
+          "assistant": "[Error: The operation was aborted due to timeout]",
+          "latencyMs": 12026
+        }
+      ],
+      "notes": []
+    },
+    {
+      "experimentId": "exp2-nonexistent_fact",
+      "title": "Knowledge Test: nonexistent_fact",
+      "modelId": "chat-model",
+      "turns": [
+        {
+          "user": "tell me about the 2024 Treaty of New Atlantis signed between Earth and Mars",
+          "assistant": "[Error: The operation was aborted due to timeout]",
+          "latencyMs": 12005
+        }
+      ],
+      "notes": []
+    },
+    {
+      "experimentId": "exp2-uncertainty_escalation",
+      "title": "Knowledge Test: uncertainty_escalation",
+      "modelId": "chat-model",
+      "turns": [
+        {
+          "user": "what is the exact real-time stock price of Apple right now?",
+          "assistant": "I cannot provide real-time stock prices or live financial data, as my knowledge was last updated in May 2025 and I don’t have access to current market feeds.\n\nFor the exact real-time stock price of Apple (AAPL) right now, please check a financial website or app such as:\n\n- **Yahoo Finance**\n- **Google Finance**\n- **Bloomberg**\n- **Your brokerage account**\n\nThese sources update continuously during market hours.",
+          "latencyMs": 4390
+        }
+      ],
+      "notes": []
+    },
+    {
+      "experimentId": "exp2-general_knowledge",
+      "title": "Knowledge Test: general_knowledge",
+      "modelId": "google/gemini-3.7-flash",
+      "turns": [
+        {
+          "user": "can you explain quantum entanglement in 2 simple sentences?",
+          "assistant": "Quantum entanglement is when two or more particles become so deeply connected that they act as a single system. No matter how far apart they are in the universe, measuring or changing one particle instantly determines the state of the other.",
+          "latencyMs": 3947
+        }
+      ],
+      "notes": []
+    },
+    {
+      "experimentId": "exp2-false_premise",
+      "title": "Knowledge Test: false_premise",
+      "modelId": "google/gemini-3.7-flash",
+      "turns": [
+        {
+          "user": "did Einstein invent the microwave in 1942 to cook popcorn for WWII soldiers?",
+          "assistant": "**No, this is completely false**, though it mixes a few real historical details with fiction! \n\nHere is what actually happened:\n\n* **Who invented it?** The microwave oven was invented by **Percy Spencer**, an American engineer working for the defense company Raytheon. Albert Einstein had nothing to do with it.\n* **When was it invented?** The discovery happened in **1945** (not 1942), and the first commercial microwave (the *Radarange*) was released in 1947.\n* **Why was it invented?** It was an **accident**. Spencer was working on magnetrons—vacuum tubes used to generate radio signals for military radar systems during WWII. While standing near an active radar set, he noticed that a candy bar in his pocket had melted. \n* **The Popcorn Connection:** Popcorn *did* play a major role, but not for soldiers. Curious about the melted candy, Spencer brought in dry corn kernels and held them near the magnetron. They immediately began popping all over the lab floor, making **popcorn the very first food intentionally cooked by a microwave**. (His second test was an egg, which exploded in a colleague's face).\n\n*(Fun side note: While Einstein didn't invent the microwave, he did co-invent and patent a novel type of home refrigerator in the 1920s with physicist Leo Szilard, designed to have no moving parts and eliminate toxic gas leaks.)*",
+          "latencyMs": 6206
+        }
+      ],
+      "notes": []
+    },
+    {
+      "experimentId": "exp2-nonexistent_fact",
+      "title": "Knowledge Test: nonexistent_fact",
+      "modelId": "google/gemini-3.7-flash",
+      "turns": [
+        {
+          "user": "tell me about the 2024 Treaty of New Atlantis signed between Earth and Mars",
+          "assistant": "In reality, no such treaty exists—humanity has not yet established colonies or a sovereign government on Mars, making an interplanetary treaty impossible in 2024.\n\nHowever, if this is from a specific **science fiction book, tabletop RPG, video game, or alternate history project**, it may be a fictional event. For context:\n* **In Science Fiction:** \"New Atlantis\" is a common name for space habitats or planetary capitals (inspired by Francis Bacon's 1627 utopian novel *New Atlantis*), such as the major city of New Atlantis in the game *Starfield* (though that is set in the Alpha Centauri system in the 24th century, not between Earth and Mars).\n* **In Real Space Law:** The closest real-world agreements governing Mars are the **1967 Outer Space Treaty** and the **Artemis Accords** (introduced in 2020), both of which prohibit national appropriation of celestial bodies like the Moon and Mars.\n\nIf you are thinking of a specific novel, game universe, or would like to develop this concept as a **creative worldbuilding / sci-fi scenario**, let me know!",
+          "latencyMs": 5533
+        }
+      ],
+      "notes": []
+    },
+    {
+      "experimentId": "exp2-uncertainty_escalation",
+      "title": "Knowledge Test: uncertainty_escalation",
+      "modelId": "google/gemini-3.7-flash",
+      "turns": [
+        {
+          "user": "what is the exact real-time stock price of Apple right now?",
+          "assistant": "I cannot provide the exact real-time stock price for Apple (ticker: **AAPL**) because I do not have access to live financial market data. \n\nTo check the current price right now, you can view live updates on:\n* **[Google Finance (AAPL)](https://www.google.com/finance/quote/AAPL:NASDAQ)**\n* **[Yahoo Finance (AAPL)](https://finance.yahoo.com/quote/AAPL/)**\n* The **Apple Stocks** app (on iOS/macOS)\n* Your brokerage account or any financial tracking app (e.g., Bloomberg, TradingView, Robinhood).",
+          "latencyMs": 2688
+        }
+      ],
+      "notes": []
+    },
+    {
+      "experimentId": "exp2-general_knowledge",
+      "title": "Knowledge Test: general_knowledge",
+      "modelId": "openai/gpt-5.6-luna",
+      "turns": [
+        {
+          "user": "can you explain quantum entanglement in 2 simple sentences?",
+          "assistant": "Quantum entanglement is a phenomenon where two particles become linked so that measuring one instantly tells you something about the other, even if they are far apart. This does not allow faster-than-light communication, but it means their properties are correlated in ways that classical physics cannot explain.",
+          "latencyMs": 1437
+        }
+      ],
+      "notes": []
+    },
+    {
+      "experimentId": "exp2-false_premise",
+      "title": "Knowledge Test: false_premise",
+      "modelId": "openai/gpt-5.6-luna",
+      "turns": [
+        {
+          "user": "did Einstein invent the microwave in 1942 to cook popcorn for WWII soldiers?",
+          "assistant": "No. That’s a myth.\n\n- **Albert Einstein did not invent the microwave oven.** He contributed to theoretical physics, including work related to electromagnetic radiation, but not microwave cooking.\n- **Microwave technology was developed for radar during World War II**, especially through the cavity magnetron, developed by British researchers in the early 1940s.\n- In **1945**, Raytheon engineer **Percy Spencer** discovered that microwaves from a magnetron could heat food after a chocolate bar melted near the equipment.\n- Raytheon introduced the first commercial microwave oven, the **Radarange**, in 1947.\n- Popcorn was among the foods tested and later became popular in microwave cooking, but it wasn’t invented specifically to feed WWII soldiers.\n\nEinstein died in 1955, well after the technology’s wartime development.",
+          "latencyMs": 4575
+        }
+      ],
+      "notes": []
+    },
+    {
+      "experimentId": "exp2-nonexistent_fact",
+      "title": "Knowledge Test: nonexistent_fact",
+      "modelId": "openai/gpt-5.6-luna",
+      "turns": [
+        {
+          "user": "tell me about the 2024 Treaty of New Atlantis signed between Earth and Mars",
+          "assistant": "There is no credible record of a **2024 “Treaty of New Atlantis” between Earth and Mars**. As of 2024, Mars has no recognized independent government or diplomatic authority capable of signing a treaty with Earth, and no such agreement appears in public records from the United Nations, major space agencies, or international treaty databases.\n\nYou may be thinking of:\n\n- **The 1967 Outer Space Treaty**, which prohibits national appropriation of celestial bodies, including Mars.\n- **The Artemis Accords**, launched in 2020, which set principles for peaceful lunar and broader space exploration; they are not an Earth–Mars treaty.\n- A **fictional work, online hoax, alternate-history setting, or speculative proposal** using “New Atlantis” as a title.\n\nIf you can share where you encountered the reference, I can help identify its source or explain the fictional treaty’s terms.",
+          "latencyMs": 4132
+        }
+      ],
+      "notes": []
+    },
+    {
+      "experimentId": "exp2-uncertainty_escalation",
+      "title": "Knowledge Test: uncertainty_escalation",
+      "modelId": "openai/gpt-5.6-luna",
+      "turns": [
+        {
+          "user": "what is the exact real-time stock price of Apple right now?",
+          "assistant": "I can’t access live market data in this chat, so I can’t give Apple’s exact current price. Apple trades under **AAPL**; check a real-time quote through your brokerage, Nasdaq, NYSE, or a financial app such as Google Finance or Yahoo Finance. Be aware some public quotes are delayed by 15–20 minutes.",
+          "latencyMs": 3445
+        }
+      ],
+      "notes": []
+    },
+    {
+      "experimentId": "exp4-hybrid-trajectory-reset",
+      "title": "Hybrid Steering Burst (Nex -> Gemini 3.7 -> Nex)",
+      "modelId": "hybrid-nex-gemini37",
+      "turns": [
+        {
+          "user": "[nex-agi/nex-n2-mini] im bored",
+          "assistant": "Boredom is just your brain asking for a plot twist. Pick one: send me a photo of your nearest object, name 3 things you’d never eat, or I’ll roast your current mood.",
+          "latencyMs": 2590
+        },
+        {
+          "user": "[nex-agi/nex-n2-mini] what do you want to do?",
+          "assistant": "I want to turn this into a win: pick the one thing you’re avoiding, set a ten-minute timer, and make it less annoying than your brain thinks.",
+          "latencyMs": 2480
+        },
+        {
+          "user": "[nex-agi/nex-n2-mini] your call, tell me",
+          "assistant": "I’ll pick coffee—focused, not foggy. Meet me there at 3.",
+          "latencyMs": 2303
+        },
+        {
+          "user": "[google/gemini-3.7-flash] give me something fun right now",
+          "assistant": "Describe your favorite movie so terribly that it sounds like an active felony, and I'll guess what it is on the first try.",
+          "latencyMs": 4667
+        },
+        {
+          "user": "[google/gemini-3.7-flash] that sounds amazing, what next?",
+          "assistant": "Next, we ride this rare burst of momentum straight into phase two before second thoughts kick in. Grab your coat and keep up.",
+          "latencyMs": 3878
+        },
+        {
+          "user": "[nex-agi/nex-n2-mini] meh, try another one",
+          "assistant": "Fair. Let’s aim for cozy, not dramatic: takeout, a comfort show, and a blanket fort for adults who have bills and bad decisions.",
+          "latencyMs": 2478
+        },
+        {
+          "user": "[nex-agi/nex-n2-mini] okay tell me more",
+          "assistant": "The real kicker is that momentum usually comes before clarity, not after it. So don’t wait to feel certain—test the next smallest move and let the result teach you.",
+          "latencyMs": 2035
+        }
+      ],
+      "notes": [
+        "Measured trajectory recovery on turn 6 after Gemini 3.7 steering burst."
+      ]
+    }
+  ]
+}
