@@ -326,6 +326,9 @@ export async function getUserChronologyTimeline({
   before: Date;
 }): Promise<UserChronologyTimeline> {
   try {
+    // Raw postgres.js parameters in the bundled production runtime must be
+    // scalar strings here; passing a Date reached its string encoder directly.
+    const beforeIso = before.toISOString();
     const rows = await getClient()<
       Array<{ createdAt: Date | string; chatId: string }>
     >`
@@ -334,7 +337,7 @@ export async function getUserChronologyTimeline({
       inner join "Chat" c on c.id = m."chatId"
       where c."userId" = ${userId}
         and m.role = 'user'
-        and m."createdAt" < ${before}
+        and m."createdAt" < ${beforeIso}
       order by m."createdAt" desc
     `;
     const userMessages = rows
@@ -368,6 +371,8 @@ export async function getTemporalSessionResidueRows({
   limit?: number;
 }): Promise<TemporalSessionResidueRow[]> {
   try {
+    const startedAtIso = startedAt.toISOString();
+    const beforeIso = before.toISOString();
     const rows = await getClient()<
       Array<Omit<TemporalSessionResidueRow, 'createdAt'> & { createdAt: Date | string }>
     >`
@@ -375,8 +380,8 @@ export async function getTemporalSessionResidueRows({
       from "Message_v2" m
       inner join "Chat" c on c.id = m."chatId"
       where c."userId" = ${userId}
-        and m."createdAt" >= ${startedAt}
-        and m."createdAt" < ${before}
+        and m."createdAt" >= ${startedAtIso}
+        and m."createdAt" < ${beforeIso}
         and m.role in ('user', 'assistant')
       order by m."createdAt" desc
       limit ${Math.max(1, Math.min(limit, 12))}
