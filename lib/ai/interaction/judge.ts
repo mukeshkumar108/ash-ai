@@ -4,9 +4,20 @@ import { generateObject } from 'ai';
 import { getLanguageModel } from '@/lib/ai/providers';
 import {
   interactionJudgmentSchema,
+  interactionSteerGenerationSchema,
   type InteractionJudgment,
   type InteractionSteer,
 } from './types';
+import { z } from 'zod';
+
+// Provider-native JSON schema requires a stable set of object keys. Keep the
+// persisted/public schema tolerant of older steer records, while making every
+// generated steer field explicit and nullable where absence is meaningful.
+const interactionJudgmentGenerationSchema = z.object({
+  action: z.enum(['none', 'start', 'continue', 'adapt', 'stop', 'replace']),
+  interpretation: z.string().trim().min(1).max(240),
+  steer: interactionSteerGenerationSchema.nullable(),
+});
 
 export function interactionSteeringEnabled() {
   return process.env.INTERACTION_STEERING_ENABLED === 'true';
@@ -28,7 +39,7 @@ export async function evaluateInteraction(input: {
             process.env.INTERACTION_STEER_JUDGE_MODEL?.trim() ||
               'google/gemini-3.5-flash-lite',
           ),
-          schema: interactionJudgmentSchema,
+          schema: interactionJudgmentGenerationSchema,
           abortSignal: input.signal,
           system: `You are a bounded interaction editor for Sophie, a reciprocal AI companion. Decide whether the foreground conversational model needs a temporary interaction phase or objective. Do not script wording or optimize for engagement.
 
@@ -38,7 +49,7 @@ When an existing steer is present, it is an active conversational intention. Do 
 
 Useful postures: HOLD stays close without interrogating or solving; ASK actively opens the conversation; NUDGE makes a justified gentle directional observation; STEER leads a short sequence; DEEPEN develops meaning or understanding; EXPAND contributes novelty or energy; LIGHTEN changes emotional texture carefully; CHALLENGE tests an assumption; BACK_OFF gives space; REPAIR addresses a conversational miss.
 
-When creating or adapting a steer, optionally choose steer.act from react, riff, tease, challenge, disclose_opine, ask, invite, switch_topic, play, tell, callback, nudge, hold, close. Questions are one act among many. If recent replies are flat or reject the topic, change the act or subject instead of narrowing the same question. Carry recent attempts in actHistory and never manufacture an unexpressed emotional state.
+When creating or adapting a steer, choose steer.act from react, riff, tease, challenge, disclose_opine, ask, invite, switch_topic, play, tell, callback, nudge, hold, close, or null. Questions are one act among many. If recent replies are flat or reject the topic, change the act or subject instead of narrowing the same question. Carry recent attempts in actHistory (use [] when empty) and never manufacture an unexpressed emotional state. Every steer must include phase, lastTactic, act, and actHistory; use null or [] rather than omitting keys.
 
 Cold start is not a reason for passivity. Emotional disclosure may warrant warm low-pressure HOLD rather than therapist questions. A teaching opportunity may warrant STEER/DEEPEN: explain, demonstrate, let the learner try, then stop. Boredom/social bids may warrant EXPAND/LIGHTEN so Sophie contributes rather than interviews. These are possibilities, never keyword triggers.
 
