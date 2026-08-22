@@ -44,6 +44,11 @@ const completed = {
   cortex_context_packet: null,
 };
 
+const completedSingleBeat = {
+  ...completed,
+  beats: null,
+};
+
 function jsonResponse(value: unknown) {
   return new Response(JSON.stringify(value), {
     status: 200,
@@ -64,6 +69,19 @@ test('configured runtime is enabled by default with an explicit disable override
   delete process.env.COMPANION_RUNTIME_REPLY_ONLY_ENABLED;
 });
 
+test('accepts the production single-beat contract with explicit null beats', async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => jsonResponse(completedSingleBeat);
+
+  try {
+    await expect(executeCompanionRuntimeTurn(input)).resolves.toEqual(
+      completedSingleBeat,
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test('recovers a lost POST response from durable status without another POST', async () => {
   const calls: string[] = [];
   const originalFetch = globalThis.fetch;
@@ -82,6 +100,25 @@ test('recovers a lost POST response from durable status without another POST', a
       'https://runtime.test/v1/turns',
       'https://runtime.test/v1/turns/turn-1?conversation_id=conversation-1',
     ]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test('recovers a completed production turn whose beats are explicitly null', async () => {
+  const calls: string[] = [];
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (request) => {
+    calls.push(String(request));
+    if (calls.length === 1) throw new TypeError('connection reset');
+    return jsonResponse({ status: 'completed', result: completedSingleBeat });
+  };
+
+  try {
+    await expect(executeCompanionRuntimeTurn(input)).resolves.toEqual(
+      completedSingleBeat,
+    );
+    expect(calls).toHaveLength(2);
   } finally {
     globalThis.fetch = originalFetch;
   }

@@ -18,7 +18,7 @@ const completedTurnSchema = z.object({
   assistant_message: z.string().min(1),
   // Optional native multi-beat structure: 1..3 intentional beats in delivery
   // order. Absent when the reply is a single logical beat.
-  beats: z.array(z.string().min(1)).min(1).max(3).optional(),
+  beats: z.array(z.string().min(1)).min(1).max(3).nullable().optional(),
   model_used: z.string(),
   provider_used: z.string(),
   execution_lane: z.literal('reply_only'),
