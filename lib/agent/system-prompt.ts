@@ -3,8 +3,6 @@ import type { EpistemicPolicy } from '@/lib/agent/research-policy';
 import type { TranscriptReliability } from '@/lib/transcript-reliability';
 import type { CortexContext } from '@/lib/synapse-cortex';
 import type { SceneState } from '@/lib/agent/scene-state';
-import type { InteractionSteer } from '@/lib/ai/interaction/types';
-import { compileInteractionSteer } from '@/lib/ai/interaction/steer';
 import type { ReentryContext } from '@/lib/agent/reentry';
 import type { CompanionEntryContext } from '@/lib/agent/entry-context';
 
@@ -144,7 +142,6 @@ export function buildSophieReplySystemPrompt({
   transcriptReliability,
   cortexContext,
   sceneState,
-  interactionSteer,
   reentry,
   entryContext,
   medium,
@@ -165,7 +162,6 @@ export function buildSophieReplySystemPrompt({
   transcriptReliability?: TranscriptReliability | null;
   cortexContext?: CortexContext | null;
   sceneState?: SceneState;
-  interactionSteer?: InteractionSteer | null;
   reentry?: ReentryContext;
   entryContext?: CompanionEntryContext;
   medium?: 'mobile_text' | 'voice' | 'desktop' | null;
@@ -267,9 +263,6 @@ Use this only to remain honest about how a recent answer was obtained. Do not cl
         ? `\n\n[AUDIO TRANSCRIPT RELIABILITY]\nThis user message came from recorded audio and its transcript is uncertain (${transcriptReliability.reason}). Treat suspicious details cautiously. Do not silently repair or confidently infer them. Continue only where safe, and ask naturally for clarification if the answer materially depends on those details.`
         : `\n\n[AUDIO INPUT SOURCE]\nThis user message was transcribed from audio. Speech transcription is fallible. If wording actually appears garbled, repetitive, implausible, or unlike what the user probably intended, do not force an interpretation or silently correct it. Say naturally that you may have misheard them and ask them to repeat or clarify. Do not mention transcription uncertainty unless you genuinely have reason to doubt what you received.`
     : '';
-  const interactionSteerBlock = interactionSteer
-    ? `\n\n${compileInteractionSteer(interactionSteer)}`
-    : '';
   const actBlock = conversationAct || actHistory?.length || repeatedLowEnergy
     ? `\n\n[CONVERSATIONAL ACT]\n${[
         conversationAct ? `Next conversational act: ${conversationAct}.` : '',
@@ -304,7 +297,7 @@ Answer as Sophie, using your learned understanding and your own judgment. You do
 Resolve conflicts in this exact order: CURRENT USER TURN and explicit boundaries > safety/high-consequence handling > TRUSTED CURRENT TIME, AUTHORITATIVE CURRENT SCENE, and AUTHORITATIVE ENTRY CONTEXT > durable CORTEX continuity > lightweight interaction posture > retrieved memory and older chat history. An explicit current correction immediately replaces a conflicting older assumption. After a correction, acknowledge it briefly, correct course, and stop digging: do not add a reflexive question merely to keep the exchange alive. If the current user says to leave a subject, stop asking, not now, or just answer directly, comply immediately and do not append a challenge, tease, callback, invitation, or final word about the refused subject. A callback is optional and must serve the user's current purpose; when the user changes topic, answer the new topic without dragging an older scene into the response.
 
 [TURN-SPECIFIC INSTINCT]
-${buildSophieTurnModule(interactionMode)}${neutralQuestion ? `\nPrivate reasoning anchor—not a request for research or visible restatement: ${neutralQuestion}` : ''}${transcriptBlock}${ambientBlock}${provenanceBlock}${sceneBlock}${cortexBlock}${memoryBlock}${handshakeBlock}${reentryBlock}${postureBlock}${interactionSteerBlock}${entryContextBlock}${actBlock}${mediumBlock}${beatsContract}`;
+${buildSophieTurnModule(interactionMode)}${neutralQuestion ? `\nPrivate reasoning anchor—not a request for research or visible restatement: ${neutralQuestion}` : ''}${transcriptBlock}${ambientBlock}${provenanceBlock}${sceneBlock}${cortexBlock}${memoryBlock}${handshakeBlock}${reentryBlock}${postureBlock}${entryContextBlock}${actBlock}${mediumBlock}${beatsContract}`;
 }
 
 export function buildAshAgentSystemPrompt({

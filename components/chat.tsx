@@ -71,13 +71,6 @@ export function Chat({
   const [isLoadingOlderMessages, setIsLoadingOlderMessages] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
   const voiceTurnPendingRef = useRef(false);
-  const initiativeRequestRef = useRef<
-    (
-      trigger: 'post_turn' | 'active_idle' | 'second_thought',
-      anchorMessageId: string,
-    ) => void
-  >(() => {});
-  const initiativeTimerRef = useRef<number | null>(null);
   const [voiceReplyIds, setVoiceReplyIds] = useState<Set<string>>(
     () => new Set(),
   );
@@ -144,81 +137,6 @@ export function Chat({
 
   const messagesRef = useRef(messages);
   messagesRef.current = messages;
-
-  const initiativeInFlightRef = useRef(false);
-  const requestInitiative = useCallback(
-    async (
-      trigger: 'post_turn' | 'active_idle' | 'second_thought',
-      anchorMessageId: string,
-    ) => {
-      if (initiativeInFlightRef.current || status !== 'ready' || isReadonly) {
-        return;
-      }
-      initiativeInFlightRef.current = true;
-      try {
-        const response = await fetch(`/api/chat/${id}/initiative`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ trigger, anchorMessageId }),
-        });
-        if (!response.ok) return;
-        const payload = await response.json();
-        if (payload.acted && payload.message) {
-          setMessages((current) =>
-            current.some((entry) => entry.id === payload.message.id)
-              ? current
-              : [...current, payload.message],
-          );
-          mutate(unstable_serialize(getChatHistoryPaginationKey));
-        } else if (
-          trigger === 'active_idle' &&
-          typeof payload.retryAfterMs === 'number' &&
-          payload.retryAfterMs > 0
-        ) {
-          initiativeTimerRef.current = window.setTimeout(() => {
-            void initiativeRequestRef.current('active_idle', anchorMessageId);
-          }, payload.retryAfterMs);
-        }
-      } catch (error) {
-        console.warn('[chat] initiative request failed', error);
-      } finally {
-        initiativeInFlightRef.current = false;
-      }
-    },
-    [id, isReadonly, mutate, setMessages, status],
-  );
-  initiativeRequestRef.current = requestInitiative;
-
-  useEffect(() => {
-    if (initiativeTimerRef.current) {
-      window.clearTimeout(initiativeTimerRef.current);
-      initiativeTimerRef.current = null;
-    }
-    if (status !== 'ready' || isReadonly) return;
-    const latest = messages.at(-1);
-    if (!latest || latest.role !== 'assistant') return;
-    const steerPart = latest.parts.find(
-      (part) => part.type === 'data-interactionSteer',
-    );
-    const permitsSecondThought =
-      steerPart?.type === 'data-interactionSteer' &&
-      steerPart.data.initiativePermission !== 'none';
-    const createdAt = latest.metadata?.createdAt
-      ? new Date(latest.metadata.createdAt).getTime()
-      : Date.now();
-    const idleTargetMs = permitsSecondThought ? 90_000 : 5 * 60_000;
-    const waitMs = Math.max(1_000, idleTargetMs - (Date.now() - createdAt));
-    initiativeTimerRef.current = window.setTimeout(() => {
-      void requestInitiative(
-        permitsSecondThought ? 'second_thought' : 'active_idle',
-        latest.id,
-      );
-    }, waitMs);
-    return () => {
-      if (initiativeTimerRef.current)
-        window.clearTimeout(initiativeTimerRef.current);
-    };
-  }, [isReadonly, messages, requestInitiative, status]);
 
   const reconcileChatFromServer = useCallback(async () => {
     // Guard: prevent rapid re-reconciliation loops (3s cooldown)

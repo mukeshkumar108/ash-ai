@@ -13,26 +13,30 @@ import {
   checkInitiativeEligibility,
   decisionPolicyRejection,
   initiativeDedupeKey,
-  initiativeOpportunityForSteer,
+  initiativeOpportunityForRuntimeOutcome,
   INITIATIVE_POLICY,
   mayUseDecision,
   unansweredFollowUpDelayMs,
   validateInitiativeText,
 } from '@/lib/ai/relationship/policy';
 
-test('active steer creates a durable 90-second reconsideration opportunity', () => {
+test('executed Sophie-owned object creates a durable reconsideration opportunity', () => {
   const createdAt = new Date('2026-08-20T20:00:00.000Z');
-  const opportunity = initiativeOpportunityForSteer(
+  const opportunity = initiativeOpportunityForRuntimeOutcome(
     {
-      posture: 'ask',
-      phase: 'curiosity',
-      objective: 'Stay with a grounded curiosity.',
-      strength: 'medium',
-      turnsRemaining: 3,
-      initiativePermission: 'medium',
-      expressionShape: 'single',
-      reason: 'A meaningful thread remains open.',
-      lastTactic: null,
+      director_plan: {
+        intent: 'social',
+        objective: 'Follow the bats after dark.',
+        initiativeEligible: true,
+      },
+      executed_outcome: {
+        executedAct: 'ask',
+        objectActionExecuted: 'open',
+        ownedObject: {
+          kind: 'curiosity',
+          summary: 'whether the bats stayed after full darkness',
+        },
+      },
     },
     createdAt,
   );
@@ -40,11 +44,18 @@ test('active steer creates a durable 90-second reconsideration opportunity', () 
   expect(opportunity.notBefore.getTime() - createdAt.getTime()).toBe(
     INITIATIVE_POLICY.secondThoughtMs,
   );
+  expect(opportunity.context).toMatchObject({
+    socialAgencyVersion: 'v3',
+    intent: 'social',
+    ownedObject: {
+      summary: 'whether the bats stayed after full darkness',
+    },
+  });
 });
 
 test('ordinary reply creates a durable active-idle opportunity', () => {
   const createdAt = new Date('2026-08-20T20:00:00.000Z');
-  const opportunity = initiativeOpportunityForSteer(null, createdAt);
+  const opportunity = initiativeOpportunityForRuntimeOutcome(null, createdAt);
   expect(opportunity.trigger).toBe('active_idle');
   expect(opportunity.notBefore.getTime() - createdAt.getTime()).toBe(
     INITIATIVE_POLICY.idleMs,

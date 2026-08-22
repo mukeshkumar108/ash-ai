@@ -72,7 +72,7 @@ const venice = process.env.VENICE_API_KEY
 
 // NanoGPT API — OpenAI-compatible
 const nanoGPT =
-  process.env.NANO_API_KEY && process.env.NANOGPT_ENABLED !== 'false'
+  process.env.NANO_API_KEY && process.env.NANOGPT_ENABLED === 'true'
     ? createOpenRouter({
         baseURL: 'https://nano-gpt.com/api/v1',
         apiKey: process.env.NANO_API_KEY,
@@ -109,7 +109,7 @@ export const myProvider = isTestEnvironment
     })
   : customProvider({
       languageModels: {
-        // Chat models — NanoGPT (if available), else OpenRouter
+        // Chat models — canonical OpenRouter; NanoGPT is explicit opt-in.
         'chat-model': nanoGPT
           ? (nanoGPT('Gemma-4-31B-Dark-Gemistry') as any)
           : (openrouter('deepseek/deepseek-v4-flash') as any),

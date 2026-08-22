@@ -1,6 +1,5 @@
 import type { InitiativeDecision, InitiativeTrigger } from './types';
 import { repeatsRecentlyAddressedTopic } from './continuity';
-import type { InteractionSteer } from '@/lib/ai/interaction/types';
 
 export const INITIATIVE_POLICY = {
   idleMs: Number(process.env.RELATIONSHIP_IDLE_MS ?? 5 * 60_000),
@@ -17,12 +16,26 @@ export const INITIATIVE_POLICY = {
   maxUnanswered: Number(process.env.RELATIONSHIP_MAX_UNANSWERED ?? 2),
 } as const;
 
-export function initiativeOpportunityForSteer(
-  steer: InteractionSteer | null,
+export function initiativeOpportunityForRuntimeOutcome(
+  executionMetadata: Record<string, unknown> | null | undefined,
   createdAt: Date,
 ) {
+  const plan = executionMetadata?.director_plan as
+    | Record<string, unknown>
+    | undefined;
+  const outcome = executionMetadata?.executed_outcome as
+    | Record<string, unknown>
+    | undefined;
+  const ownedObject = outcome?.ownedObject as
+    | Record<string, unknown>
+    | undefined;
+  const concreteOwnedObject =
+    plan?.initiativeEligible === true &&
+    outcome?.objectActionExecuted !== 'none' &&
+    typeof ownedObject?.summary === 'string' &&
+    ownedObject.summary.trim().length > 0;
   const trigger =
-    steer?.initiativePermission && steer.initiativePermission !== 'none'
+    concreteOwnedObject
       ? ('second_thought' as const)
       : ('active_idle' as const);
   const delayMs =
@@ -32,6 +45,19 @@ export function initiativeOpportunityForSteer(
   return {
     trigger,
     notBefore: new Date(createdAt.getTime() + delayMs),
+    context: concreteOwnedObject
+      ? {
+          socialAgencyVersion: 'v3',
+          intent: plan?.intent,
+          objective: plan?.objective,
+          ownedObject,
+          executedAct: outcome?.executedAct,
+        }
+      : {
+          socialAgencyVersion: 'v3',
+          intent: plan?.intent,
+          objective: plan?.objective,
+        },
   };
 }
 

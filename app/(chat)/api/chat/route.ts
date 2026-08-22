@@ -98,16 +98,7 @@ import {
   legacyCompanionRuntimeAssistantMessageId,
   type CompanionRuntimeResult,
 } from '@/lib/companion-runtime';
-import {
-  evaluateInteraction,
-  interactionSteeringEnabled,
-} from '@/lib/ai/interaction/judge';
-import {
-  latestInteractionSteer,
-  resolveInteractionSteer,
-} from '@/lib/ai/interaction/steer';
-import type { InteractionSteer } from '@/lib/ai/interaction/types';
-import { initiativeOpportunityForSteer } from '@/lib/ai/relationship/policy';
+import { initiativeOpportunityForRuntimeOutcome } from '@/lib/ai/relationship/policy';
 
 export const maxDuration = 300;
 const CHAT_AGENT_TIMEOUT_MS = Number(
@@ -498,62 +489,6 @@ export async function POST(request: Request) {
         (part) => part.type === 'file',
       );
       const recentProvenance = recentRetrievalProvenance(uiMessages);
-      const previousInteractionSteer = latestInteractionSteer(
-        uiMessages.slice(0, -1),
-      );
-      // Preserve an active bounded phase if the editor fails. A transient
-      // timeout must not reset the relationship's conversational intention.
-      let interactionSteer: InteractionSteer | null = previousInteractionSteer
-        ? resolveInteractionSteer(
-            {
-              action: 'none',
-              interpretation: 'Preserved through editor fallback.',
-              steer: null,
-            },
-            previousInteractionSteer,
-          )
-        : null;
-      if (interactionSteeringEnabled()) {
-        try {
-          const judgment = await evaluateInteraction({
-            currentTurn: currentUserText,
-            recentContext: boundedEpistemicContext(uiMessages),
-            existingSteer: previousInteractionSteer,
-            localContext: {
-              localTime: new Intl.DateTimeFormat('en-GB', {
-                dateStyle: 'full',
-                timeStyle: 'short',
-                timeZone,
-              }).format(userCreatedAt),
-              userLocation: userProfile?.rpLocation ?? null,
-              handshake,
-            },
-            signal: AbortSignal.any([
-              request.signal,
-              AbortSignal.timeout(
-                Number(process.env.INTERACTION_STEER_TIMEOUT_MS ?? 8_000),
-              ),
-            ]),
-          });
-          interactionSteer = resolveInteractionSteer(
-            judgment,
-            previousInteractionSteer,
-          );
-          console.info('[interaction-steer] foreground judgment', {
-            chatId: id,
-            trigger: 'user_turn',
-            currentModel: selectedChatModel,
-            interpretation: judgment.interpretation,
-            action: judgment.action,
-            steer: interactionSteer,
-          });
-        } catch (error) {
-          console.warn('[interaction-steer] judge failed open', {
-            chatId: id,
-            error: error instanceof Error ? error.message : 'Unknown error',
-          });
-        }
-      }
       let sceneState: ReturnType<typeof deriveSceneState>;
       let epistemicPolicy: Awaited<ReturnType<typeof assessEpistemicPolicy>>;
       let turnMemory: Awaited<ReturnType<typeof prepareTurnMemory>>;
@@ -611,7 +546,6 @@ export async function POST(request: Request) {
             granted_scopes: ['read_tools', 'live_data', 'research'],
           },
           transcript_reliability: transcriptReliability,
-          interaction_steer: interactionSteer,
         });
 
         if (runtimeResult.status === 'completed') {
@@ -738,7 +672,6 @@ export async function POST(request: Request) {
             handshake,
             sceneState,
             cortexContext,
-            interactionSteer,
             reentry,
             entryContext,
           },
@@ -762,7 +695,6 @@ export async function POST(request: Request) {
         handshake,
         sceneState,
         cortexContext,
-        interactionSteer,
         reentry,
         entryContext,
       };
@@ -1159,14 +1091,6 @@ export async function POST(request: Request) {
           ...(researchTrace.activities.length > 0
             ? [{ type: 'data-research', data: researchTrace }]
             : []),
-          ...(interactionSteer
-            ? [
-                {
-                  type: 'data-interactionSteer' as const,
-                  data: interactionSteer,
-                },
-              ]
-            : []),
           ...assistantTextParts,
         ],
         createdAt: assistantCreatedAt,
@@ -1212,8 +1136,8 @@ export async function POST(request: Request) {
       // and keep it entirely outside Sophie prompt assembly and generation.
       if (shouldMirrorCompletedTurn) {
         after(async () => {
-          const opportunity = initiativeOpportunityForSteer(
-            interactionSteer,
+          const opportunity = initiativeOpportunityForRuntimeOutcome(
+            runtimeCompleted?.execution_metadata,
             assistantCreatedAt,
           );
           await scheduleInitiativeOpportunity({
@@ -1222,14 +1146,7 @@ export async function POST(request: Request) {
             anchorMessageId: assistantId,
             trigger: opportunity.trigger,
             notBefore: opportunity.notBefore,
-            context: interactionSteer
-              ? {
-                  phase: interactionSteer.phase ?? null,
-                  posture: interactionSteer.posture,
-                  objective: interactionSteer.objective,
-                  initiativePermission: interactionSteer.initiativePermission,
-                }
-              : undefined,
+            context: opportunity.context,
           }).catch((error) => {
             console.warn(
               '[relationship] failed to schedule durable opportunity',
@@ -1293,12 +1210,6 @@ export async function POST(request: Request) {
             dataStream.write({
               type: 'data-research',
               data: researchTrace,
-            });
-          }
-          if (interactionSteer) {
-            dataStream.write({
-              type: 'data-interactionSteer',
-              data: interactionSteer,
             });
           }
           // Beats stream as separate text parts in delivery order. Presentation

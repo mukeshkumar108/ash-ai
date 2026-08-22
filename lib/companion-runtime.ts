@@ -2,7 +2,6 @@ import 'server-only';
 
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
-import type { InteractionSteer } from '@/lib/ai/interaction/types';
 
 const executionLaneSchema = z.enum([
   'reply_only',
@@ -119,7 +118,6 @@ export type CompanionRuntimeTurnInput = {
     granted_scopes: string[];
   };
   transcript_reliability: unknown | null;
-  interaction_steer?: InteractionSteer | null;
 };
 
 function configuration() {

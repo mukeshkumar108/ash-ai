@@ -52,7 +52,7 @@ test('TemporalSession residue IDs are namespaced per authenticated user', () => 
   expect(first.previousSittingResidue?.id).not.toBe(second.previousSittingResidue?.id);
 });
 
-test('authoritative entry context follows and supersedes lightweight steer text', () => {
+test('authoritative entry context is preserved without an app behavioral steer', () => {
   const entryContext = {
     version: 1 as const,
     timeZone: 'Europe/London',
@@ -70,17 +70,6 @@ test('authoritative entry context follows and supersedes lightweight steer text'
   };
   const prompt = buildSophieReplySystemPrompt({
     entryContext,
-    interactionSteer: {
-      posture: 'ask',
-      phase: null,
-      objective: 'Continue the old word game.',
-      strength: 'light',
-      turnsRemaining: 2,
-      initiativePermission: 'none',
-      expressionShape: 'single',
-      reason: 'Old phase.',
-      lastTactic: null,
-    },
   });
   expect(prompt.indexOf('[AUTHORITATIVE ENTRY CONTEXT')).toBeGreaterThan(
     prompt.indexOf('[INTERACTION STEER]'),

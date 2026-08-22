@@ -13,7 +13,6 @@ import type { ChatMessage } from '@/lib/types';
 import type { TranscriptReliability } from '@/lib/transcript-reliability';
 import type { CortexContext } from '@/lib/synapse-cortex';
 import type { SceneState } from '@/lib/agent/scene-state';
-import type { InteractionSteer } from '@/lib/ai/interaction/types';
 import type { ReentryContext } from '@/lib/agent/reentry';
 import type { CompanionEntryContext } from '@/lib/agent/entry-context';
 
@@ -44,7 +43,6 @@ export type TurnEvent = {
   };
   sceneState?: SceneState;
   cortexContext?: CortexContext | null;
-  interactionSteer?: InteractionSteer | null;
   reentry?: ReentryContext;
   entryContext?: CompanionEntryContext;
 };
@@ -224,7 +222,6 @@ export function createTurnPacket({
       transcriptReliability: event.transcriptReliability,
       cortexContext: event.cortexContext,
       sceneState: event.sceneState,
-      interactionSteer: event.interactionSteer,
       reentry: event.reentry,
       entryContext: event.entryContext,
     }),

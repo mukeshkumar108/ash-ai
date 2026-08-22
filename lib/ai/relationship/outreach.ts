@@ -83,6 +83,7 @@ export async function runRelationshipInitiative(
     continuityContext?: InitiativeContinuityContext | null;
     situation?: InitiativeSituation | null;
     ambientCandidate?: AmbientCandidate | null;
+    ownedObject?: Record<string, unknown> | null;
     dedupeScopeKey?: string;
   } & InitiativeRuntimeOptions,
 ) {
@@ -212,6 +213,7 @@ export async function runRelationshipInitiative(
       continuityContext: continuity,
       situation,
       ambientCandidate: input.ambientCandidate,
+      ownedObject: input.ownedObject,
     });
     input.onTrace?.({ stage: 'editorial', value: decision });
 
@@ -422,6 +424,13 @@ export async function runServerInitiativeScan(
       situation,
       ambientCandidate: selectedAmbientCandidate,
       dedupeScopeKey: selectedAmbientCandidate?.key,
+      ownedObject:
+        candidate.context && typeof candidate.context === 'object'
+          ? ((candidate.context as Record<string, unknown>).ownedObject as
+              | Record<string, unknown>
+              | null
+              | undefined)
+          : null,
       evaluationNow,
       onTrace: options.onTrace,
     });

@@ -214,7 +214,7 @@ export async function serverInitiativeScanCandidates(
   return sql()`
     WITH due_opportunities AS (
       SELECT o."userId", o."chatId", o."anchorMessageId", o.trigger,
-        o."notBefore" AS "lastMessageAt", 0 AS priority
+        o."notBefore" AS "lastMessageAt", o.context, 0 AS priority
       FROM "RelationshipOpportunity" o
       WHERE o.status = 'scheduled' AND o."notBefore" <= ${evaluationNow}
         AND o."createdAt" >= ${evaluationNow}::timestamp - interval '48 hours'
@@ -222,6 +222,7 @@ export async function serverInitiativeScanCandidates(
     latest_per_chat AS (
       SELECT c."userId", m."chatId", m.id AS "anchorMessageId",
         m.role, m."createdAt" AS "lastMessageAt",
+        NULL::json AS context,
         row_number() OVER (
           PARTITION BY m."chatId"
           ORDER BY m."createdAt" DESC, m.id DESC
@@ -235,14 +236,14 @@ export async function serverInitiativeScanCandidates(
         AND "lastMessageAt" >= ${evaluationNow}::timestamp - interval '48 hours'
     )
     , scan_candidates AS (
-      SELECT "userId", "chatId", "anchorMessageId", trigger, "lastMessageAt", priority
+      SELECT "userId", "chatId", "anchorMessageId", trigger, "lastMessageAt", context, priority
       FROM due_opportunities
       UNION ALL
       SELECT "userId", "chatId", "anchorMessageId", 'server_scan' AS trigger,
-        "lastMessageAt", 1 AS priority
+        "lastMessageAt", context, 1 AS priority
       FROM eligible
     )
-    SELECT DISTINCT ON ("userId") "userId", "chatId", "anchorMessageId", trigger, "lastMessageAt"
+    SELECT DISTINCT ON ("userId") "userId", "chatId", "anchorMessageId", trigger, "lastMessageAt", context
     FROM scan_candidates
     ORDER BY "userId", priority, "lastMessageAt" DESC, "chatId"
     LIMIT ${Math.max(1, Math.min(limit, 100))}

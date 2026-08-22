@@ -17,7 +17,10 @@ The first deliberately distinctive phases are:
 - `curiosity`: follow one specific grounded interest; react and contribute as
   well as inviting; avoid an interview rhythm.
 
-An active phase is carried in canonical `data-interactionSteer` message parts.
+Social Agency V3 supersedes app-authored active phases. Companion Runtime now
+chooses a fresh per-turn move and records planned versus executed behavior in
+`Chat.session_routing`; canonical message parts contain user-visible delivery
+data rather than a competing foreground steer.
 Every assistant turn in the phase persists that part. The lifecycle is:
 
 ```text
