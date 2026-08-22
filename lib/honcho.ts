@@ -174,7 +174,9 @@ export async function mirrorShadowTurnToSynapseCortex(input: {
   }
 
   const sidecarURL = baseURL || 'http://localhost:8010';
-  const timeoutMs = Number(process.env.SYNAPSE_CORTEX_TIMEOUT_MS ?? 1500);
+  // Model-led operational extraction is post-turn shadow work and uses two bounded
+  // model calls. Keep the latency-sensitive context timeout separate from ingestion.
+  const timeoutMs = Number(process.env.SYNAPSE_CORTEX_INGEST_TIMEOUT_MS ?? 20000);
   const ids = honchoIds(input.userId, input.chatId);
 
   try {
