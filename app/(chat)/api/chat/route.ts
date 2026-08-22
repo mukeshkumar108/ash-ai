@@ -563,6 +563,7 @@ export async function POST(request: Request) {
         CompanionRuntimeResult,
         { status: 'completed' }
       > | null = null;
+      let pendingSessionRouting: Record<string, unknown> | null = null;
       let runtimeDeferred = false;
 
       if (companionRuntimeReplyOnlyEnabled()) {
@@ -621,11 +622,11 @@ export async function POST(request: Request) {
             typeof nextSessionState === 'object' &&
             !Array.isArray(nextSessionState)
           ) {
-            await updateChatSessionRouting({
-              id,
-              userId: session.user.id,
-              sessionRouting: nextSessionState as Record<string, unknown>,
-            });
+            // A completed foreground reply is the durable user-facing result.
+            // Session routing is useful bookkeeping, but must never sit between
+            // that result and assistant-message persistence. Schedule it only
+            // after the canonical reply is saved, with a database-side timeout.
+            pendingSessionRouting = nextSessionState as Record<string, unknown>;
           }
           runtimeCompleted = runtimeResult;
           sceneState = runtimeResult.scene_state as typeof sceneState;
@@ -1183,6 +1184,27 @@ export async function POST(request: Request) {
           !existingRuntimeAssistant && inserted.length > 0;
       } else {
         await saveMessages({ messages: [assistantMessage] });
+      }
+
+      if (pendingSessionRouting) {
+        const sessionRouting = pendingSessionRouting;
+        after(async () => {
+          try {
+            await updateChatSessionRouting({
+              id,
+              userId: session.user.id,
+              sessionRouting,
+              timeoutMs: Number(
+                process.env.SESSION_ROUTING_UPDATE_TIMEOUT_MS ?? 2_000,
+              ),
+            });
+          } catch (error) {
+            console.warn('[chat] session routing update failed open', {
+              chatId: id,
+              error: error instanceof Error ? error.message : 'Unknown error',
+            });
+          }
+        });
       }
 
       // Honcho is a derived, write-only memory mirror at this stage. Register
