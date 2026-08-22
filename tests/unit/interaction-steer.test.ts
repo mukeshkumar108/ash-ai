@@ -168,3 +168,26 @@ test('direct-answer preference drops a tutoring steer', async () => {
   });
   expect(resolveInteractionSteer(decision, tutoring)).toBeNull();
 });
+
+test('carries conversational act history across adaptations', () => {
+  const started = resolveInteractionSteer(
+    {
+      action: 'start',
+      interpretation: 'A question fits initially.',
+      steer: { ...sadSteer, act: 'ask', actHistory: [] },
+    },
+    null,
+  );
+  const adapted = resolveInteractionSteer(
+    {
+      action: 'adapt',
+      interpretation: 'The question did not land.',
+      steer: { ...sadSteer, act: 'switch_topic', turnsRemaining: 3 },
+    },
+    started,
+  );
+  expect(adapted?.actHistory).toEqual(['ask', 'switch_topic']);
+  expect(compileInteractionSteer(adapted!)).toContain(
+    'Change the act rather than narrowing a failed question',
+  );
+});

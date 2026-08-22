@@ -60,6 +60,78 @@ function localHour(now: Date, timeZone: string): number {
   }
 }
 
+export function behavioralEntryPosture(
+  entryContext: CompanionEntryContext | null | undefined,
+  reentry: ReentryContext | null | undefined,
+): {
+  posture: string;
+  daypart?: string | null;
+  gapMinutes?: number | null;
+  notes: string[];
+} {
+  if (!entryContext && !reentry) return { posture: 'unknown', notes: [] };
+  const chronology = entryContext?.chronology;
+  const residue = entryContext?.previousSittingResidue;
+  const thread = entryContext?.thread;
+  const gapMinutes = chronology?.gapMinutes ?? null;
+  const sameSession = chronology?.temporalSession === 'same';
+  const firstUserDay = Boolean(chronology?.firstContactUserDay);
+  const daypart = chronology?.daypart ?? null;
+  const reentryClass = reentry?.class;
+  const durableObjective =
+    typeof thread?.durableObjective === 'string'
+      ? thread.durableObjective
+      : null;
+
+  const notes: string[] = [];
+  let posture: string;
+  if (reentryClass === 'COLD_START') {
+    posture = 'cold_relationship_start';
+    notes.push(
+      'Sparse relationship; do not pretend deep familiarity, but do not go generic either.',
+    );
+  } else if (firstUserDay) {
+    posture = 'new_day_encounter';
+    notes.push(
+      `First contact of the user's day (${daypart || 'unknown'} daypart). The current life moment is the natural opening; the prior daylight residue is background, not the opening act.`,
+    );
+    if (gapMinutes !== null && gapMinutes >= 36 * 60) {
+      notes.push('The user has been away for several days.');
+    }
+  } else if (sameSession) {
+    posture = 'continuation';
+    notes.push(
+      'Same sitting. Light continuity only; do not re-introduce or perform the previous turn\'s energy.',
+    );
+  } else if (gapMinutes !== null && gapMinutes >= 8 * 60) {
+    posture = 'long_absence_return';
+    notes.push(
+      'A long gap and a new sitting; acknowledge the return naturally, then let the current moment lead.',
+    );
+  } else if (residue) {
+    posture = 'return_new_sitting';
+    notes.push(
+      'A new sitting after the prior one; durable threads may surface, but the user\'s current message decides the topic.',
+    );
+  } else if (durableObjective) {
+    posture = 'return_thread_objective';
+    notes.push(
+      'Same durable thread, new sitting: may orient to the thread\'s project/objective naturally without pretending time did not pass.',
+    );
+  } else {
+    posture = 'return';
+    notes.push(
+      'Time passed and this is a new moment; orient to now, not to the previous turn\'s posture.',
+    );
+  }
+  if (durableObjective && posture !== 'continuation') {
+    notes.push(
+      'A durable thread objective may be relevant but only if the user\'s current message touches it.',
+    );
+  }
+  return { posture, daypart, gapMinutes, notes };
+}
+
 export function buildSophieReplySystemPrompt({
   now = new Date(),
   timeZone = 'Europe/London',
@@ -75,6 +147,10 @@ export function buildSophieReplySystemPrompt({
   interactionSteer,
   reentry,
   entryContext,
+  medium,
+  conversationAct,
+  actHistory,
+  repeatedLowEnergy,
 }: {
   now?: Date;
   timeZone?: string;
@@ -92,6 +168,10 @@ export function buildSophieReplySystemPrompt({
   interactionSteer?: InteractionSteer | null;
   reentry?: ReentryContext;
   entryContext?: CompanionEntryContext;
+  medium?: 'mobile_text' | 'voice' | 'desktop' | null;
+  conversationAct?: string | null;
+  actHistory?: string[];
+  repeatedLowEnergy?: boolean;
   handshake?: {
     userLocation?: string | null;
     chatsToday: number;
@@ -157,6 +237,11 @@ Treat this as permission to notice the shape of the moment, not an obligation to
   const entryContextBlock = entryContext
     ? `\n\n[AUTHORITATIVE ENTRY CONTEXT — applies after lightweight interaction steering]\n${JSON.stringify(entryContext)}\nThis compact packet is the authoritative arrival orientation. The current user turn still wins. previousSittingResidue.recentTurns is bounded conversational residue, not a TemporalSession semantic summary or authoritative meaning for a long prior sitting. A new TemporalSession makes the prior sitting's immediate posture background rather than an instruction to resume. Durable Cortex state or a durable thread objective may remain relevant, but thread identity never implies the same sitting. On first contact of a UserDay, orient to the supplied daypart naturally when the user's message leaves room; do not mechanically announce metadata or force a greeting. If an earlier INTERACTION STEER is lightweight or transient and conflicts with a new sitting, this entry context supersedes it. Safety and tool hard constraints, high-consequence handling, explicit boundaries, and durable commitments are not invalidated.`
     : '';
+  const posture = behavioralEntryPosture(entryContext, reentry);
+  const postureBlock =
+    entryContext || reentry
+      ? `\n\n[BEHAVIORAL ENTRY POSTURE]\n${JSON.stringify(posture)}\nThese are behavioral interpretations of the trusted timing facts above; they never replace chronology itself. Use the posture to choose the opening energy of this turn only. The user's current message still wins over every preceding context. When the posture is a fresh moment (new day, long absence, or a new sitting), treat the prior sitting's posture as past: do not open by paraphrasing or resuming it, do not act as though no time passed, and do not drag stale lightweight games or tactics forward. For a new UserDay encounter, the current life moment (morning, afternoon, evening, night) is the natural opening, with an optional light callback only if the prior residue genuinely connects. For a same-thread return to durable work, acknowledge the thread's project and what was unresolved without pretending the sitting never happened. Never recite these labels literally.`
+      : '';
   const ambientBlock = `
 
 [AMBIENT CONTEXT]
@@ -185,6 +270,27 @@ Use this only to remain honest about how a recent answer was obtained. Do not cl
   const interactionSteerBlock = interactionSteer
     ? `\n\n${compileInteractionSteer(interactionSteer)}`
     : '';
+  const actBlock = conversationAct || actHistory?.length || repeatedLowEnergy
+    ? `\n\n[CONVERSATIONAL ACT]\n${[
+        conversationAct ? `Next conversational act: ${conversationAct}.` : '',
+        'A conversational act is the shape of your move — react, riff, tease, challenge, disclose_opine, ask, invite, switch_topic, play, tell, callback, nudge, hold, close. Most turns default to one natural act; the act list is guidance, never a script.',
+        actHistory?.length ? `Recent acts already tried (newest last): ${actHistory.slice(-4).join(', ')}.` : '',
+        repeatedLowEnergy
+          ? "The user's recent replies have been flat or low-energy. A narrower variant of the same question is a failed move. Change the act, the subject, or your energy instead: a statement, a tangent, a tease, a game, a bold claim, or a short reaction with no question at all. Do not invent an emotion the user has not expressed."
+          : '',
+      ].filter(Boolean).join('\n')}\nIf the previous act did not land, do not repeat it or narrow it — pick a different one.`
+    : '';
+  const mediumBlock = medium
+    ? `\n\n[DELIVERY MEDIUM]\nMedium: ${medium}. ${
+        medium === 'voice'
+          ? 'Reply as short, spoken units. Favour short sentences and natural handoffs; avoid clause-heavy paragraphs, lists, markdown, and 1–2 minute monologues. One question per turn at most, and often none. If the answer genuinely needs depth, offer it conversationally in brief layers rather than a single wall of speech.'
+          : medium === 'mobile_text'
+            ? 'Conversational social text: compact and alive. You may use 1–3 short conversational beats when there are genuinely separate moves (a reaction, then a reversal, then an invitation) — double-text energy is fine. Keep a single reply compact unless the topic itself deserves depth.'
+            : 'You may give substantial, structured answers when the work needs it and stay concise when it does not. Do not shrink real work to tiny chat bubbles; do not pad a short reply into a report.'
+      }\nMedium controls cadence and length only — never tone, warmth, or judgment.`
+    : '';
+  const beatsContract =
+    '\n\n[NATIVE MULTI-BEAT OUTPUT]\nOptional: when you are making more than one distinct conversational move (e.g. a reaction, a reversal/second thought, then a closing line), separate each intentional beat with the exact token <<<BEAT>>> on its own line. This is the ONLY way beats are created; never split by punctuation or by inserting newlines mid-thought. Notes:\n- 1–3 beats. Most turns need one beat; multi-beat is for genuinely separate moves, not length.\n- Each beat must stand alone and be intentional in order.\n- Never duplicate one message into a \'normal reply\' plus a \'second thought\' — if reusing this, the beats ARE the reply.\n- A voice delivery medium should rarely use more than one beat per turn.';
 
   return `${sophieSystemPrompt().trim()}
 
@@ -198,7 +304,7 @@ Answer as Sophie, using your learned understanding and your own judgment. You do
 Resolve conflicts in this exact order: CURRENT USER TURN and explicit boundaries > safety/high-consequence handling > TRUSTED CURRENT TIME, AUTHORITATIVE CURRENT SCENE, and AUTHORITATIVE ENTRY CONTEXT > durable CORTEX continuity > lightweight interaction posture > retrieved memory and older chat history. An explicit current correction immediately replaces a conflicting older assumption. After a correction, acknowledge it briefly, correct course, and stop digging: do not add a reflexive question merely to keep the exchange alive. If the current user says to leave a subject, stop asking, not now, or just answer directly, comply immediately and do not append a challenge, tease, callback, invitation, or final word about the refused subject. A callback is optional and must serve the user's current purpose; when the user changes topic, answer the new topic without dragging an older scene into the response.
 
 [TURN-SPECIFIC INSTINCT]
-${buildSophieTurnModule(interactionMode)}${neutralQuestion ? `\nPrivate reasoning anchor—not a request for research or visible restatement: ${neutralQuestion}` : ''}${transcriptBlock}${ambientBlock}${provenanceBlock}${sceneBlock}${cortexBlock}${memoryBlock}${handshakeBlock}${reentryBlock}${interactionSteerBlock}${entryContextBlock}`;
+${buildSophieTurnModule(interactionMode)}${neutralQuestion ? `\nPrivate reasoning anchor—not a request for research or visible restatement: ${neutralQuestion}` : ''}${transcriptBlock}${ambientBlock}${provenanceBlock}${sceneBlock}${cortexBlock}${memoryBlock}${handshakeBlock}${reentryBlock}${postureBlock}${interactionSteerBlock}${entryContextBlock}${actBlock}${mediumBlock}${beatsContract}`;
 }
 
 export function buildAshAgentSystemPrompt({

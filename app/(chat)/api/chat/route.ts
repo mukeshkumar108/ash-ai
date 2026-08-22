@@ -483,6 +483,17 @@ export async function POST(request: Request) {
             ? transcriptReliabilityPart.data
             : null,
         );
+      // Delivery medium for spoken/text cadence. Voice is authoritative from
+      // audio input; otherwise a minimal device hint distinguishes mobile from
+      // desktop text without a full device-detection framework.
+      const medium =
+        transcriptReliabilityPart?.type === 'data-transcriptReliability'
+          ? ('voice' as const)
+          : /mobile|android|iphone|ipad|tablet/iu.test(
+                request.headers.get('user-agent') ?? '',
+              )
+            ? ('mobile_text' as const)
+            : ('desktop' as const);
       const hasImageParts = sanitizedMessage.parts.some(
         (part) => part.type === 'file',
       );
@@ -589,6 +600,7 @@ export async function POST(request: Request) {
             reentry,
             entry_context: entryContext,
             session_routing: sessionRoutingSeed,
+            medium,
           },
           recent_provenance: { summary: recentProvenance },
           capability_grant: {
@@ -813,6 +825,10 @@ export async function POST(request: Request) {
       }
       const textPartId = generateUUID();
       let finalText = '';
+      // Native multi-beat output (from the Companion Runtime): 1..3 intentional
+      // conversational beats. One logical assistant turn is persisted with one
+      // `text` part per beat so the UI renders each as its own bubble.
+      let finalBeats: string[] = [];
       let researchTrace: ResearchTrace = { activities: [], sources: [] };
       let existingRuntimeAssistant = false;
 
@@ -850,8 +866,13 @@ export async function POST(request: Request) {
           );
         } else if (runtimeCompleted) {
           finalText = runtimeCompleted.assistant_message;
+          const beats = runtimeCompleted.beats;
+          finalBeats =
+            beats && beats.length >= 2
+              ? beats.slice(0, 3)
+              : [];
           console.info(
-            `[chat] companion_runtime reply model=${runtimeCompleted.model_used} provider=${runtimeCompleted.provider_used} fallback=${runtimeCompleted.used_fallback} finish_reason=${runtimeCompleted.finish_reason} chars=${finalText.length}`,
+            `[chat] companion_runtime reply model=${runtimeCompleted.model_used} provider=${runtimeCompleted.provider_used} fallback=${runtimeCompleted.used_fallback} finish_reason=${runtimeCompleted.finish_reason} chars=${finalText.length} beats=${finalBeats.length}`,
           );
         } else if (turnDecision.lane === 'reply_only') {
           const reply = await executeDirectReply({
@@ -1123,6 +1144,13 @@ export async function POST(request: Request) {
       researchTrace = markCitedSources(researchTrace, finalText);
 
       const assistantCreatedAt = new Date();
+      // Beats persist as one logical assistant turn with one text part per beat
+      // (each rendered as its own bubble). Deterministic content: the joined
+      // text stays the canonical single-text projection for Honcho/chronology.
+      const assistantTextParts =
+        finalBeats.length >= 2
+          ? finalBeats.map((beat) => ({ type: 'text' as const, text: beat }))
+          : [{ type: 'text' as const, text: finalText }];
       const assistantMessage = {
         id: assistantId,
         role: 'assistant',
@@ -1138,7 +1166,7 @@ export async function POST(request: Request) {
                 },
               ]
             : []),
-          { type: 'text', text: finalText },
+          ...assistantTextParts,
         ],
         createdAt: assistantCreatedAt,
         attachments: [],
@@ -1251,13 +1279,32 @@ export async function POST(request: Request) {
               data: interactionSteer,
             });
           }
-          dataStream.write({ type: 'text-start', id: textPartId });
-          dataStream.write({
-            type: 'text-delta',
-            id: textPartId,
-            delta: finalText,
-          });
-          dataStream.write({ type: 'text-end', id: textPartId });
+          // Beats stream as separate text parts in delivery order. Presentation
+          // timing belongs to the client; the Vercel function must not block
+          // between already-completed beats.
+          if (finalBeats.length >= 2) {
+            for (let beatIndex = 0; beatIndex < finalBeats.length; beatIndex += 1) {
+              const beatPartId = `${assistantId}-beat-${beatIndex}`;
+              dataStream.write({
+                type: 'text-start',
+                id: beatPartId,
+              });
+              dataStream.write({
+                type: 'text-delta',
+                id: beatPartId,
+                delta: finalBeats[beatIndex],
+              });
+              dataStream.write({ type: 'text-end', id: beatPartId });
+            }
+          } else {
+            dataStream.write({ type: 'text-start', id: textPartId });
+            dataStream.write({
+              type: 'text-delta',
+              id: textPartId,
+              delta: finalText,
+            });
+            dataStream.write({ type: 'text-end', id: textPartId });
+          }
           dataStream.write({ type: 'finish' });
         },
         generateId: generateUUID,
