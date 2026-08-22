@@ -6,6 +6,7 @@ import type { SceneState } from '@/lib/agent/scene-state';
 import type { InteractionSteer } from '@/lib/ai/interaction/types';
 import { compileInteractionSteer } from '@/lib/ai/interaction/steer';
 import type { ReentryContext } from '@/lib/agent/reentry';
+import type { CompanionEntryContext } from '@/lib/agent/entry-context';
 
 export type SophieInteractionMode = NonNullable<
   EpistemicPolicy['interactionMode']
@@ -73,6 +74,7 @@ export function buildSophieReplySystemPrompt({
   sceneState,
   interactionSteer,
   reentry,
+  entryContext,
 }: {
   now?: Date;
   timeZone?: string;
@@ -89,6 +91,7 @@ export function buildSophieReplySystemPrompt({
   sceneState?: SceneState;
   interactionSteer?: InteractionSteer | null;
   reentry?: ReentryContext;
+  entryContext?: CompanionEntryContext;
   handshake?: {
     userLocation?: string | null;
     chatsToday: number;
@@ -106,13 +109,21 @@ export function buildSophieReplySystemPrompt({
     lastInteractionAt && !Number.isNaN(lastInteractionAt.getTime())
       ? lastInteractionAt
       : null;
-  const gapMinutes = validLastInteractionAt
-    ? Math.max(
-        0,
-        Math.floor((now.getTime() - validLastInteractionAt.getTime()) / 60_000),
-      )
-    : null;
-  const firstChatToday = Boolean(handshake && chatsToday === 1);
+  const gapMinutes = reentry?.chronology
+    ? reentry.chronology.inactivityGapMinutes
+    : validLastInteractionAt
+      ? Math.max(
+          0,
+          Math.floor(
+            (now.getTime() - validLastInteractionAt.getTime()) / 60_000,
+          ),
+        )
+      : null;
+  // Authoritative chronology (cross-thread user-role timeline) wins when it is
+  // supplied; `chatsToday` remains a fallback seam for older callers.
+  const firstChatToday = reentry?.chronology
+    ? reentry.chronology.isFirstContactUserDay
+    : Boolean(handshake && chatsToday === 1);
   const hour = localHour(now, timeZone);
   const timeCue =
     hour < 5
@@ -142,6 +153,9 @@ Treat this as permission to notice the shape of the moment, not an obligation to
     : '';
   const reentryBlock = reentry
     ? `\n\n[RE-ENTRY ORIENTATION]\n${reentry.class} · turn ${reentry.turnIndex} · ${reentry.gapMinutes == null ? 'no prior interaction time' : `last spoke about ${reentry.gapMinutes} minutes ago`}${reentry.crossedLocalDay ? ' · crossed a local day boundary' : ''}. ${reentry.routeReason}\n${reentry.richerSteerActive ? `This is a short re-entry handover. Use only the most relevant durable open thread, newly knowable expectation/outcome, recent resolution, or time-sensitive calendar/task item already present in Cortex. Do not dump the packet. ${reentry.class === 'COLD_START' ? 'Use a cold-start brief: be warm and learn naturally without pretending to remember a developed relationship.' : ''}` : 'Keep this as a tiny orientation line; do not perform a re-entry greeting.'}${reentry.staleLightweightPhase ? '\nA lightweight phase from before this boundary (word game, transient tactic, lightweight pending question, or immediate excavation posture) is stale as an active directive. It may be a playful historical callback, but do not continue it unless the user renews it. Durable health, relationship, work, promise, reminder, task, and event threads remain eligible.' : ''}\nNever reveal route names, model choice, turn indices, thresholds, or hidden metadata in the reply.`
+    : '';
+  const entryContextBlock = entryContext
+    ? `\n\n[AUTHORITATIVE ENTRY CONTEXT — applies after lightweight interaction steering]\n${JSON.stringify(entryContext)}\nThis compact packet is the authoritative arrival orientation. The current user turn still wins. previousSittingResidue.recentTurns is bounded conversational residue, not a TemporalSession semantic summary or authoritative meaning for a long prior sitting. A new TemporalSession makes the prior sitting's immediate posture background rather than an instruction to resume. Durable Cortex state or a durable thread objective may remain relevant, but thread identity never implies the same sitting. On first contact of a UserDay, orient to the supplied daypart naturally when the user's message leaves room; do not mechanically announce metadata or force a greeting. If an earlier INTERACTION STEER is lightweight or transient and conflicts with a new sitting, this entry context supersedes it. Safety and tool hard constraints, high-consequence handling, explicit boundaries, and durable commitments are not invalidated.`
     : '';
   const ambientBlock = `
 
@@ -181,10 +195,10 @@ The server's current local date and time is ${formatCurrentTime(now, timeZone)}.
 Answer as Sophie, using your learned understanding and your own judgment. You do not need fresh citations or tool permission to think, interpret, disagree, or admit uncertainty. Do not invent precise current facts, named studies, quotations, statistics, or sources, and do not pretend you just reviewed “the evidence” when no research was performed. Give a clear view when you have one; genuine uncertainty is also a position. Engage with the user's actual words without adopting their conclusion merely because of how they framed it. Speak naturally rather than like a report. Default to one natural conversational move: a reaction, observation, question, challenge, contribution, or brief combination. Do not complete an entire discussion when leaving room for the next beat would feel more natural. Use the detail and structure the user actually needs for explanations, decisions, or substantial practical work; use bullets only when a list genuinely helps. Be vivid or witty when it fits, not performatively. Carry your share of relational conversation: curiosity, initiative, and a natural question are welcome when they keep faith with what the user actually said.
 
 [CONTEXT PRECEDENCE]
-Resolve conflicts in this exact order: CURRENT USER TURN > TRUSTED CURRENT TIME and AUTHORITATIVE CURRENT SCENE > CORTEX MOMENT CONTEXT > retrieved memory and older chat history. An explicit current correction immediately replaces a conflicting older assumption. After a correction, acknowledge it briefly, correct course, and stop digging: do not add a reflexive question merely to keep the exchange alive. If the current user says to leave a subject, stop asking, not now, or just answer directly, comply immediately and do not append a challenge, tease, callback, invitation, or final word about the refused subject. A callback is optional and must serve the user's current purpose; when the user changes topic, answer the new topic without dragging an older scene into the response.
+Resolve conflicts in this exact order: CURRENT USER TURN and explicit boundaries > safety/high-consequence handling > TRUSTED CURRENT TIME, AUTHORITATIVE CURRENT SCENE, and AUTHORITATIVE ENTRY CONTEXT > durable CORTEX continuity > lightweight interaction posture > retrieved memory and older chat history. An explicit current correction immediately replaces a conflicting older assumption. After a correction, acknowledge it briefly, correct course, and stop digging: do not add a reflexive question merely to keep the exchange alive. If the current user says to leave a subject, stop asking, not now, or just answer directly, comply immediately and do not append a challenge, tease, callback, invitation, or final word about the refused subject. A callback is optional and must serve the user's current purpose; when the user changes topic, answer the new topic without dragging an older scene into the response.
 
 [TURN-SPECIFIC INSTINCT]
-${buildSophieTurnModule(interactionMode)}${neutralQuestion ? `\nPrivate reasoning anchor—not a request for research or visible restatement: ${neutralQuestion}` : ''}${transcriptBlock}${ambientBlock}${provenanceBlock}${sceneBlock}${cortexBlock}${memoryBlock}${handshakeBlock}${interactionSteerBlock}${reentryBlock}`;
+${buildSophieTurnModule(interactionMode)}${neutralQuestion ? `\nPrivate reasoning anchor—not a request for research or visible restatement: ${neutralQuestion}` : ''}${transcriptBlock}${ambientBlock}${provenanceBlock}${sceneBlock}${cortexBlock}${memoryBlock}${handshakeBlock}${reentryBlock}${interactionSteerBlock}${entryContextBlock}`;
 }
 
 export function buildAshAgentSystemPrompt({

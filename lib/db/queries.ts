@@ -128,6 +128,7 @@ type CompatibleUserRow = {
   rpVibe: string | null;
   languagePreference: string | null;
   themePreference: string | null;
+  timeZone: string | null;
 };
 
 type CompatibleChatRow = {
@@ -313,6 +314,86 @@ export async function getConversationHandshakeContext({
   }
 }
 
+export type UserChronologyTimeline = {
+  userMessages: Array<{ createdAt: Date; chatId: string }>;
+};
+
+export async function getUserChronologyTimeline({
+  userId,
+  before,
+}: {
+  userId: string;
+  before: Date;
+}): Promise<UserChronologyTimeline> {
+  try {
+    const rows = await getClient()<
+      Array<{ createdAt: Date | string; chatId: string }>
+    >`
+      select m."createdAt" as "createdAt", m."chatId" as "chatId"
+      from "Message_v2" m
+      inner join "Chat" c on c.id = m."chatId"
+      where c."userId" = ${userId}
+        and m.role = 'user'
+        and m."createdAt" < ${before}
+      order by m."createdAt" desc
+    `;
+    const userMessages = rows
+      .map((row) => ({ ...row, createdAt: new Date(row.createdAt) }))
+      .filter((row) => !Number.isNaN(row.createdAt.getTime()));
+    return instrumentReadResult('getUserChronologyTimeline', {
+      userMessages,
+    });
+  } catch (error) {
+    logDatabaseError('get user chronology timeline', error);
+    return { userMessages: [] };
+  }
+}
+
+export type TemporalSessionResidueRow = {
+  chatId: string;
+  role: string;
+  parts: unknown;
+  createdAt: Date;
+};
+
+export async function getTemporalSessionResidueRows({
+  userId,
+  startedAt,
+  before,
+  limit = 8,
+}: {
+  userId: string;
+  startedAt: Date;
+  before: Date;
+  limit?: number;
+}): Promise<TemporalSessionResidueRow[]> {
+  try {
+    const rows = await getClient()<
+      Array<Omit<TemporalSessionResidueRow, 'createdAt'> & { createdAt: Date | string }>
+    >`
+      select m."chatId" as "chatId", m.role, m.parts, m."createdAt" as "createdAt"
+      from "Message_v2" m
+      inner join "Chat" c on c.id = m."chatId"
+      where c."userId" = ${userId}
+        and m."createdAt" >= ${startedAt}
+        and m."createdAt" < ${before}
+        and m.role in ('user', 'assistant')
+      order by m."createdAt" desc
+      limit ${Math.max(1, Math.min(limit, 12))}
+    `;
+    return instrumentReadResult(
+      'getTemporalSessionResidueRows',
+      rows
+        .map((row) => ({ ...row, createdAt: new Date(row.createdAt) }))
+        .filter((row) => !Number.isNaN(row.createdAt.getTime()))
+        .reverse(),
+    );
+  } catch (error) {
+    logDatabaseError('get temporal session residue', error);
+    return [];
+  }
+}
+
 function normalizeUserRow(row: CompatibleUserRow): User {
   return {
     id: row.id,
@@ -326,6 +407,7 @@ function normalizeUserRow(row: CompatibleUserRow): User {
     rpVibe: row.rpVibe,
     languagePreference: row.languagePreference ?? 'en',
     themePreference: row.themePreference ?? 'system',
+    timeZone: row.timeZone,
   };
 }
 
@@ -424,6 +506,7 @@ export async function getUser(email: string): Promise<Array<User>> {
           rpVibe: null,
           languagePreference: 'en',
           themePreference: 'system',
+          timeZone: null,
         }),
       ),
     );
@@ -450,6 +533,7 @@ export async function getUserById(id: string): Promise<UserProfileRow | null> {
         to_jsonb(u)->>'rp_vibe' as "rpVibe",
         coalesce(to_jsonb(u)->>'language_preference', 'en') as "languagePreference",
         coalesce(to_jsonb(u)->>'theme_preference', 'system') as "themePreference"
+        ,to_jsonb(u)->>'time_zone' as "timeZone"
       from "User" u
       where u.id = ${id}
       limit 1

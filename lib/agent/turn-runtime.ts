@@ -15,6 +15,7 @@ import type { CortexContext } from '@/lib/synapse-cortex';
 import type { SceneState } from '@/lib/agent/scene-state';
 import type { InteractionSteer } from '@/lib/ai/interaction/types';
 import type { ReentryContext } from '@/lib/agent/reentry';
+import type { CompanionEntryContext } from '@/lib/agent/entry-context';
 
 export type ExecutionLane =
   | 'reply_only'
@@ -45,6 +46,7 @@ export type TurnEvent = {
   cortexContext?: CortexContext | null;
   interactionSteer?: InteractionSteer | null;
   reentry?: ReentryContext;
+  entryContext?: CompanionEntryContext;
 };
 
 export type TurnDecision = {
@@ -224,6 +226,7 @@ export function createTurnPacket({
       sceneState: event.sceneState,
       interactionSteer: event.interactionSteer,
       reentry: event.reentry,
+      entryContext: event.entryContext,
     }),
   };
 }

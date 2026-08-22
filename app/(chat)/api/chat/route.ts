@@ -51,6 +51,8 @@ import {
   getMessageById,
   getMessagesByChatId,
   getUserById,
+  getUserChronologyTimeline,
+  getTemporalSessionResidueRows,
   saveUserDefaultLocationIfMissing,
   saveChat,
   saveMessages,
@@ -86,6 +88,9 @@ import {
 import { transcriptReliabilitySchema } from '@/lib/transcript-reliability';
 import { applyTranscriptReliabilityGuard } from '@/lib/agent/transcript-reliability';
 import { classifyReentry } from '@/lib/agent/reentry';
+import { computeUserChronology } from '@/lib/agent/chronology';
+import { buildCompanionEntryContext } from '@/lib/agent/entry-context';
+import { resolveUserTimeZone } from '@/lib/agent/timezone';
 import {
   companionRuntimeAssistantMessageId,
   companionRuntimeReplyOnlyEnabled,
@@ -306,10 +311,9 @@ export async function POST(request: Request) {
       }
 
       // Ensure the session user has a row so chat/message foreign keys hold.
-      const timeZone = process.env.ASH_TIME_ZONE?.trim() || 'Europe/London';
-      const [userProfile, messagesFromDb, crossChatHandshake] =
-        await Promise.all([
-          getUserById(session.user.id),
+      const userProfile = await getUserById(session.user.id);
+      const timeZone = resolveUserTimeZone(userProfile?.timeZone);
+      const [messagesFromDb, crossChatHandshake] = await Promise.all([
           getMessagesByChatId({ id }),
           getConversationHandshakeContext({
             userId: session.user.id,
@@ -385,27 +389,57 @@ export async function POST(request: Request) {
       let messagesToSend = uiMessages.slice(-Math.max(3, contextWindowSize));
 
       const userCreatedAt = new Date();
+      // Authoritative cross-thread user chronology (canonical `Message_v2`,
+      // user role only, across all of the user's chats, strictly before this
+      // incoming turn). Assistant/tool activity does not extend a sitting.
+      const [userChronologyTimeline] = await Promise.all([
+        getUserChronologyTimeline({
+          userId: session.user.id,
+          before: userCreatedAt,
+        }),
+      ]);
+      const chronology = computeUserChronology({
+        interactionTimes: userChronologyTimeline.userMessages,
+        now: userCreatedAt,
+        timeZone,
+      });
       const allowedDeveloperOverride =
         process.env.SOPHIE_DEV_MODEL_OVERRIDE_ENABLED === 'true'
           ? developerModelOverride
           : undefined;
       const reentry = classifyReentry({
-        history: messagesFromDb.map((entry) => ({
-          role: entry.role,
-          createdAt: entry.createdAt,
-          text: Array.isArray(entry.parts)
-            ? entry.parts
-                .filter((part: any) => part?.type === 'text')
-                .map((part: any) => String(part.text ?? ''))
-                .join('\n')
-            : '',
-        })),
-        externalPriorAt: crossChatHandshake.lastInteractionAt,
-        externalPriorText: crossChatHandshake.lastInteractionText,
         totalPriorUserTurns: crossChatHandshake.totalUserTurns,
-        now: userCreatedAt,
-        timeZone,
+        chronology,
         manualModelOverride: allowedDeveloperOverride,
+      });
+      const residueRows =
+        chronology.newTemporalSession && chronology.previousTemporalSessionStartedAt
+          ? await getTemporalSessionResidueRows({
+              userId: session.user.id,
+              startedAt: chronology.previousTemporalSessionStartedAt,
+              before: new Date(
+                Math.min(
+                  userCreatedAt.getTime(),
+                  (chronology.previousTemporalSessionEndedAt?.getTime() ??
+                    userCreatedAt.getTime()) +
+                    30 * 60_000,
+                ),
+              ),
+            })
+          : [];
+      const entryContext = buildCompanionEntryContext({
+        userId: session.user.id,
+        chronology,
+        timeZone,
+        residueRows,
+        thread: {
+          id,
+          title: chat?.title ?? null,
+          durableObjective:
+            typeof currentSessionRouting.currentObjective === 'string'
+              ? currentSessionRouting.currentObjective
+              : null,
+        },
       });
       await db
         .insert(messageTable)
@@ -553,6 +587,7 @@ export async function POST(request: Request) {
                 handshake.lastInteractionAt?.toISOString() ?? null,
             },
             reentry,
+            entry_context: entryContext,
             session_routing: sessionRoutingSeed,
           },
           recent_provenance: { summary: recentProvenance },
@@ -692,6 +727,7 @@ export async function POST(request: Request) {
             cortexContext,
             interactionSteer,
             reentry,
+            entryContext,
           },
           epistemicPolicy,
         );
@@ -715,6 +751,7 @@ export async function POST(request: Request) {
         cortexContext,
         interactionSteer,
         reentry,
+        entryContext,
       };
       const researchTurn = turnDecision.lane === 'research';
       const modelToUse = turnDecision.modelId;

@@ -3,6 +3,7 @@ import { db, getUserById, withQueryContext } from '@/lib/db/queries';
 import { user } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
+import { isIanaTimeZone } from '@/lib/agent/timezone';
 
 export async function GET() {
   return withQueryContext('GET /api/profile', async () => {
@@ -37,7 +38,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { displayName, rpLocation, themePreference } = body;
+    const { displayName, rpLocation, themePreference, timeZone } = body;
 
     // Validate input
     if (typeof displayName !== 'string' || displayName.length > 100) {
@@ -52,11 +53,18 @@ export async function PUT(request: NextRequest) {
         { status: 400 },
       );
     }
+    if (timeZone != null && !isIanaTimeZone(timeZone)) {
+      return NextResponse.json(
+        { error: 'Invalid IANA timezone' },
+        { status: 400 },
+      );
+    }
 
     const updates: Record<string, string | null> = {
       displayName: displayName.trim() || null,
       rpLocation: rpLocation.trim() || null,
     };
+    if (timeZone != null) updates.timeZone = timeZone;
 
     if (themePreference != null) {
       if (!['light', 'dark', 'system'].includes(themePreference)) {

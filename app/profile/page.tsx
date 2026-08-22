@@ -13,6 +13,7 @@ interface UserProfile {
   email: string;
   displayName: string | null;
   rpLocation: string | null;
+  timeZone: string | null;
 }
 
 interface UserStats {
@@ -79,6 +80,9 @@ export default function ProfilePage() {
       const updates = {
         displayName: formData.get('displayName') as string,
         rpLocation: formData.get('rpLocation') as string,
+        timeZone:
+          (formData.get('timeZone') as string) ||
+          Intl.DateTimeFormat().resolvedOptions().timeZone,
       };
 
       const response = await fetch('/api/profile', {
@@ -146,6 +150,28 @@ export default function ProfilePage() {
           <div className="rounded-lg border bg-card p-6 shadow-sm">
             <h2 className="text-xl font-semibold mb-4">Account</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label
+                  htmlFor="timeZone"
+                  className="mb-2 block text-sm font-medium text-gray-700"
+                >
+                  Timezone
+                </label>
+                <input
+                  id="timeZone"
+                  name="timeZone"
+                  defaultValue={
+                    profile.timeZone ||
+                    Intl.DateTimeFormat().resolvedOptions().timeZone
+                  }
+                  placeholder="Europe/London"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  IANA timezone used for your local day and re-entry context.
+                </p>
+              </div>
+
               <div>
                 <label
                   htmlFor="displayName"

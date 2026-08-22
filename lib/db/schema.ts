@@ -31,6 +31,7 @@ export const user = pgTable('User', {
   themePreference: varchar('theme_preference', { length: 20 }).default(
     'system',
   ),
+  timeZone: varchar('time_zone', { length: 64 }),
 });
 
 export type User = InferSelectModel<typeof user>;

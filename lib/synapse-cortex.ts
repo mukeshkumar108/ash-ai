@@ -62,12 +62,12 @@ export function compactCortexContext(
     timeZone,
     interactionGapMinutes,
     currentScene,
-    orientation:
-      interactionGapMinutes === null
-        ? (handshake.orientation ?? 'fresh_start')
-        : interactionGapMinutes < 120
-          ? 'continuation'
-          : 'returning',
+    // Demoted from authoritative gap classification: chronology authority
+    // lives in lib/agent/chronology.ts (30-min TemporalSession + 05:00
+    // UserDay, derived from canonical user-role message timestamps). This
+    // field is a non-authoritative echo for backward compatibility only and
+    // is never the source for re-entry/model-routing decisions.
+    orientation: handshake.orientation ?? null,
     daypart: handshake.daypart ?? null,
     live: list(handshake.live_threads, 3),
     unresolved: [
