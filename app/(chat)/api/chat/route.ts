@@ -349,6 +349,18 @@ export async function POST(request: Request) {
           candidates.sort((a, b) => b.getTime() - a.getTime())[0] ?? null,
         isNewChat: messagesFromDb.length === 0,
       };
+      const currentSessionRouting = (chat?.sessionRouting ?? {}) as Record<
+        string,
+        unknown
+      >;
+      const sessionRoutingSeed = {
+        ...currentSessionRouting,
+        meaningfulSessionCount: crossChatHandshake.meaningfulSessionCount,
+        relationship:
+          currentSessionRouting.relationship ??
+          crossChatHandshake.relationshipSeed ??
+          null,
+      };
 
       // Apply input sanitization to user message before processing
       const sanitizedMessage = {
@@ -541,7 +553,7 @@ export async function POST(request: Request) {
                 handshake.lastInteractionAt?.toISOString() ?? null,
             },
             reentry,
-            session_routing: chat?.sessionRouting ?? null,
+            session_routing: sessionRoutingSeed,
           },
           recent_provenance: { summary: recentProvenance },
           capability_grant: {

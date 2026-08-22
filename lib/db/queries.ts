@@ -215,6 +215,8 @@ export type ConversationHandshakeContext = {
   lastInteractionAt: Date | null;
   lastInteractionText: string | null;
   totalUserTurns: number;
+  meaningfulSessionCount: number;
+  relationshipSeed: Record<string, unknown> | null;
 };
 
 export async function getConversationHandshakeContext({
@@ -233,6 +235,8 @@ export async function getConversationHandshakeContext({
         lastInteractionAt: Date | string | null;
         lastInteractionText: string | null;
         totalUserTurns: number;
+        meaningfulSessionCount: number;
+        relationshipSeed: Record<string, unknown> | null;
       }>
     >`
       select
@@ -243,6 +247,30 @@ export async function getConversationHandshakeContext({
         )::int as "chatsToday",
         max(m."createdAt") filter (where c.id <> ${currentChatId}) as "lastInteractionAt",
         count(*) filter (where m.role = 'user')::int as "totalUserTurns",
+        (
+          select count(*)::int
+          from (
+            select c3.id
+            from "Chat" c3
+            inner join "Message_v2" m3 on m3."chatId" = c3.id
+            where c3."userId" = ${userId}
+            group by c3.id
+            having count(*) filter (where m3.role = 'user') >= 2
+          ) meaningful
+        ) as "meaningfulSessionCount",
+        (
+          select to_jsonb(c4)->'session_routing'->'relationship'
+          from "Chat" c4
+          where c4."userId" = ${userId}
+            and c4.id <> ${currentChatId}
+            and to_jsonb(c4)->'session_routing'->'relationship' is not null
+          order by (
+            select max(m4."createdAt")
+            from "Message_v2" m4
+            where m4."chatId" = c4.id
+          ) desc nulls last, c4."createdAt" desc
+          limit 1
+        ) as "relationshipSeed",
         (
           select m2.parts::text
           from "Message_v2" m2
@@ -263,6 +291,8 @@ export async function getConversationHandshakeContext({
     return instrumentReadResult('getConversationHandshakeContext', {
       chatsToday: row?.chatsToday ?? 1,
       totalUserTurns: row?.totalUserTurns ?? 0,
+      meaningfulSessionCount: row?.meaningfulSessionCount ?? 0,
+      relationshipSeed: row?.relationshipSeed ?? null,
       lastInteractionText: row?.lastInteractionText ?? null,
       lastInteractionAt:
         parsedLastInteractionAt &&
@@ -277,6 +307,8 @@ export async function getConversationHandshakeContext({
       lastInteractionAt: null,
       lastInteractionText: null,
       totalUserTurns: 0,
+      meaningfulSessionCount: 0,
+      relationshipSeed: null,
     };
   }
 }

@@ -334,6 +334,20 @@ export function ChatDebugPanel({ chatId }: { chatId: string }) {
                   {data.sessionRouting?.previousObjective ? <div>Previous objective: {data.sessionRouting.previousObjective}</div> : null}
                   <div>Burst: {data.sessionRouting?.burst?.active ? `Gemini ${data.sessionRouting.burst.turnIndex}/${data.sessionRouting.burst.minimumTurns}` : 'inactive'}</div>
                   <div>High consequence: {data.sessionRouting?.highConsequence?.active ? `${data.sessionRouting.highConsequence.domain}: ${data.sessionRouting.highConsequence.reason}` : 'inactive'}</div>
+                  <div>Relational familiarity: {data.sessionRouting?.relationship?.relationalFamiliarity ?? 'sparse'}</div>
+                  <div>Initiative confidence: {data.sessionRouting?.relationship?.initiativeConfidence ?? 'low'}</div>
+                  <div>Discovery need: {data.sessionRouting?.relationship?.discoveryNeed ?? 'high'}</div>
+                  <div>Social / low-direction: {data.sessionRouting?.relationship?.socialLowDirection ? 'yes' : 'no'}</div>
+                  <div>Early curiosity: {data.sessionRouting?.relationship?.earlyCuriosityActive ? 'active' : 'inactive'}</div>
+                  <div>Conversational move: {data.sessionRouting?.relationship?.selectedConversationalMove ?? 'none'}</div>
+                  <div>
+                    Interest hypotheses: {Array.isArray(data.sessionRouting?.relationship?.topInterestHypotheses) && data.sessionRouting.relationship.topInterestHypotheses.length > 0
+                      ? data.sessionRouting.relationship.topInterestHypotheses
+                          .slice(0, 4)
+                          .map((item: any) => `${item.label} (${item.confidence}, ${item.strength})`)
+                          .join('; ')
+                      : 'none'}
+                  </div>
                   <div>Developer override: {data.sessionRouting?.developerOverride ? 'active' : 'off'}</div>
                 </CardContent>
               </Card>
