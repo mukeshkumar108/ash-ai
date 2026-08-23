@@ -439,7 +439,7 @@ export const cortexOutboxStatus = [
   'pending',
   'retrying',
   'delivered',
-  'dead',
+  'blocked',
 ] as const;
 export type CortexOutboxStatus = (typeof cortexOutboxStatus)[number];
 

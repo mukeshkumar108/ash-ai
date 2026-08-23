@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { and, desc, eq, inArray, isNull, lte, lt, or } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNull, lt, lte, or } from 'drizzle-orm';
 import { db } from '@/lib/db/queries';
 import { cortexOutbox, type CortexOutboxRow } from '@/lib/db/schema';
 import { honchoIds } from '@/lib/honcho';
@@ -8,8 +8,15 @@ import { honchoIds } from '@/lib/honcho';
 /**
  * Durable app-side outbox for delivering user turns to the Synapse-Cortex
  * sidecar. Enqueue is a single idempotent INSERT; delivery is drained by an
- * asynchronous worker (Vercel cron) with exponential backoff, leases for
- * concurrency safety, and never drops a turn before it is delivered.
+ * asynchronous worker (Vercel cron) with exponential backoff, lease-based
+ * concurrency safety (compare-and-set claim), and never drops a turn before it
+ * is delivered.
+ *
+ * Recoverability invariant: a canonical conversation event, once enqueued, is
+ * its responsibility to process. Temporary infrastructure/configuration
+ * failure (auth, disabled Cortex) shelves the row in a *blocked* quarantine
+ * that is observable and explicitly requeueable after configuration repair —
+ * it is never terminal dead state.
  */
 
 const BACKOFF_BASE_MS = 10_000;
@@ -29,7 +36,8 @@ export type OutboxEnqueueInput = {
 export function cortexConfig() {
   const baseURL = process.env.SYNAPSE_CORTEX_URL?.trim().replace(/\/$/u, '');
   return {
-    enabled: Boolean(baseURL) && process.env.SYNAPSE_CORTEX_ENABLED !== 'false',
+    enabled:
+      Boolean(baseURL) && process.env.SYNAPSE_CORTEX_ENABLED !== 'false',
     baseURL,
     token: process.env.SYNAPSE_CORTEX_API_TOKEN?.trim(),
     timeoutMs: Number(process.env.SYNAPSE_CORTEX_INGEST_TIMEOUT_MS ?? 20_000),
@@ -46,7 +54,7 @@ export function nextBackoffMs(attempts: number): number {
   return Math.round(exp * (1 + Math.random() * BACKOFF_JITTER));
 }
 
-export type DeliveryAction = 'delivered' | 'retry' | 'dead';
+export type DeliveryAction = 'delivered' | 'retry' | 'blocked';
 
 export function decideDelivery(
   statusCode: number | null,
@@ -54,16 +62,42 @@ export function decideDelivery(
 ): DeliveryAction {
   if (typeof statusCode === 'number') {
     if (statusCode === 200 || statusCode === 202) return 'delivered';
-    if (statusCode === 401 || statusCode === 403) return 'dead'; // config
+    // Recoverable configuration failure: shelve, do not hammer. Not terminal.
+    if (statusCode === 401 || statusCode === 403) return 'blocked';
     return 'retry';
   }
-  // Transport-level failure (timeout, refused, DNS) or thrown error.
   if (error instanceof Error) {
     if (/unauthor/i.test(error.message) || /forbidden/i.test(error.message)) {
-      return 'dead';
+      return 'blocked';
     }
   }
   return 'retry';
+}
+
+type DueRow = {
+  status?: string;
+  nextAttemptAt?: Date | null;
+  lockedUntil?: Date | null;
+};
+
+/**
+ * Single predicate governing both the pick query and the compare-and-set claim.
+ * A row is due when it is pending/retrying, its backoff deadline has passed,
+ * and no live worker lease is held. Delivered and blocked rows are never due.
+ */
+export function isRowDue(row: DueRow, now: Date): boolean {
+  if (row.status !== 'pending' && row.status !== 'retrying') return false;
+  if (row.nextAttemptAt != null && row.nextAttemptAt > now) return false;
+  if (row.lockedUntil != null && row.lockedUntil >= now) return false;
+  return true;
+}
+
+function dueSqlCondition(now: Date) {
+  return and(
+    inArray(cortexOutbox.status, ['pending', 'retrying']),
+    or(isNull(cortexOutbox.nextAttemptAt), lte(cortexOutbox.nextAttemptAt, now)),
+    or(isNull(cortexOutbox.lockedUntil), lt(cortexOutbox.lockedUntil, now)),
+  );
 }
 
 // ── Enqueue (fast, idempotent) ──────────────────────────────────────────────
@@ -74,7 +108,7 @@ export async function enqueueCortexTurn(input: OutboxEnqueueInput) {
     return { queued: false as const, reason: 'disabled' as const };
   }
   const ids = honchoIds(input.userId, input.chatId);
-  await db
+  const inserted = await db
     .insert(cortexOutbox)
     .values({
       workspaceId: ids.workspaceId,
@@ -84,8 +118,9 @@ export async function enqueueCortexTurn(input: OutboxEnqueueInput) {
       text: input.text,
       timezone: input.timezone ?? process.env.ASH_TIME_ZONE ?? 'Europe/London',
     })
-    .onConflictDoNothing({ target: cortexOutbox.honchoMessageId });
-  return { queued: true as const };
+    .onConflictDoNothing({ target: cortexOutbox.honchoMessageId })
+    .returning({ id: cortexOutbox.id });
+  return { queued: true as const, inserted: inserted.length === 1 };
 }
 
 // ── Delivery core (real HTTP, injectable for tests) ────────────────────────
@@ -100,22 +135,17 @@ export type DeliveryObservation = {
 export async function deliverOnce(
   row: Pick<
     CortexOutboxRow,
-    | 'workspaceId'
-    | 'sessionId'
-    | 'honchoMessageId'
-    | 'peerId'
-    | 'text'
-    | 'timezone'
+    'workspaceId' | 'sessionId' | 'honchoMessageId' | 'peerId' | 'text' | 'timezone'
   >,
   opts: { post?: typeof fetch; now?: Date } = {},
 ): Promise<DeliveryObservation> {
   const config = cortexConfig();
   if (!config.enabled || !config.baseURL) {
     return {
-      action: 'dead',
+      action: 'blocked',
       statusCode: null,
       degraded: false,
-      error: 'disabled',
+      error: 'cortex_disabled',
     };
   }
   const post = opts.post ?? fetch;
@@ -148,91 +178,82 @@ export async function deliverOnce(
       payload = null;
     }
   } catch (error) {
-    return {
-      action: decideDelivery(null, error),
-      statusCode,
-      degraded: false,
-      error,
-    };
+    return { action: decideDelivery(null, error), statusCode, degraded: false, error };
   }
   const action = decideDelivery(statusCode, null);
   const degraded =
     (payload?.context as Record<string, unknown> | undefined)?.status ===
-      'degraded' || payload?.extraction_backend === 'failed';
+      'degraded' ||
+    payload?.extraction_backend === 'failed';
   return { action, statusCode, degraded, error: null };
-}
-
-function dueFilter(now: Date) {
-  return and(
-    inArray(cortexOutbox.status, ['pending', 'retrying']),
-    or(
-      isNull(cortexOutbox.nextAttemptAt),
-      lte(cortexOutbox.nextAttemptAt, now),
-    ),
-    or(isNull(cortexOutbox.lockedUntil), lt(cortexOutbox.lockedUntil, now)),
-  );
 }
 
 // ── Worker sweep ────────────────────────────────────────────────────────────
 
-export async function sweepDueCortexOutbox(
-  opts: {
-    limit?: number;
-    post?: typeof fetch;
-    now?: Date;
-  } = {},
-) {
+export async function sweepDueCortexOutbox(opts: {
+  limit?: number;
+  post?: typeof fetch;
+  now?: Date;
+} = {}) {
   const now = opts.now ?? new Date();
   const limit = opts.limit ?? DEFAULT_LIMIT;
 
   const rows = await db
     .select()
     .from(cortexOutbox)
-    .where(dueFilter(now))
-    .orderBy(desc(cortexOutbox.createdAt))
-    .limit(limit)
-    .for('update');
+    .where(dueSqlCondition(now))
+    .orderBy(asc(cortexOutbox.createdAt))
+    .limit(limit);
 
-  const summary = { processed: 0, delivered: 0, retried: 0, dead: 0 };
+  const summary = { processed: 0, delivered: 0, retried: 0, blocked: 0 };
 
   for (const row of rows) {
-    summary.processed += 1;
+    // Compare-and-set claim: only a row that is still pending/retrying and has
+    // no live lease is claimed (atomic per-row in Postgres), so overlapping
+    // cron workers cannot double-claim the same row.
     const attempts = row.attempts + 1;
-    await db
+    const claimed = await db
       .update(cortexOutbox)
       .set({
         lockedUntil: new Date(now.getTime() + LEASE_MS),
         attempts,
         lastAttemptAt: now,
       })
-      .where(eq(cortexOutbox.id, row.id));
+      .where(and(eq(cortexOutbox.id, row.id), dueSqlCondition(now)))
+      .returning({ id: cortexOutbox.id });
+    if (claimed.length === 0) continue;
+    summary.processed += 1;
 
     const observation = await deliverOnce(row, { post: opts.post, now });
 
-    if (observation.action === 'delivered' || observation.action === 'dead') {
+    if (observation.action === 'delivered') {
       await db
         .update(cortexOutbox)
-        .set(
-          observation.action === 'delivered'
-            ? {
-                status: 'delivered',
-                deliveredAt: now,
-                lastStatusCode: observation.statusCode,
-                degradedDelivery: observation.degraded,
-                lockedUntil: null,
-              }
-            : {
-                status: 'dead',
-                lockedUntil: null,
-                lastStatusCode: observation.statusCode,
-                lastError: observation.error
-                  ? String(observation.error)
-                  : 'permanent_delivery_failure',
-              },
-        )
+        .set({
+          status: 'delivered',
+          deliveredAt: now,
+          lastStatusCode: observation.statusCode,
+          degradedDelivery: observation.degraded,
+          lockedUntil: null,
+        })
         .where(eq(cortexOutbox.id, row.id));
-      if (observation.action === 'delivered') summary.delivered += 1;
-      else summary.dead += 1;
+      summary.delivered += 1;
+    } else if (observation.action === 'blocked') {
+      // Recoverable quarantine: not retried automatically, observable, and
+      // explicitly requeued once Cortex configuration is repaired.
+      await db
+        .update(cortexOutbox)
+        .set({
+          status: 'blocked',
+          lockedUntil: null,
+          nextAttemptAt: null,
+          lastStatusCode: observation.statusCode,
+          lastError: observation.error
+            ? String(observation.error)
+            : 'cortex_configuration_failure',
+        })
+        .where(eq(cortexOutbox.id, row.id));
+      summary.blocked += 1;
     } else {
       const nextAttempt = new Date(now.getTime() + nextBackoffMs(attempts));
       await db
@@ -250,4 +271,30 @@ export async function sweepDueCortexOutbox(
   }
 
   return summary;
+}
+
+// ── Blocked quarantine recovery ─────────────────────────────────────────────
+
+export async function requeueBlockedCortexOutbox() {
+  const rows = await db
+    .select()
+    .from(cortexOutbox)
+    .where(eq(cortexOutbox.status, 'blocked'));
+  if (rows.length === 0) {
+    return { requeued: 0 };
+  }
+  const ids = rows.map((row) => row.id);
+  const result = await db
+    .update(cortexOutbox)
+    .set({
+      status: 'pending',
+      attempts: 0,
+      lockedUntil: null,
+      nextAttemptAt: null,
+      lastError: null,
+      lastStatusCode: null,
+    })
+    .where(inArray(cortexOutbox.id, ids))
+    .returning({ id: cortexOutbox.id });
+  return { requeued: result.length };
 }
