@@ -162,10 +162,9 @@ test('direct turn packet contains Sophie and time guidance but no tool claims', 
 
   expect(packet.systemPrompt).toContain('[TRUSTED CURRENT TIME]');
   expect(packet.systemPrompt).toContain('Thursday, 6 August 2026');
-  expect(packet.systemPrompt).toContain('your own judgment');
-  expect(packet.systemPrompt).toContain(
-    'curiosity, initiative, and a natural question are welcome',
-  );
+  expect(packet.systemPrompt).toContain('[SOPHIE — CORE IDENTITY]');
+  expect(packet.systemPrompt).toContain('[RELATIONAL CONTRACT]');
+  expect(packet.systemPrompt).toContain('[HARD INVARIANTS]');
   expect(packet.systemPrompt).not.toContain('[GOOGLE INTEGRATION]');
   expect(packet.systemPrompt).not.toContain('[PUBLIC WEB RESEARCH]');
   expect(packet.systemPrompt).toContain(
@@ -221,11 +220,11 @@ test('turn packets expose only the instinct needed for this interaction', () => 
     messages: [],
   }).systemPrompt;
 
-  expect(greeting).toContain('friend picking up the phone');
-  expect(greeting).toContain('Do not make the user drag the conversation');
+  expect(greeting).toContain('[CONVERSATIONAL FREEDOM]');
+  expect(greeting).toContain('Do not become a coach');
   expect(greeting).not.toContain('React before analysing');
   expect(win).toContain('React before analysing');
-  expect(win).not.toContain('friend picking up the phone');
+  expect(win).not.toContain('[CONVERSATIONAL FREEDOM]');
   expect(winDecision.modelId).toBe('openai/gpt-5.6-luna-pro');
 });
 

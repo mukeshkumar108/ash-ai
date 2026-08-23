@@ -96,8 +96,9 @@ test('authoritative entry context is preserved without an app behavioral steer',
   const prompt = buildSophieReplySystemPrompt({
     entryContext,
   });
-  expect(prompt.indexOf('[AUTHORITATIVE ENTRY CONTEXT')).toBeGreaterThan(
-    prompt.indexOf('[INTERACTION STEER]'),
-  );
+  const coreIndex = prompt.indexOf('[SOPHIE — CORE IDENTITY]');
+  const entryIndex = prompt.indexOf('[AUTHORITATIVE ENTRY CONTEXT');
+  expect(coreIndex).toBeGreaterThan(-1);
+  expect(entryIndex).toBeGreaterThan(coreIndex);
   expect(prompt).toContain('previousSessionSummary is historical description');
 });

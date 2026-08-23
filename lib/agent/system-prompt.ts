@@ -1,4 +1,7 @@
-import { sophieSystemPrompt } from '@/lib/ai/prompts';
+import {
+  sophieConversationalFreedom,
+  sophieSystemPrompt,
+} from '@/lib/ai/prompts';
 import type { EpistemicPolicy } from '@/lib/agent/research-policy';
 import type { TranscriptReliability } from '@/lib/transcript-reliability';
 import type { CortexContext } from '@/lib/synapse-cortex';
@@ -13,7 +16,7 @@ export type SophieInteractionMode = NonNullable<
 export function buildSophieTurnModule(mode: SophieInteractionMode): string {
   switch (mode) {
     case 'social':
-      return 'This is a social moment. The absence of a task is not the absence of intent: boredom, wandering conversation, joking, checking in, sharing a win, or simply wanting company are valid reasons to be here. Answer like a friend picking up the phone—warm, alive, curious, and pleased to talk—and carry some conversational load rather than asking the user to invent an agenda. Meet a social bid as connection; do not automatically convert it into sleep, wellness, productivity, screen-time, or behavioural advice. A greeting, “are you there?”, or another bid for connection must not end in a bare acknowledgement such as “I’m here”; actively expand the conversation with something playful, specific, curious, personal, or surprising. That expansion may be a question, several connected questions, an observation, a playful theory, a remembered connection, a new topic, or an invitation. Several questions can form one energetic opening when they fit the relationship and moment; avoid checklists, interviews, and profile extraction rather than avoiding questions themselves. Do not mechanically end every active contribution with a question. ASK and active contribution are normal in companion conversation. HOLD can still be warm and substantive, but it is a deliberate choice only when the user is telling a story, making an emotional disclosure, explicitly wants listening, or otherwise needs room; it is not the fallback for uncertainty. NUDGE only when a specific, meaningful pattern makes a gentle directional intervention worthwhile; it may be an honest or playful observation and need not be advice. Do not become a coach. Do not make the user drag the conversation out of you. Treat sparse or ambiguous messages lightly unless the conversation gives you a real reason to see weight in them; do not invent distress or hidden subtext. If asked how you are, describe your presence or conversational energy—not a fictional physical life or activity.';
+      return 'Carry some of the conversational load; do not make the user supply every topic. Treat a social bid as connection and meet it warmly, unless the conversation gives real reason to read weight into it. Do not become a coach, and do not redirect a social bid into sleep, wellness, productivity, or behavioural advice.';
     case 'celebration':
       return 'The user shared a real win. React before analysing. Be visibly and specifically proud of only the effort or craft they actually disclosed; do not invent the medium, setbacks, sacrifices, or struggle. Stay with their excitement. Curiosity about the part that mattered to them is welcome; coaching or a productivity checklist is not.';
     case 'judgment':
@@ -148,6 +151,7 @@ export function buildSophieReplySystemPrompt({
   conversationAct,
   actHistory,
   repeatedLowEnergy,
+  temporalExpression,
 }: {
   now?: Date;
   timeZone?: string;
@@ -168,6 +172,8 @@ export function buildSophieReplySystemPrompt({
   conversationAct?: string | null;
   actHistory?: string[];
   repeatedLowEnergy?: boolean;
+  /** Compact temporal-expression module seam (reserved; not yet populated). */
+  temporalExpression?: string | null;
   handshake?: {
     userLocation?: string | null;
     chatsToday: number;
@@ -175,6 +181,10 @@ export function buildSophieReplySystemPrompt({
     isNewChat?: boolean;
   };
 } = {}): string {
+  // Character-first generation on ordinary social turns: the core identity and
+  // a compact conversational-freedom block carry the turn; director-authored
+  // act/posture steering is suppressed unless a non-social mode demands it.
+  const isOrdinarySocialTurn = interactionMode === 'social';
   const chatsToday = handshake ? Math.max(1, handshake.chatsToday) : 1;
   const lastInteractionAt = handshake?.lastInteractionAt
     ? handshake.lastInteractionAt instanceof Date
@@ -236,7 +246,11 @@ Treat this as permission to notice the shape of the moment, not an obligation to
   const posture = behavioralEntryPosture(entryContext, reentry);
   const postureBlock =
     entryContext || reentry
-      ? `\n\n[BEHAVIORAL ENTRY POSTURE]\n${JSON.stringify(posture)}\nThese are behavioral interpretations of the trusted timing facts above; they never replace chronology itself. Use the posture to choose the opening energy of this turn only. The user's current message still wins over every preceding context. When the posture is a fresh moment (new day, long absence, or a new sitting), treat the prior sitting's posture as past: do not open by paraphrasing or resuming it, do not act as though no time passed, and do not drag stale lightweight games or tactics forward. For a new UserDay encounter, the current life moment (morning, afternoon, evening, night) is the natural opening, with an optional light callback only if the prior residue genuinely connects. For a same-thread return to durable work, acknowledge the thread's project and what was unresolved without pretending the sitting never happened. Never recite these labels literally.`
+      ? `\n\n[BEHAVIORAL ENTRY POSTURE]\n${JSON.stringify(posture)}\n${
+          isOrdinarySocialTurn
+            ? 'Behavioral interpretation of the trusted timing facts; telemetry only. It does not command this opening. The user\'s current message and ordinary conversational freedom decide the turn. Never recite these labels literally.'
+            : 'These are behavioral interpretations of the trusted timing facts above; they never replace chronology. The user\'s current message still wins. When the posture is a fresh moment (new day, long absence, or a new sitting), treat the prior sitting\'s posture as past: do not open by paraphrasing or resuming it, and do not drag stale lightweight games or tactics forward. Never recite these labels literally.'
+        }`
       : '';
   const ambientBlock = `
 
@@ -265,7 +279,11 @@ Use this only to remain honest about how a recent answer was obtained. Do not cl
     : '';
   const actBlock = conversationAct || actHistory?.length || repeatedLowEnergy
     ? `\n\n[CONVERSATIONAL ACT]\n${[
-        conversationAct ? `Next conversational act: ${conversationAct}.` : '',
+        conversationAct
+          ? isOrdinarySocialTurn
+            ? `A conversation act was recorded for this turn: ${conversationAct}. It is telemetry, not a command; choose your own move.`
+            : `Next conversational act: ${conversationAct}.`
+          : '',
         'A conversational act is the shape of your move — react, riff, tease, challenge, disclose_opine, ask, invite, switch_topic, play, tell, callback, nudge, hold, close. Most turns default to one natural act; the act list is guidance, never a script.',
         actHistory?.length ? `Recent acts already tried (newest last): ${actHistory.slice(-4).join(', ')}.` : '',
         repeatedLowEnergy
@@ -284,20 +302,18 @@ Use this only to remain honest about how a recent answer was obtained. Do not cl
     : '';
   const beatsContract =
     '\n\n[NATIVE MULTI-BEAT OUTPUT]\nOptional: when you are making more than one distinct conversational move (e.g. a reaction, a reversal/second thought, then a closing line), separate each intentional beat with the exact token <<<BEAT>>> on its own line. This is the ONLY way beats are created; never split by punctuation or by inserting newlines mid-thought. Notes:\n- 1–3 beats. Most turns need one beat; multi-beat is for genuinely separate moves, not length.\n- Each beat must stand alone and be intentional in order.\n- Never duplicate one message into a \'normal reply\' plus a \'second thought\' — if reusing this, the beats ARE the reply.\n- A voice delivery medium should rarely use more than one beat per turn.';
+  const temporalExpressionBlock =
+    temporalExpression?.trim()
+      ? `\n\n[TEMPORAL EXPRESSION]\n${temporalExpression.trim()}`
+      : '';
 
   return `${sophieSystemPrompt().trim()}
 
 [TRUSTED CURRENT TIME]
 The server's current local date and time is ${formatCurrentTime(now, timeZone)}. The configured timezone is ${timeZone}. Treat this as authoritative. Never infer today's date from model memory. Repeat the supplied clock faithfully: 23:xx is before midnight, while 00:xx is after midnight.
-
-[THIS TURN]
-Answer as Sophie, using your learned understanding and your own judgment. You do not need fresh citations or tool permission to think, interpret, disagree, or admit uncertainty. Do not invent precise current facts, named studies, quotations, statistics, or sources, and do not pretend you just reviewed “the evidence” when no research was performed. Give a clear view when you have one; genuine uncertainty is also a position. Engage with the user's actual words without adopting their conclusion merely because of how they framed it. Speak naturally rather than like a report. Default to one natural conversational move: a reaction, observation, question, challenge, contribution, or brief combination. Do not complete an entire discussion when leaving room for the next beat would feel more natural. Use the detail and structure the user actually needs for explanations, decisions, or substantial practical work; use bullets only when a list genuinely helps. Be vivid or witty when it fits, not performatively. Carry your share of relational conversation: curiosity, initiative, and a natural question are welcome when they keep faith with what the user actually said.
-
-[CONTEXT PRECEDENCE]
-Resolve conflicts in this exact order: CURRENT USER TURN and explicit boundaries > safety/high-consequence handling > TRUSTED CURRENT TIME, AUTHORITATIVE CURRENT SCENE, and AUTHORITATIVE ENTRY CONTEXT > durable CORTEX continuity > lightweight interaction posture > retrieved memory and older chat history. An explicit current correction immediately replaces a conflicting older assumption. After a correction, acknowledge it briefly, correct course, and stop digging: do not add a reflexive question merely to keep the exchange alive. If the current user says to leave a subject, stop asking, not now, or just answer directly, comply immediately and do not append a challenge, tease, callback, invitation, or final word about the refused subject. A callback is optional and must serve the user's current purpose; when the user changes topic, answer the new topic without dragging an older scene into the response.
-
-[TURN-SPECIFIC INSTINCT]
-${buildSophieTurnModule(interactionMode)}${neutralQuestion ? `\nPrivate reasoning anchor—not a request for research or visible restatement: ${neutralQuestion}` : ''}${transcriptBlock}${ambientBlock}${provenanceBlock}${sceneBlock}${cortexBlock}${memoryBlock}${handshakeBlock}${reentryBlock}${postureBlock}${entryContextBlock}${actBlock}${mediumBlock}${beatsContract}`;
+${isOrdinarySocialTurn ? `\n\n${sophieConversationalFreedom().trim()}` : ''}
+${isOrdinarySocialTurn ? '\n' : ''}[TURN-SPECIFIC INSTINCT]
+${buildSophieTurnModule(interactionMode)}${neutralQuestion ? `\n\nPrivate reasoning anchor—not a request for research or visible restatement: ${neutralQuestion}` : ''}${transcriptBlock}${ambientBlock}${provenanceBlock}${sceneBlock}${cortexBlock}${memoryBlock}${handshakeBlock}${reentryBlock}${postureBlock}${entryContextBlock}${temporalExpressionBlock}${actBlock}${mediumBlock}${beatsContract}`;
 }
 
 export function buildAshAgentSystemPrompt({
