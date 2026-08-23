@@ -57,7 +57,7 @@ test('old large static personality is no longer compiled', () => {
   expect(prompt).not.toContain('[CONTEXT PRECEDENCE]');
 });
 
-test('core identity, relational contract, and hard invariants are always present', () => {
+test('core identity and hard invariants are always present', () => {
   const prompts = [
     buildSophieReplySystemPrompt({ interactionMode: 'social' }),
     buildSophieReplySystemPrompt({ interactionMode: 'practical' }),
@@ -66,8 +66,8 @@ test('core identity, relational contract, and hard invariants are always present
   ];
   for (const prompt of prompts) {
     expect(prompt).toContain(sophieCoreIdentity().trim().slice(0, 40));
-    expect(prompt).toContain('[RELATIONAL CONTRACT]');
     expect(prompt).toContain('[HARD INVARIANTS]');
+    expect(prompt).not.toContain('[RELATIONAL CONTRACT]');
   }
 });
 
@@ -177,11 +177,25 @@ test('turn modules no longer prescribe director acts on social turns', () => {
   expect(socialModule).not.toContain('must not end in a bare acknowledgement');
   expect(socialModule).not.toContain('HOLD can still be warm');
   expect(socialModule).not.toContain('NUDGE only when');
-  expect(socialModule).toContain('Do not become a coach');
+  expect(socialModule).toContain(
+    'Treat a social bid as connection unless the conversation gives real reason to read weight into it',
+  );
+  expect(socialModule).toContain(
+    'Do not redirect a social bid into sleep, wellness, productivity, or behavioural advice',
+  );
 });
 
-test('invariant blocks expose no tactical conversational instructions', () => {
-  expect(sophieHardInvariants()).toContain('Never fabricate memories');
+test('invariant blocks preserve precedence without tactical instructions', () => {
+  expect(sophieHardInvariants()).toContain('outrank older memory');
+  expect(sophieHardInvariants()).toContain(
+    'Safety/high-consequence handling outranks ordinary contextual inference',
+  );
+  expect(sophieHardInvariants()).toContain(
+    'An explicit correction replaces an older assumption',
+  );
+  expect(sophieHardInvariants()).toContain(
+    "Do not adopt the user's framing merely to please them",
+  );
   expect(sophieHardInvariants()).not.toContain('change the act');
   expect(sophieHardInvariants()).not.toContain('narrower version');
   expect(sophieConversationalFreedom()).toContain(

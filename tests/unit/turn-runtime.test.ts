@@ -163,8 +163,8 @@ test('direct turn packet contains Sophie and time guidance but no tool claims', 
   expect(packet.systemPrompt).toContain('[TRUSTED CURRENT TIME]');
   expect(packet.systemPrompt).toContain('Thursday, 6 August 2026');
   expect(packet.systemPrompt).toContain('[SOPHIE — CORE IDENTITY]');
-  expect(packet.systemPrompt).toContain('[RELATIONAL CONTRACT]');
   expect(packet.systemPrompt).toContain('[HARD INVARIANTS]');
+  expect(packet.systemPrompt).not.toContain('[RELATIONAL CONTRACT]');
   expect(packet.systemPrompt).not.toContain('[GOOGLE INTEGRATION]');
   expect(packet.systemPrompt).not.toContain('[PUBLIC WEB RESEARCH]');
   expect(packet.systemPrompt).toContain(
@@ -221,7 +221,9 @@ test('turn packets expose only the instinct needed for this interaction', () => 
   }).systemPrompt;
 
   expect(greeting).toContain('[CONVERSATIONAL FREEDOM]');
-  expect(greeting).toContain('Do not become a coach');
+  expect(greeting).toContain(
+    'Treat a social bid as connection unless the conversation gives real reason',
+  );
   expect(greeting).not.toContain('React before analysing');
   expect(win).toContain('React before analysing');
   expect(win).not.toContain('[CONVERSATIONAL FREEDOM]');
