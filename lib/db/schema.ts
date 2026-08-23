@@ -434,3 +434,58 @@ export type RemixState = {
 };
 
 export type Stream = InferSelectModel<typeof stream>;
+
+export const cortexOutboxStatus = [
+  'pending',
+  'retrying',
+  'delivered',
+  'dead',
+] as const;
+export type CortexOutboxStatus = (typeof cortexOutboxStatus)[number];
+
+/**
+ * Durable app-side outbox for delivering user turns to the Synapse-Cortex
+ * sidecar. Async, idempotent (honchoMessageId unique), exponential backoff.
+ */
+export const cortexOutbox = pgTable(
+  'CortexOutbox',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    workspaceId: varchar('workspace_id', { length: 128 }).notNull(),
+    sessionId: varchar('session_id', { length: 128 }).notNull(),
+    honchoMessageId: varchar('honcho_message_id', { length: 256 }).notNull(),
+    peerId: varchar('peer_id', { length: 64 }).notNull(),
+    text: text('text').notNull(),
+    timezone: varchar('timezone', { length: 64 })
+      .notNull()
+      .default('Europe/London'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    status: varchar('status', {
+      enum: cortexOutboxStatus,
+      length: 16,
+    })
+      .notNull()
+      .default('pending'),
+    attempts: integer('attempts').notNull().default(0),
+    lastAttemptAt: timestamp('last_attempt_at'),
+    nextAttemptAt: timestamp('next_attempt_at'),
+    lockedUntil: timestamp('locked_until'),
+    lastStatusCode: integer('last_status_code'),
+    lastError: text('last_error'),
+    degradedDelivery: boolean('degraded_delivery').notNull().default(false),
+    deliveredAt: timestamp('delivered_at'),
+  },
+  (table) => ({
+    messageUnique: uniqueIndex('cortex_outbox_honcho_message_unique').on(
+      table.honchoMessageId,
+    ),
+    due: index('cortex_outbox_due').on(
+      table.status,
+      table.nextAttemptAt,
+      table.lockedUntil,
+    ),
+  }),
+);
+
+export type CortexOutboxRow = InferSelectModel<typeof cortexOutbox>;
+export type CortexOutboxInsert = typeof cortexOutbox.$inferInsert;

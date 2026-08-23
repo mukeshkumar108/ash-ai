@@ -148,6 +148,13 @@
       "when": 1787392800000,
       "tag": "0022_user_timezone",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1787505021762,
+      "tag": "0023_cortex_outbox",
+      "breakpoints": true
     }
   ]
 }

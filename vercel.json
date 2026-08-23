@@ -5,6 +5,10 @@
     {
       "path": "/api/cron/relationship-initiative",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/cortex-delivery",
+      "schedule": "* * * * *"
     }
   ]
 }

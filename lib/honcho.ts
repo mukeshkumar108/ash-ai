@@ -167,57 +167,25 @@ export async function mirrorShadowTurnToSynapseCortex(input: {
   createdAt?: Date | string;
   timezone?: string;
 }) {
-  const baseURL = process.env.SYNAPSE_CORTEX_URL?.trim();
-  const enabled = Boolean(baseURL) && process.env.SYNAPSE_CORTEX_ENABLED !== 'false';
-  if (!enabled) {
-    return { mirrored: false as const, reason: 'disabled' };
-  }
-
-  const sidecarURL = baseURL || 'http://localhost:8010';
-  // Model-led operational extraction is post-turn shadow work and uses two bounded
-  // model calls. Keep the latency-sensitive context timeout separate from ingestion.
-  const timeoutMs = Number(process.env.SYNAPSE_CORTEX_INGEST_TIMEOUT_MS ?? 20000);
-  const ids = honchoIds(input.userId, input.chatId);
-
+  // Async, durable delivery: the turn goes into the Cortex outbox and an
+  // asynchronous worker drains it (see lib/cortex/outbox.ts). The user turn
+  // path never blocks on Cortex/model latency; delivery happens eventually
+  // and is idempotent by honchoMessageId.
   try {
-    const payload = {
-      workspace_id: ids.workspaceId,
-      session_id: ids.sessionId,
-      honcho_message_id: input.honchoMessageId,
-      peer_id: ids.userPeerId,
-      text: input.text,
-      now: input.createdAt ? new Date(input.createdAt).toISOString() : new Date().toISOString(),
-      timezone: input.timezone || process.env.ASH_TIME_ZONE || 'Europe/London',
-    };
-
-    const response = await fetch(`${sidecarURL.replace(/\/$/u, '')}/v1/events/turn`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(process.env.SYNAPSE_CORTEX_API_TOKEN?.trim()
-          ? { Authorization: `Bearer ${process.env.SYNAPSE_CORTEX_API_TOKEN.trim()}` }
-          : {}),
-      },
-      body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(timeoutMs),
-    });
-
-    if (!response.ok) {
-      console.warn('[synapse-cortex] shadow mirror HTTP error (fail-open)', {
-        status: response.status,
-        chatId: input.chatId,
-        honchoMessageId: input.honchoMessageId,
-      });
-      return { mirrored: false as const, reason: 'http_error' };
-    }
-
-    const data = await response.json();
-    console.info('[synapse-cortex] shadow turn mirrored', {
+    const { enqueueCortexTurn } = await import('@/lib/cortex/outbox');
+    const result = await enqueueCortexTurn({
+      userId: input.userId,
       chatId: input.chatId,
       honchoMessageId: input.honchoMessageId,
-      expectationCreated: data.expectation_created,
+      text: input.text,
+      timezone: input.timezone,
     });
-    return { mirrored: true as const, data };
+    console.info('[synapse-cortex] turn enqueued to cortex outbox', {
+      chatId: input.chatId,
+      honchoMessageId: input.honchoMessageId,
+      queued: result.queued,
+    });
+    return { mirrored: true as const, queued: result.queued };
   } catch (error) {
     console.warn('[synapse-cortex] shadow turn mirror failed (fail-open)', {
       chatId: input.chatId,
