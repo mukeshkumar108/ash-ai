@@ -682,6 +682,7 @@ export async function POST(request: Request) {
             timeZone,
             lastInteractionTime: handshake?.lastInteractionAt ?? null,
             sceneState,
+            chronology,
           }),
         ]);
         epistemicPolicy = applyTranscriptReliabilityGuard(

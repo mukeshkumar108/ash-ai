@@ -2,6 +2,7 @@ import 'server-only';
 
 import { honchoIds } from '@/lib/honcho';
 import type { SceneState } from '@/lib/agent/scene-state';
+import type { UserChronology } from '@/lib/agent/chronology';
 
 export type CortexContext = {
   localDateTime: string;
@@ -10,6 +11,8 @@ export type CortexContext = {
   currentScene: SceneState;
   orientation: unknown;
   daypart: unknown;
+  sitting: unknown;
+  firstContactToday: boolean;
   live: unknown[];
   unresolved: unknown[];
   recentChanges: unknown[];
@@ -46,7 +49,11 @@ export function compactCortexContext(
     !Array.isArray(attention.continuity_context)
       ? (attention.continuity_context as Record<string, unknown>)
       : {
-          now: { local_time: localDateTime, timeZone, daypart: handshake.daypart },
+          now: {
+            local_time: localDateTime,
+            timeZone,
+            daypart: handshake.daypart,
+          },
           continuity: list(attention.followups, 3),
           open_threads: list(attention.open_loops, 3),
           sophie_attention: list(attention.sophie_attention, 5),
@@ -64,11 +71,13 @@ export function compactCortexContext(
     currentScene,
     // Demoted from authoritative gap classification: chronology authority
     // lives in lib/agent/chronology.ts (30-min TemporalSession + 05:00
-    // UserDay, derived from canonical user-role message timestamps). This
-    // field is a non-authoritative echo for backward compatibility only and
-    // is never the source for re-entry/model-routing decisions.
+    // UserDay, derived from canonical user-role message timestamps). These
+    // fields echo what the app decided; Cortex consumes them, it never
+    // re-derives them.
     orientation: handshake.orientation ?? null,
     daypart: handshake.daypart ?? null,
+    sitting: handshake.sitting ?? null,
+    firstContactToday: handshake.first_contact_today === true,
     live: list(handshake.live_threads, 3),
     unresolved: [
       ...list(attention.waiting_on, 2),
@@ -122,8 +131,7 @@ export async function fetchCanonicalContinuityContext(input: {
 function configuration() {
   const baseURL = process.env.SYNAPSE_CORTEX_URL?.trim().replace(/\/$/u, '');
   return {
-    enabled:
-      Boolean(baseURL) && process.env.SYNAPSE_CORTEX_ENABLED !== 'false',
+    enabled: Boolean(baseURL) && process.env.SYNAPSE_CORTEX_ENABLED !== 'false',
     contextEnabled: process.env.SYNAPSE_CORTEX_CONTEXT_ENABLED !== 'false',
     baseURL,
     token: process.env.SYNAPSE_CORTEX_API_TOKEN?.trim(),
@@ -214,6 +222,7 @@ export async function fetchCortexContext(input: {
   now?: Date;
   lastInteractionTime?: Date | null;
   sceneState?: SceneState;
+  chronology?: UserChronology;
 }): Promise<CortexContext | null> {
   const config = configuration();
   if (!config.contextEnabled) return null;
@@ -226,6 +235,16 @@ export async function fetchCortexContext(input: {
       now,
       timezone: input.timeZone,
     });
+    // Canonical chronology: the app decides whether this is a new sitting.
+    // Cortex consumes the fact; it never infers new-vs-ongoing from timestamps.
+    const chronology = input.chronology;
+    const handshakeChronology = chronology
+      ? {
+          temporalSession: chronology.newTemporalSession ? 'new' : 'same',
+          firstContactUserDay: chronology.isFirstContactUserDay,
+          gapMinutes: chronology.inactivityGapMinutes ?? null,
+        }
+      : undefined;
     const [attention, handshake] = await Promise.all([
       cortexFetch(`/v1/cortex/attention-packet?${attentionQuery.toString()}`),
       cortexFetch('/v1/cortex/handshake', {
@@ -237,6 +256,7 @@ export async function fetchCortexContext(input: {
           timezone: input.timeZone,
           last_interaction_time:
             input.lastInteractionTime?.toISOString() ?? null,
+          ...(handshakeChronology ? { chronology: handshakeChronology } : {}),
         }),
       }),
     ]);
