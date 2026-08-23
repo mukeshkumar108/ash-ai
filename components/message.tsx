@@ -24,7 +24,7 @@ import { MessageActions } from './message-actions';
 import { ResearchTraceView } from './research-trace';
 import { VoiceReply } from './voice-reply';
 import { format } from 'date-fns';
-import { isBeatAvailable } from '@/lib/agent/beat-delivery';
+import { isBeatVisible } from '@/lib/agent/beat-delivery';
 
 function humanizedTimestamp(iso?: string) {
   const date = iso ? new Date(iso) : new Date();
@@ -36,15 +36,23 @@ function humanizedTimestamp(iso?: string) {
 
 function DelayedBeat({
   availableAt,
+  cancelledAt,
   children,
 }: {
   availableAt?: string;
+  cancelledAt?: string;
   children: ReactNode;
 }) {
   const dueAt = availableAt ? new Date(availableAt).getTime() : 0;
-  const [visible, setVisible] = useState(() => isBeatAvailable(availableAt));
+  const [visible, setVisible] = useState(() =>
+    isBeatVisible(availableAt, cancelledAt),
+  );
 
   useEffect(() => {
+    if (cancelledAt) {
+      setVisible(false);
+      return;
+    }
     if (!dueAt || Date.now() >= dueAt) {
       setVisible(true);
       return;
@@ -60,7 +68,7 @@ function DelayedBeat({
       document.removeEventListener('visibilitychange', revealIfDue);
       window.removeEventListener('focus', revealIfDue);
     };
-  }, [dueAt]);
+  }, [cancelledAt, dueAt]);
 
   return visible ? children : null;
 }
@@ -173,6 +181,11 @@ const PurePreviewMessage = ({
                       availableAt={
                         delivery?.type === 'data-beatDelivery'
                           ? delivery.data.availableAt
+                          : undefined
+                      }
+                      cancelledAt={
+                        delivery?.type === 'data-beatDelivery'
+                          ? delivery.data.cancelledAt
                           : undefined
                       }
                     >

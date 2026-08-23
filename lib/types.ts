@@ -55,6 +55,7 @@ export type CustomUIDataTypes = {
     beatIndex: number;
     kind: 'immediate' | 'continuation';
     availableAt: string;
+    cancelledAt?: string;
   };
 };
 

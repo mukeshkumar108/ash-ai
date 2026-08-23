@@ -58,6 +58,7 @@ import {
   saveMessages,
   updateChatTitleById,
   updateChatSessionRouting,
+  updateMessageParts,
   withQueryContext,
   db,
 } from '@/lib/db/queries';
@@ -99,6 +100,10 @@ import {
   type CompanionRuntimeResult,
 } from '@/lib/companion-runtime';
 import { initiativeOpportunityForRuntimeOutcome } from '@/lib/ai/relationship/policy';
+import {
+  cancelPendingBeatDeliveries,
+  visibleMessagePartsAt,
+} from '@/lib/agent/beat-delivery';
 
 export const maxDuration = 300;
 const CHAT_AGENT_TIMEOUT_MS = Number(
@@ -357,6 +362,36 @@ export async function POST(request: Request) {
           null,
       };
 
+      const userCreatedAt = new Date();
+      // A new user turn invalidates any continuation bubble they have not yet
+      // seen. Persist cancellation so refresh/mobile reconnect cannot dump a
+      // stale continuation, and exclude unseen text from model history.
+      const canonicalMessagesFromDb = [...messagesFromDb];
+      const latestAssistantIndex = canonicalMessagesFromDb.findLastIndex(
+        (entry) => entry.role === 'assistant',
+      );
+      if (latestAssistantIndex >= 0) {
+        const latestAssistant = canonicalMessagesFromDb[latestAssistantIndex];
+        const cancellation = cancelPendingBeatDeliveries(
+          latestAssistant.parts,
+          userCreatedAt,
+        );
+        if (cancellation.changed) {
+          await updateMessageParts({
+            id: latestAssistant.id,
+            parts: cancellation.parts,
+          });
+          canonicalMessagesFromDb[latestAssistantIndex] = {
+            ...latestAssistant,
+            parts: cancellation.parts as typeof latestAssistant.parts,
+          };
+        }
+      }
+      const visibleCanonicalMessages = canonicalMessagesFromDb.map((entry) => ({
+        ...entry,
+        parts: visibleMessagePartsAt(entry.parts, userCreatedAt) as typeof entry.parts,
+      }));
+
       // Apply input sanitization to user message before processing
       const sanitizedMessage = {
         ...message,
@@ -369,7 +404,7 @@ export async function POST(request: Request) {
       };
 
       const uiMessages = [
-        ...convertToUIMessages(messagesFromDb),
+        ...convertToUIMessages(visibleCanonicalMessages),
         sanitizedMessage,
       ].filter(
         (msg, index, self) => self.findIndex((m) => m.id === msg.id) === index,
@@ -379,7 +414,6 @@ export async function POST(request: Request) {
       const contextWindowSize = Number(process.env.CONTEXT_WINDOW_SIZE ?? 40);
       let messagesToSend = uiMessages.slice(-Math.max(3, contextWindowSize));
 
-      const userCreatedAt = new Date();
       // Authoritative cross-thread user chronology (canonical `Message_v2`,
       // user role only, across all of the user's chats, strictly before this
       // incoming turn). Assistant/tool activity does not extend a sitting.
@@ -1095,7 +1129,7 @@ export async function POST(request: Request) {
           ? finalBeats.flatMap((beat, beatIndex) => {
               const delivery = finalBeatDelivery[beatIndex] ?? {
                 kind: beatIndex === 0 ? 'immediate' as const : 'continuation' as const,
-                available_after_ms: beatIndex === 0 ? 0 : 1200,
+                available_after_ms: beatIndex * 10_000,
               };
               return [
                 {
@@ -1247,7 +1281,7 @@ export async function POST(request: Request) {
             for (let beatIndex = 0; beatIndex < finalBeats.length; beatIndex += 1) {
               const delivery = finalBeatDelivery[beatIndex] ?? {
                 kind: beatIndex === 0 ? 'immediate' as const : 'continuation' as const,
-                available_after_ms: beatIndex === 0 ? 0 : 1200,
+                available_after_ms: beatIndex * 10_000,
               };
               dataStream.write({
                 type: 'data-beatDelivery',
