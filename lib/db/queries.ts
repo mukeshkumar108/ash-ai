@@ -698,13 +698,30 @@ export async function updateChatSessionRouting({
 }) {
   try {
     const boundedTimeoutMs = Math.max(250, Math.min(timeoutMs, 10_000));
+    const incomingRouting = JSON.stringify(sessionRouting);
     return await db.transaction(async (tx) => {
       await tx.execute(
         sql`select set_config('statement_timeout', ${String(boundedTimeoutMs)}, true)`,
       );
       return tx
         .update(chat)
-        .set({ sessionRouting })
+        .set({
+          // Runtime updates are deliberately scheduled after the foreground
+          // reply is durable. Overlapping turns can therefore complete out of
+          // order. Preserve a newer LIVE SITUATION while accepting the rest of
+          // the incoming session state; model output never owns ordering.
+          sessionRouting: sql<Record<string, unknown>>`
+            case
+              when coalesce(${chat.sessionRouting}->'liveSituation'->>'observedAt', '')
+                > coalesce((${incomingRouting}::jsonb)->'liveSituation'->>'observedAt', '')
+              then (
+                ${incomingRouting}::jsonb
+                || jsonb_build_object('liveSituation', ${chat.sessionRouting}->'liveSituation')
+              )::json
+              else ${incomingRouting}::json
+            end
+          `,
+        })
         .where(and(eq(chat.id, id), eq(chat.userId, userId)));
     });
   } catch (error) {
