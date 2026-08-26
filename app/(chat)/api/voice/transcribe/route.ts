@@ -59,89 +59,62 @@ export async function POST(request: Request) {
       durationMs: number;
       outcome: 'success' | 'failure';
     }> = [];
-    let provider: 'lemonfox' | 'elevenlabs' = lemonFoxApiKey
-      ? 'lemonfox'
-      : 'elevenlabs';
-    let transcript: string;
-    if (lemonFoxApiKey) {
-      const lemonFoxStartedAt = Date.now();
+    const configuredPrimary =
+      process.env.VOICE_TRANSCRIPTION_PRIMARY?.trim().toLowerCase() ===
+      'lemonfox'
+        ? 'lemonfox'
+        : 'elevenlabs';
+    const configuredProviders = {
+      lemonfox: lemonFoxApiKey
+        ? () => transcribeWithLemonFox({ file, apiKey: lemonFoxApiKey })
+        : null,
+      elevenlabs: elevenLabsApiKey
+        ? () => transcribeWithElevenLabs({ file, apiKey: elevenLabsApiKey })
+        : null,
+    } as const;
+    const providerOrder: Array<'lemonfox' | 'elevenlabs'> = [
+      configuredPrimary,
+      configuredPrimary === 'elevenlabs' ? 'lemonfox' : 'elevenlabs',
+    ];
+    let provider: 'lemonfox' | 'elevenlabs' | null = null;
+    let transcript: string | null = null;
+    let lastProviderError: unknown;
+    for (const candidate of providerOrder) {
+      const transcribe = configuredProviders[candidate];
+      if (!transcribe) continue;
+      const providerStartedAt = Date.now();
       try {
-        transcript = await transcribeWithLemonFox({
-          file,
-          apiKey: lemonFoxApiKey,
-        });
+        transcript = await transcribe();
+        provider = candidate;
         providerAttempts.push({
-          provider: 'lemonfox',
-          durationMs: Date.now() - lemonFoxStartedAt,
+          provider: candidate,
+          durationMs: Date.now() - providerStartedAt,
           outcome: 'success',
         });
-      } catch (primaryError) {
-        providerAttempts.push({
-          provider: 'lemonfox',
-          durationMs: Date.now() - lemonFoxStartedAt,
-          outcome: 'failure',
-        });
-        if (!elevenLabsApiKey) throw primaryError;
-        provider = 'elevenlabs';
-        const fallbackStartedAt = Date.now();
-        try {
-          transcript = await transcribeWithElevenLabs({
-            file,
-            apiKey: elevenLabsApiKey,
-          });
-          providerAttempts.push({
-            provider: 'elevenlabs',
-            durationMs: Date.now() - fallbackStartedAt,
-            outcome: 'success',
-          });
-        } catch (fallbackError) {
-          providerAttempts.push({
-            provider: 'elevenlabs',
-            durationMs: Date.now() - fallbackStartedAt,
-            outcome: 'failure',
-          });
-          console.warn(
-            JSON.stringify({
-              level: 'warn',
-              event: 'voice_transcription_providers_exhausted',
-              requestId,
-              recordingId,
-              providerAttempts,
-            }),
-          );
-          throw fallbackError;
-        }
-      }
-    } else {
-      provider = 'elevenlabs';
-      const fallbackStartedAt = Date.now();
-      try {
-        transcript = await transcribeWithElevenLabs({
-          file,
-          apiKey: elevenLabsApiKey!,
-        });
-        providerAttempts.push({
-          provider: 'elevenlabs',
-          durationMs: Date.now() - fallbackStartedAt,
-          outcome: 'success',
-        });
+        break;
       } catch (error) {
+        lastProviderError = error;
         providerAttempts.push({
-          provider: 'elevenlabs',
-          durationMs: Date.now() - fallbackStartedAt,
+          provider: candidate,
+          durationMs: Date.now() - providerStartedAt,
           outcome: 'failure',
         });
-        console.warn(
-          JSON.stringify({
-            level: 'warn',
-            event: 'voice_transcription_providers_exhausted',
-            requestId,
-            recordingId,
-            providerAttempts,
-          }),
-        );
-        throw error;
       }
+    }
+    if (!provider || !transcript) {
+      console.warn(
+        JSON.stringify({
+          level: 'warn',
+          event: 'voice_transcription_providers_exhausted',
+          requestId,
+          recordingId,
+          configuredPrimary,
+          providerAttempts,
+        }),
+      );
+      throw (
+        lastProviderError ?? new VoiceProviderError('Transcription failed.')
+      );
     }
     const mechanical = mechanicalTranscriptReliability({
       transcript,
