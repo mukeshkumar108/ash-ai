@@ -42,10 +42,12 @@ export async function transcribeWithLemonFox({
   file,
   apiKey,
   fetchImpl = fetch,
+  timeoutMs = Number(process.env.LEMONFOX_TRANSCRIPTION_TIMEOUT_MS ?? 12_000),
 }: {
   file: Blob;
   apiKey: string;
   fetchImpl?: typeof fetch;
+  timeoutMs?: number;
 }) {
   const body = new FormData();
   body.append('file', file, 'voice-note');
@@ -53,7 +55,12 @@ export async function transcribeWithLemonFox({
 
   const response = await fetchImpl(
     'https://api.lemonfox.ai/v1/audio/transcriptions',
-    { method: 'POST', headers: { Authorization: `Bearer ${apiKey}` }, body },
+    {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiKey}` },
+      body,
+      signal: AbortSignal.timeout(timeoutMs),
+    },
   );
   if (!response.ok) throw new VoiceProviderError('Transcription failed.');
   const payload = (await response.json()) as { text?: unknown };
@@ -67,10 +74,12 @@ export async function transcribeWithElevenLabs({
   file,
   apiKey,
   fetchImpl = fetch,
+  timeoutMs = Number(process.env.ELEVENLABS_TRANSCRIPTION_TIMEOUT_MS ?? 12_000),
 }: {
   file: Blob;
   apiKey: string;
   fetchImpl?: typeof fetch;
+  timeoutMs?: number;
 }) {
   const body = new FormData();
   body.append('file', file, 'voice-note');
@@ -80,7 +89,12 @@ export async function transcribeWithElevenLabs({
 
   const response = await fetchImpl(
     'https://api.elevenlabs.io/v1/speech-to-text',
-    { method: 'POST', headers: { 'xi-api-key': apiKey }, body },
+    {
+      method: 'POST',
+      headers: { 'xi-api-key': apiKey },
+      body,
+      signal: AbortSignal.timeout(timeoutMs),
+    },
   );
   if (!response.ok) throw new VoiceProviderError('Transcription failed.');
   const payload = (await response.json()) as { text?: unknown };
