@@ -4,6 +4,7 @@ import {
   synthesizeWithElevenLabs,
   textForSpeech,
   transcribeWithLemonFox,
+  transcribeWithElevenLabs,
   validateVoiceUpload,
   VoiceProviderError,
 } from '@/lib/voice';
@@ -78,6 +79,35 @@ test.describe('voice-note adapters', () => {
         fetchImpl: async () => new Response('down', { status: 503 }),
       }),
     ).rejects.toBeInstanceOf(VoiceProviderError);
+  });
+
+  test('uploads binary data to ElevenLabs Scribe and returns transcript text', async () => {
+    let receivedBody: FormData | undefined;
+    let receivedHeaders: HeadersInit | undefined;
+    const transcript = await transcribeWithElevenLabs({
+      file: new Blob(['voice'], { type: 'audio/webm' }),
+      apiKey: 'test-key',
+      fetchImpl: async (_input, init) => {
+        receivedBody = init?.body as FormData;
+        receivedHeaders = init?.headers;
+        return Response.json({ text: ' fallback transcript ' });
+      },
+    });
+
+    expect(transcript).toBe('fallback transcript');
+    expect(receivedBody?.get('file')).toBeInstanceOf(Blob);
+    expect(receivedBody?.get('model_id')).toBe('scribe_v2');
+    expect(receivedHeaders).toEqual({ 'xi-api-key': 'test-key' });
+  });
+
+  test('rejects an empty ElevenLabs transcript', async () => {
+    await expect(
+      transcribeWithElevenLabs({
+        file: new Blob(['voice'], { type: 'audio/webm' }),
+        apiKey: 'test-key',
+        fetchImpl: async () => Response.json({ text: '  ' }),
+      }),
+    ).rejects.toThrow('No speech was detected.');
   });
 
   test('speaks the actual response with markdown syntax removed', async () => {

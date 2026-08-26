@@ -63,6 +63,33 @@ export async function transcribeWithLemonFox({
   return transcript;
 }
 
+export async function transcribeWithElevenLabs({
+  file,
+  apiKey,
+  fetchImpl = fetch,
+}: {
+  file: Blob;
+  apiKey: string;
+  fetchImpl?: typeof fetch;
+}) {
+  const body = new FormData();
+  body.append('file', file, 'voice-note');
+  body.append('model_id', 'scribe_v2');
+  body.append('tag_audio_events', 'false');
+  body.append('diarize', 'false');
+
+  const response = await fetchImpl(
+    'https://api.elevenlabs.io/v1/speech-to-text',
+    { method: 'POST', headers: { 'xi-api-key': apiKey }, body },
+  );
+  if (!response.ok) throw new VoiceProviderError('Transcription failed.');
+  const payload = (await response.json()) as { text?: unknown };
+  const transcript =
+    typeof payload.text === 'string' ? payload.text.trim() : '';
+  if (!transcript) throw new VoiceProviderError('No speech was detected.');
+  return transcript;
+}
+
 export function textForSpeech(markdown: string) {
   return markdown
     .replace(/```[\s\S]*?```/g, (block) =>

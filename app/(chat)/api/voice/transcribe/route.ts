@@ -1,5 +1,6 @@
 import { auth } from '@/app/(auth)/auth';
 import {
+  transcribeWithElevenLabs,
   transcribeWithLemonFox,
   validateVoiceUpload,
   VoiceProviderError,
@@ -45,16 +46,103 @@ export async function POST(request: Request) {
     if (validationError) {
       return Response.json({ error: validationError }, { status: 400 });
     }
-    const apiKey = process.env.LEMONFOX_API_KEY?.trim();
-    if (!apiKey)
+    const lemonFoxApiKey = process.env.LEMONFOX_API_KEY?.trim();
+    const elevenLabsApiKey = process.env.ELEVENLABS_API_KEY?.trim();
+    if (!lemonFoxApiKey && !elevenLabsApiKey)
       return Response.json(
         { error: 'Voice transcription is unavailable.' },
         { status: 503 },
       );
 
-    const providerStartedAt = Date.now();
-    const transcript = await transcribeWithLemonFox({ file, apiKey });
-    const providerDurationMs = Date.now() - providerStartedAt;
+    const providerAttempts: Array<{
+      provider: 'lemonfox' | 'elevenlabs';
+      durationMs: number;
+      outcome: 'success' | 'failure';
+    }> = [];
+    let provider: 'lemonfox' | 'elevenlabs' = lemonFoxApiKey
+      ? 'lemonfox'
+      : 'elevenlabs';
+    let transcript: string;
+    if (lemonFoxApiKey) {
+      const lemonFoxStartedAt = Date.now();
+      try {
+        transcript = await transcribeWithLemonFox({
+          file,
+          apiKey: lemonFoxApiKey,
+        });
+        providerAttempts.push({
+          provider: 'lemonfox',
+          durationMs: Date.now() - lemonFoxStartedAt,
+          outcome: 'success',
+        });
+      } catch (primaryError) {
+        providerAttempts.push({
+          provider: 'lemonfox',
+          durationMs: Date.now() - lemonFoxStartedAt,
+          outcome: 'failure',
+        });
+        if (!elevenLabsApiKey) throw primaryError;
+        provider = 'elevenlabs';
+        const fallbackStartedAt = Date.now();
+        try {
+          transcript = await transcribeWithElevenLabs({
+            file,
+            apiKey: elevenLabsApiKey,
+          });
+          providerAttempts.push({
+            provider: 'elevenlabs',
+            durationMs: Date.now() - fallbackStartedAt,
+            outcome: 'success',
+          });
+        } catch (fallbackError) {
+          providerAttempts.push({
+            provider: 'elevenlabs',
+            durationMs: Date.now() - fallbackStartedAt,
+            outcome: 'failure',
+          });
+          console.warn(
+            JSON.stringify({
+              level: 'warn',
+              event: 'voice_transcription_providers_exhausted',
+              requestId,
+              recordingId,
+              providerAttempts,
+            }),
+          );
+          throw fallbackError;
+        }
+      }
+    } else {
+      provider = 'elevenlabs';
+      const fallbackStartedAt = Date.now();
+      try {
+        transcript = await transcribeWithElevenLabs({
+          file,
+          apiKey: elevenLabsApiKey!,
+        });
+        providerAttempts.push({
+          provider: 'elevenlabs',
+          durationMs: Date.now() - fallbackStartedAt,
+          outcome: 'success',
+        });
+      } catch (error) {
+        providerAttempts.push({
+          provider: 'elevenlabs',
+          durationMs: Date.now() - fallbackStartedAt,
+          outcome: 'failure',
+        });
+        console.warn(
+          JSON.stringify({
+            level: 'warn',
+            event: 'voice_transcription_providers_exhausted',
+            requestId,
+            recordingId,
+            providerAttempts,
+          }),
+        );
+        throw error;
+      }
+    }
     const mechanical = mechanicalTranscriptReliability({
       transcript,
       durationMs,
@@ -109,8 +197,8 @@ export async function POST(request: Request) {
         event: 'voice_transcription_completed',
         requestId,
         recordingId,
-        provider: 'lemonfox',
-        providerDurationMs,
+        provider,
+        providerAttempts,
         totalDurationMs: Date.now() - startedAt,
         reliabilityStatus: reliability.status,
         transcriptCharacters: transcript.length,
@@ -118,7 +206,7 @@ export async function POST(request: Request) {
     );
     return Response.json({
       transcript,
-      provider: 'lemonfox',
+      provider,
       durationMs,
       reliability,
     });
