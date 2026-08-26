@@ -36,6 +36,18 @@ export const user = pgTable('User', {
 
 export type User = InferSelectModel<typeof user>;
 
+/** User-owned operational context shared across chat threads. */
+export const companionUserState = pgTable('CompanionUserState', {
+  userId: uuid('user_id')
+    .primaryKey()
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  state: json('state').notNull().default({}),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export type CompanionUserState = InferSelectModel<typeof companionUserState>;
+
 export const chat = pgTable('Chat', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   createdAt: timestamp('createdAt').notNull(),

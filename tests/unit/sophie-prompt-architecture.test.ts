@@ -27,7 +27,7 @@ const reentry: ReentryContext = {
 } as never;
 
 const entryContext: CompanionEntryContext = {
-  version: 2,
+  version: 3,
   timeZone: 'Europe/London',
   chronology: {
     temporalSession: 'new',
@@ -37,6 +37,10 @@ const entryContext: CompanionEntryContext = {
     gapMinutes: 600,
     sessionStartedAt: '2026-08-23T07:00:00.000Z',
     sessionsToday: 1,
+  },
+  entryStyle: {
+    band: 'new_day', opening: 'morning_welcome', energy: 'high',
+    acknowledgeReturn: true,
   },
   previousSessionSummary: null,
   recentSessionSummaries: [],

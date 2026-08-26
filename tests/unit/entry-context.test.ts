@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { computeUserChronology } from '@/lib/agent/chronology';
-import { buildCompanionEntryContext } from '@/lib/agent/entry-context';
+import { buildCompanionEntryContext, deriveEntryStyle } from '@/lib/agent/entry-context';
 import { resolveUserTimeZone } from '@/lib/agent/timezone';
 import { buildSophieReplySystemPrompt } from '@/lib/agent/system-prompt';
 
@@ -29,7 +29,10 @@ test('builds a bounded historical session summary and optional bridges', () => {
     daypart: 'morning',
     firstContactUserDay: true,
   });
-  expect(packet.version).toBe(2);
+  expect(packet.version).toBe(3);
+  expect(packet.entryStyle).toMatchObject({
+    band: 'new_day', opening: 'morning_welcome', energy: 'high',
+  });
   expect(packet.previousSessionSummary?.id).toMatch(/^ts_[a-f0-9]{16}_\d+$/u);
   expect(packet.previousSessionSummary?.touchedThreadIds).toEqual(['a', 'b']);
   expect(packet.previousSessionSummary?.majorTopics).toEqual(['late night', 'night']);
@@ -77,7 +80,7 @@ test('bridge candidates can come from an older recent session', () => {
 
 test('authoritative entry context is preserved without an app behavioral steer', () => {
   const entryContext = {
-    version: 2 as const,
+    version: 3 as const,
     timeZone: 'Europe/London',
     chronology: {
       temporalSession: 'new' as const,
@@ -87,6 +90,12 @@ test('authoritative entry context is preserved without an app behavioral steer',
       gapMinutes: 553,
       sessionStartedAt: '2026-08-22T09:45:00.000Z',
       sessionsToday: 1,
+    },
+    entryStyle: {
+      band: 'new_day' as const,
+      opening: 'morning_welcome' as const,
+      energy: 'high' as const,
+      acknowledgeReturn: true,
     },
     previousSessionSummary: null,
     recentSessionSummaries: [],
@@ -101,4 +110,21 @@ test('authoritative entry context is preserved without an app behavioral steer',
   expect(coreIndex).toBeGreaterThan(-1);
   expect(entryIndex).toBeGreaterThan(coreIndex);
   expect(prompt).toContain('previousSessionSummary is historical description');
+  expect(prompt).toContain('actually welcome the user');
+});
+
+test('entry style uses stable elapsed-time bands', () => {
+  const chronology = (gapMinutes: number) => computeUserChronology({
+    interactionTimes: [{ createdAt: new Date(Date.UTC(2026, 7, 22, 20, 0) - gapMinutes * 60_000) }],
+    now: new Date(Date.UTC(2026, 7, 22, 20, 0)),
+    timeZone: 'Europe/London',
+  });
+  expect(deriveEntryStyle(chronology(59)).band).toBe('continuous');
+  expect(deriveEntryStyle(chronology(60)).band).toBe('brief_return');
+  expect(deriveEntryStyle(chronology(179)).band).toBe('brief_return');
+  expect(deriveEntryStyle(chronology(180)).band).toBe('return');
+  expect(deriveEntryStyle(chronology(359)).band).toBe('return');
+  expect(deriveEntryStyle(chronology(360)).band).toBe('long_return');
+  expect(deriveEntryStyle(chronology(719)).band).toBe('long_return');
+  expect(deriveEntryStyle(chronology(720)).band).toBe('extended_return');
 });

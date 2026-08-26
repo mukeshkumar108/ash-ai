@@ -52,16 +52,20 @@ import {
   getMessagesByChatId,
   getUserById,
   getUserChronologyTimeline,
+  getCompanionUserState,
   getTemporalSessionResidueRows,
   saveUserDefaultLocationIfMissing,
   saveChat,
   saveMessages,
   updateChatTitleById,
   updateChatSessionRouting,
+  updateUserLiveSituation,
+  updateUserCorrections,
   updateMessageParts,
   withQueryContext,
   db,
 } from '@/lib/db/queries';
+import { extractBehaviorCorrection, mergeBehaviorCorrections } from '@/lib/agent/user-corrections';
 import { message as messageTable, user as userTable } from '@/lib/db/schema';
 import { convertToUIMessages, generateUUID } from '@/lib/utils';
 import { generateTitleFromUserMessage } from '../../actions';
@@ -309,13 +313,14 @@ export async function POST(request: Request) {
       // Ensure the session user has a row so chat/message foreign keys hold.
       const userProfile = await getUserById(session.user.id);
       const timeZone = resolveUserTimeZone(userProfile?.timeZone);
-      const [messagesFromDb, crossChatHandshake] = await Promise.all([
+      const [messagesFromDb, crossChatHandshake, companionUserState] = await Promise.all([
           getMessagesByChatId({ id }),
           getConversationHandshakeContext({
             userId: session.user.id,
             currentChatId: id,
             timeZone,
           }),
+          getCompanionUserState({ userId: session.user.id }),
         ]);
       if (!userProfile) {
         if (!isProductionEnvironment) {
@@ -355,13 +360,19 @@ export async function POST(request: Request) {
       >;
       const sessionRoutingSeed = {
         ...currentSessionRouting,
+        userCorrections: companionUserState.corrections ?? currentSessionRouting.userCorrections ?? [],
+        // Immediate-world state follows the authenticated user across chats.
+        // Per-chat state remains a backward-compatible fallback during rollout.
+        liveSituation:
+          companionUserState.liveSituation ??
+          currentSessionRouting.liveSituation ??
+          {},
         meaningfulSessionCount: crossChatHandshake.meaningfulSessionCount,
         relationship:
           currentSessionRouting.relationship ??
           crossChatHandshake.relationshipSeed ??
           null,
       };
-
       const userCreatedAt = new Date();
       // A new user turn invalidates any continuation bubble they have not yet
       // seen. Persist cancellation so refresh/mobile reconnect cannot dump a
@@ -503,6 +514,14 @@ export async function POST(request: Request) {
         .filter((part) => part.type === 'text')
         .map((part) => ('text' in part ? part.text : ''))
         .join('\n');
+      const behaviorCorrection = extractBehaviorCorrection({
+        text: currentUserText,
+        sourceTurnId: message.id,
+      });
+      const userCorrections = mergeBehaviorCorrections(
+        companionUserState.corrections,
+        behaviorCorrection,
+      );
       const transcriptReliabilityPart = sanitizedMessage.parts.find(
         (part) => part.type === 'data-transcriptReliability',
       );
@@ -794,6 +813,18 @@ export async function POST(request: Request) {
           legacyAssistant.role === 'assistant'
         ) {
           assistantId = legacyAssistantId;
+        }
+        if (behaviorCorrection) {
+          after(async () => {
+            try {
+              await updateUserCorrections({ userId: session.user.id, corrections: userCorrections });
+            } catch (error) {
+              console.warn('[chat] user correction update failed open', {
+                chatId: id,
+                error: error instanceof Error ? error.message : 'Unknown error',
+              });
+            }
+          });
         }
       }
       const textPartId = generateUUID();
@@ -1192,6 +1223,26 @@ export async function POST(request: Request) {
             });
           }
         });
+        const liveSituation = sessionRouting.liveSituation;
+        if (
+          liveSituation &&
+          typeof liveSituation === 'object' &&
+          !Array.isArray(liveSituation)
+        ) {
+          after(async () => {
+            try {
+              await updateUserLiveSituation({
+                userId: session.user.id,
+                liveSituation: liveSituation as Record<string, unknown>,
+              });
+            } catch (error) {
+              console.warn('[chat] user live-situation update failed open', {
+                chatId: id,
+                error: error instanceof Error ? error.message : 'Unknown error',
+              });
+            }
+          });
+        }
       }
 
       // Honcho is a derived, write-only memory mirror at this stage. Register
