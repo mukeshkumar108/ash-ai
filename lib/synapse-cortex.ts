@@ -102,6 +102,7 @@ export async function fetchCanonicalContinuityContext(input: {
   const query = new URLSearchParams({
     workspace_id: ids.workspaceId,
     session_id: ids.sessionId,
+    peer_id: ids.userPeerId,
     now: (input.now ?? new Date()).toISOString(),
     timezone: input.timeZone,
   });
@@ -232,6 +233,7 @@ export async function fetchCortexContext(input: {
     const attentionQuery = new URLSearchParams({
       workspace_id: ids.workspaceId,
       session_id: ids.sessionId,
+      peer_id: ids.userPeerId,
       now,
       timezone: input.timeZone,
     });
@@ -252,6 +254,7 @@ export async function fetchCortexContext(input: {
         body: JSON.stringify({
           workspace_id: ids.workspaceId,
           session_id: ids.sessionId,
+          peer_id: ids.userPeerId,
           now,
           timezone: input.timeZone,
           last_interaction_time:
