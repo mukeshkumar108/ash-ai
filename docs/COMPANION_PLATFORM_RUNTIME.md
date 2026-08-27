@@ -87,6 +87,13 @@ Final order:
 8. optional ENRICH opportunities;
 9. medium/output and hard truthfulness, independence and beat invariants.
 
+The kernel uses plain declarative language rather than value lists and balanced
+aphorisms. Non-elevated social/emotional turns may receive an optional voice
+palette (dry, cheeky, plainly proud, lightly current or quietly warm) without
+literal catchphrases. Advice standards are gated to accepted judgment/challenge
+moves and omitted from ordinary practical tasks. Composition telemetry records
+both included and omitted style modules.
+
 Conditionally additive material:
 
 - at most eight explicit user corrections;
@@ -167,6 +174,8 @@ must not be folded into Dual Aperture; they need an explicit authority contract.
 - Compact durable behavioral corrections.
 - App-side durable voice recording and ElevenLabs-first transcription fallback.
 - Gemini low/excluded reasoning for Dual Aperture after provider bake-off.
+- De-flowered the always-on kernel and separated optional social colour from
+  judgment-earned standards, with Python/TypeScript rollback parity.
 
 ## Validation and lessons
 

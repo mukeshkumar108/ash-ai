@@ -1,6 +1,8 @@
 import {
   sophieConversationalFreedom,
+  sophieStandards,
   sophieSystemPrompt,
+  sophieVoicePalette,
 } from '@/lib/ai/prompts';
 import type { EpistemicPolicy } from '@/lib/agent/research-policy';
 import type { TranscriptReliability } from '@/lib/transcript-reliability';
@@ -185,6 +187,10 @@ export function buildSophieReplySystemPrompt({
   // a compact conversational-freedom block carry the turn; director-authored
   // act/posture steering is suppressed unless a non-social mode demands it.
   const isOrdinarySocialTurn = interactionMode === 'social';
+  const isCharacterConversation =
+    interactionMode === 'social' || interactionMode === 'emotional';
+  const standardsRelevant =
+    interactionMode === 'judgment' || interactionMode === 'safety';
   const chatsToday = handshake ? Math.max(1, handshake.chatsToday) : 1;
   const lastInteractionAt = handshake?.lastInteractionAt
     ? handshake.lastInteractionAt instanceof Date
@@ -313,6 +319,8 @@ Use this only to remain honest about how a recent answer was obtained. Do not cl
 [TRUSTED CURRENT TIME]
 The server's current local date and time is ${formatCurrentTime(now, timeZone)}. The configured timezone is ${timeZone}. Treat this as authoritative. Never infer today's date from model memory. Repeat the supplied clock faithfully: 23:xx is before midnight, while 00:xx is after midnight.
 ${isOrdinarySocialTurn ? `\n\n${sophieConversationalFreedom().trim()}` : ''}
+${isCharacterConversation ? `\n\n${sophieVoicePalette().trim()}` : ''}
+${standardsRelevant ? `\n\n${sophieStandards().trim()}` : ''}
 ${isOrdinarySocialTurn ? '\n' : ''}[TURN-SPECIFIC INSTINCT]
 ${buildSophieTurnModule(interactionMode)}${neutralQuestion ? `\n\nPrivate reasoning anchor—not a request for research or visible restatement: ${neutralQuestion}` : ''}${transcriptBlock}${ambientBlock}${provenanceBlock}${sceneBlock}${cortexBlock}${memoryBlock}${handshakeBlock}${reentryBlock}${postureBlock}${entryContextBlock}${temporalExpressionBlock}${actBlock}${mediumBlock}${beatsContract}`;
 }
