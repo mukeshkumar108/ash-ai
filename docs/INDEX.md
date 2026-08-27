@@ -15,6 +15,11 @@ This project splits **process/rules** at the repo root and **system knowledge** 
 
 ## System Knowledge (/docs)
 
+- **/docs/COMPANION_PLATFORM_RUNTIME.md** — Canonical production handoff across
+  Vercel, Companion Runtime, Synapse-Cortex, Honcho, prompt compilation,
+  persistence, validation and roadmap. Read this first.
+- **/docs/DOCUMENTATION_STATUS.md** — Which documents are current authority,
+  behavioral evidence, or legacy subsystem history.
 - **/docs/ARCHITECTURE.md** — High-level map: Next.js, chat route, artifacts, flows.
 - **/docs/MEMORY_SYSTEM.md** — Advanced memory system: structured extraction, pattern matching, recency weighting.
 - **/docs/HONCHO_WRITE_ONLY_INTEGRATION.md** — Targeted Honcho memory, identity mapping, observability, and local validation.

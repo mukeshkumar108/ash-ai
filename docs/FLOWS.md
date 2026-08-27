@@ -1,5 +1,10 @@
 # User Flows & Behaviors
 
+> The chat-generation and memory description below is historical. The current
+> production chat flow is maintained in
+> [`COMPANION_PLATFORM_RUNTIME.md`](./COMPANION_PLATFORM_RUNTIME.md). The
+> artifact/tool notes remain useful only after verifying their current code.
+
 ## Chat
 - User sends a message → `POST /api/chat` builds `uiMessages` → `streamText(...)` with enhanced `systemPrompt`.
 - **Advanced Structured Memory**: Multi-layered memory system:
