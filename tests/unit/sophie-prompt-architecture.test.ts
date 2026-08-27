@@ -63,6 +63,31 @@ test('old large static personality is no longer compiled', () => {
   expect(prompt).not.toContain('[CONTEXT PRECEDENCE]');
 });
 
+test('late-night re-entry is concise and care-first rather than generically bright', () => {
+  const prompt = buildSophieReplySystemPrompt({
+    interactionMode: 'social',
+    now: new Date('2026-08-28T02:30:00.000Z'),
+    timeZone: 'Europe/London',
+    entryContext: {
+      ...entryContext,
+      chronology: {
+        ...entryContext.chronology,
+        daypart: 'night',
+        sessionStartedAt: '2026-08-28T02:30:00.000Z',
+      },
+      entryStyle: {
+        band: 'extended_return',
+        opening: 'relationship_welcome',
+        energy: 'high',
+        acknowledgeReturn: true,
+      },
+    },
+  });
+  expect(prompt).toContain('do not perform a bright generic welcome');
+  expect(prompt).toContain('one or two spoken-feeling sentences');
+  expect(prompt).toContain('explicit user correction');
+});
+
 test('core identity and hard invariants are always present', () => {
   const prompts = [
     buildSophieReplySystemPrompt({ interactionMode: 'social' }),

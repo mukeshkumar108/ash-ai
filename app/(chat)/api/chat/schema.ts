@@ -39,6 +39,10 @@ export const postRequestBodySchema = z.object({
   }),
   selectedChatModel: z.string(),
   developerModelOverride: z.string().min(1).max(200).optional(),
+  sessionModeAction: z
+    .enum(['start_session_one', 'start_invited_discovery', 'stop'])
+    .optional(),
+  targetedSceneSlots: z.array(z.string().min(1).max(160)).max(3).optional(),
   selectedVisibilityType: z.enum(['public', 'private']),
 });
 

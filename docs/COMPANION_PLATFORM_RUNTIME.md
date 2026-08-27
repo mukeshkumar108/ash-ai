@@ -1,6 +1,6 @@
 # Companion platform runtime — production handoff
 
-**Status:** production source-of-truth map, updated 2026-08-27.
+**Status:** production source-of-truth map, updated 2026-08-28.
 
 This is the entry point for agents changing Sophie or the shared companion
 platform. Behavioral archives are evidence; deployed code is implementation
@@ -25,6 +25,8 @@ Never assume pushing one repository deploys another.
    computes cross-chat chronology and builds `entry_context`.
 2. It loads `CompanionUserState`; user-owned LIVE SITUATION and explicit
    behavioral corrections follow the user across chat IDs.
+   Explicit getting-to-know-you mode is different: it is scoped to the current
+   chat in `Chat.session_routing.sessionMode`.
 3. The canonical user message is persisted. The BFF sends history, parts,
    transcript reliability, trusted context and prior `session_routing` to the
    runtime.
@@ -43,6 +45,23 @@ Never assume pushing one repository deploys another.
    persists assistant output, per-chat routing and user operational state.
 10. The BFF asynchronously enqueues the canonical turn in `CortexOutbox`; cron
     delivery to Synapse-Cortex is leased/retried and never blocks chat.
+
+### Manual session-mode controls
+
+The composer menu exposes `Properly meet Sophie`, `Get to know each other`, and
+`End getting-to-know-you mode`. The client sends a visible user turn plus a
+schema-bounded `sessionModeAction`. The API persists that explicit authority
+choice before calling the runtime; completed runtime state then advances through
+the existing `next_session_state` path.
+
+While active, the runtime bypasses Dual Aperture, capability assessment and gear
+tenure, and uses the configured Sonnet session speaker. No mode activates from a
+richness score, inferred consent, or account age in V1. The app owns the durable
+selection; the runtime owns prompt and generation semantics.
+
+Session One is the first deliberate meeting, not forced amnesia. Existing
+history, explicit corrections and grounded continuity remain available. At its
+bound, the runtime compiles an authored closing turn before clearing the mode.
 
 ## Authority and capability
 
@@ -125,6 +144,19 @@ bounded history. Chain-of-thought is never persisted.
 
 ## Entry, scene and correction state
 
+For an arrival between local midnight and 05:00, the compiled entry guidance
+treats a light return as a possible expectation violation: concise care first,
+no generic bright welcome, and usually one direct human question. A substantive
+task, danger or explicit request for depth still receives the depth it needs.
+Explicit correction or grounded evidence that night hours are normal for this
+user overrides the default assumption.
+
+This is a bounded baseline, not a personalized sleep model. A future revisable
+`rhythmProfile` should represent normal sleep/wake windows, work shifts, weekday
+and weekend variation, confidence, evidence and explicit correction. It must be
+able to distinguish a stable schedule from a one-night anomaly and must not be
+inferred from a single late message.
+
 | Gap/state | Entry treatment |
 |---|---|
 | under 60m | continuous; no restart greeting |
@@ -196,6 +228,16 @@ Learnings:
 - synchronous aperture is usable for text dogfooding but unproven for voice.
 
 ## Outstanding work — ordered
+
+- Dogfood Session One and invited discovery on a fresh test account before
+  making either part of automatic onboarding.
+- Design and validate narrative-scene extraction, communication-profile
+  extraction and dynamic Sophie-belief revision. They are not silently routed
+  through Cortex in V1.
+- Build a dedicated restraint suite before any probabilistic user-pattern
+  hypothesis can influence generation or be surfaced.
+- Design and shadow-test the revisable user rhythm profile before using learned
+  schedules to change entry behavior.
 
 1. Dogfood entry, cross-chat scene and corrections; inspect real provenance.
 2. Measure low-reasoning p50/p90/p99 and schema/provider failure rates in prod.

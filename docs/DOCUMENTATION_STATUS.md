@@ -5,6 +5,11 @@ deployed architecture.
 
 ## Current production authority
 
+The implementation-ready session-mode and persona-belief contract is documented
+in `companion-runtime/docs/SESSION_MODE_AND_BELIEF_SPINE.md`. It explicitly marks
+automatic offers, narrative extraction, dynamic belief revision and user-pattern
+hypotheses as deferred rather than implying that Cortex already owns them.
+
 - `COMPANION_PLATFORM_RUNTIME.md`: cross-repository system, prompt compilation,
   persistence, validation and roadmap.
 - `ARCHITECTURE.md`: short entry point to the canonical guide.

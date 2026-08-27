@@ -261,12 +261,16 @@ export async function POST(request: Request) {
         selectedChatModel,
         selectedVisibilityType,
         developerModelOverride,
+        sessionModeAction,
+        targetedSceneSlots,
       }: {
         id: string;
         message: ChatMessage;
         selectedChatModel: ChatModel['id'];
         selectedVisibilityType: VisibilityType;
         developerModelOverride?: string;
+        sessionModeAction?: 'start_session_one' | 'start_invited_discovery' | 'stop';
+        targetedSceneSlots?: string[];
       } = requestBody;
 
       const session = await auth();
@@ -358,8 +362,36 @@ export async function POST(request: Request) {
         string,
         unknown
       >;
+      const existingSessionMode =
+        currentSessionRouting.sessionMode &&
+        typeof currentSessionRouting.sessionMode === 'object' &&
+        !Array.isArray(currentSessionRouting.sessionMode)
+          ? (currentSessionRouting.sessionMode as Record<string, unknown>)
+          : {};
+      const requestedSessionMode = sessionModeAction
+        ? sessionModeAction === 'stop'
+          ? {
+              ...existingSessionMode,
+              active: false,
+              exitReason: 'explicit_user_action',
+            }
+          : {
+              active: true,
+              type:
+                sessionModeAction === 'start_session_one'
+                  ? 'session_one'
+                  : 'invited_discovery',
+              enteredAt: new Date().toISOString(),
+              turnCount: 0,
+              turnBudget:
+                sessionModeAction === 'start_session_one' ? 20 : 8,
+              targetedSceneSlots: targetedSceneSlots ?? [],
+              exitReason: null,
+            }
+        : existingSessionMode;
       const sessionRoutingSeed = {
         ...currentSessionRouting,
+        sessionMode: requestedSessionMode,
         userCorrections: companionUserState.corrections ?? currentSessionRouting.userCorrections ?? [],
         // Immediate-world state follows the authenticated user across chats.
         // Per-chat state remains a backward-compatible fallback during rollout.
@@ -373,6 +405,16 @@ export async function POST(request: Request) {
           crossChatHandshake.relationshipSeed ??
           null,
       };
+      // A button press is explicit user-owned authority state, not disposable
+      // request metadata. Persist it before generation so a provider failure or
+      // mobile reconnect cannot silently lose the selected mode.
+      if (sessionModeAction) {
+        await updateChatSessionRouting({
+          id,
+          userId: session.user.id,
+          sessionRouting: sessionRoutingSeed,
+        });
+      }
       const userCreatedAt = new Date();
       // A new user turn invalidates any continuation bubble they have not yet
       // seen. Persist cancellation so refresh/mobile reconnect cannot dump a
