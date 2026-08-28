@@ -9,6 +9,10 @@
     {
       "path": "/api/cron/cortex-delivery",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/object-sync",
+      "schedule": "* * * * *"
     }
   ]
 }
