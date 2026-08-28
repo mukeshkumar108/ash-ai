@@ -489,3 +489,141 @@ export const cortexOutbox = pgTable(
 
 export type CortexOutboxRow = InferSelectModel<typeof cortexOutbox>;
 export type CortexOutboxInsert = typeof cortexOutbox.$inferInsert;
+
+export const taskStatus = ['pending', 'completed', 'cancelled'] as const;
+export type TaskStatus = (typeof taskStatus)[number];
+
+export const taskSource = ['conversation', 'api'] as const;
+export type TaskSource = (typeof taskSource)[number];
+
+/**
+ * Canonical user-owned task/reminder state. The app's Postgres is the single
+ * source of truth for tasks; Synapse-Cortex only derives lifecycle/attention
+ * state from them via the stable source-link contract
+ * (source system `app_task`, object id = task id, version = cortexVersion).
+ */
+export const task = pgTable(
+  'Task',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    chatId: uuid('chatId')
+      .notNull()
+      .references(() => chat.id, { onDelete: 'cascade' }),
+    title: varchar('title', { length: 280 }).notNull(),
+    notes: text('notes'),
+    status: varchar('status', { enum: taskStatus, length: 16 })
+      .notNull()
+      .default('pending'),
+    dueAt: timestamp('dueAt'),
+    snoozeCount: integer('snoozeCount').notNull().default(0),
+    source: varchar('source', { enum: taskSource, length: 16 })
+      .notNull()
+      .default('conversation'),
+    sourceMessageId: uuid('sourceMessageId').references(() => message.id, {
+      onDelete: 'set null',
+    }),
+    // Cortex projection bookkeeping: bumped on every canonical change so the
+    // sidecar can be reconciled idempotently (dirty rows are re-pushed).
+    cortexVersion: integer('cortexVersion').notNull().default(1),
+    cortexDirty: boolean('cortexDirty').notNull().default(true),
+    cortexSyncedAt: timestamp('cortexSyncedAt'),
+    createdAt: timestamp('createdAt').notNull().defaultNow(),
+    updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+    completedAt: timestamp('completedAt'),
+    cancelledAt: timestamp('cancelledAt'),
+  },
+  (table) => ({
+    userStatusDueIdx: index('task_user_status_due_idx').on(
+      table.userId,
+      table.status,
+      table.dueAt,
+    ),
+    dirtyIdx: index('task_cortex_dirty_idx').on(table.cortexDirty),
+    chatIdx: index('task_chat_idx').on(table.chatId),
+  }),
+);
+
+export type Task = InferSelectModel<typeof task>;
+export type TaskInsert = typeof task.$inferInsert;
+
+export const taskReminderStatus = ['scheduled', 'fired', 'cancelled'] as const;
+export type TaskReminderStatus = (typeof taskReminderStatus)[number];
+
+/** One explicit reminder window ("Thursday afternoon", "30 minutes before"). */
+export const taskReminder = pgTable(
+  'TaskReminder',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    taskId: uuid('taskId')
+      .notNull()
+      .references(() => task.id, { onDelete: 'cascade' }),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    startAt: timestamp('startAt').notNull(),
+    endAt: timestamp('endAt'),
+    label: varchar('label', { length: 120 }),
+    status: varchar('status', { enum: taskReminderStatus, length: 16 })
+      .notNull()
+      .default('scheduled'),
+    firedAt: timestamp('firedAt'),
+    createdAt: timestamp('createdAt').notNull().defaultNow(),
+    updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+  },
+  (table) => ({
+    dueIdx: index('task_reminder_due_idx').on(table.status, table.startAt),
+    taskIdx: index('task_reminder_task_idx').on(table.taskId),
+  }),
+);
+
+export type TaskReminder = InferSelectModel<typeof taskReminder>;
+export type TaskReminderInsert = typeof taskReminder.$inferInsert;
+
+/**
+ * Minimal durable calendar reconciliation cache. Google Calendar remains
+ * canonical — this is an index of the bounded sync window used to detect
+ * reschedules/cancellations and bounded post-event follow-up eligibility,
+ * never a second canonical calendar.
+ */
+export const calendarEventSync = pgTable(
+  'CalendarEventSync',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    calendarId: varchar('calendarId', { length: 128 })
+      .notNull()
+      .default('primary'),
+    eventId: varchar('eventId', { length: 256 }).notNull(),
+    title: varchar('title', { length: 500 }),
+    startAt: timestamp('startAt'),
+    endAt: timestamp('endAt'),
+    allDay: boolean('allDay').notNull().default(false),
+    status: varchar('status', { length: 16 }).notNull().default('confirmed'),
+    contentHash: varchar('contentHash', { length: 64 }).notNull(),
+    revision: integer('revision').notNull().default(1),
+    completedAt: timestamp('completedAt'),
+    followupWindowEnd: timestamp('followupWindowEnd'),
+    followupConsumedAt: timestamp('followupConsumedAt'),
+    lastSeenAt: timestamp('lastSeenAt').notNull().defaultNow(),
+    createdAt: timestamp('createdAt').notNull().defaultNow(),
+    updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+  },
+  (table) => ({
+    eventUnique: uniqueIndex('calendar_event_sync_unique').on(
+      table.userId,
+      table.calendarId,
+      table.eventId,
+    ),
+    followupIdx: index('calendar_event_sync_followup_idx').on(
+      table.status,
+      table.endAt,
+    ),
+  }),
+);
+
+export type CalendarEventSync = InferSelectModel<typeof calendarEventSync>;

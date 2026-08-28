@@ -42,6 +42,8 @@ import {
   persistSophieAttention,
 } from '@/lib/synapse-cortex';
 import { extractSophieAttentionCandidates } from '@/lib/ai/interaction/attention';
+import { captureExplicitTasks } from '@/lib/ai/interaction/task-capture';
+import { createTask } from '@/lib/tasks/domain';
 import {
   createStreamId,
   deleteChatById,
@@ -1253,6 +1255,48 @@ export async function POST(request: Request) {
             });
           } catch (error) {
             console.warn('[interaction] attention extraction failed open', {
+              chatId: id,
+              error: error instanceof Error ? error.message : 'Unknown error',
+            });
+          }
+          // Explicit task/reminder capture: canonical app-owned state derived
+          // from the user's own request in this turn. Never blocks the reply;
+          // failures fail open (the user can still ask again).
+          try {
+            const capturedTasks = await captureExplicitTasks({
+              userText: currentUserText,
+              assistantText: finalText,
+              localTime: new Intl.DateTimeFormat('en-GB', {
+                dateStyle: 'full',
+                timeStyle: 'short',
+                timeZone,
+              }).format(assistantCreatedAt),
+              timeZone,
+            });
+            for (const captured of capturedTasks) {
+              await createTask({
+                userId: session.user.id,
+                chatId: id,
+                title: captured.title,
+                notes: captured.notes,
+                dueAt: captured.dueISO ? new Date(captured.dueISO) : null,
+                reminders: captured.reminderWindows.map((window) => ({
+                  startAt: new Date(window.startISO),
+                  endAt: window.endISO ? new Date(window.endISO) : null,
+                  label: window.label,
+                })),
+                sourceMessageId: message.id,
+                source: 'conversation',
+              });
+            }
+            if (capturedTasks.length > 0) {
+              console.info('[tasks] captured explicit tasks from turn', {
+                chatId: id,
+                count: capturedTasks.length,
+              });
+            }
+          } catch (error) {
+            console.warn('[tasks] explicit task capture failed open', {
               chatId: id,
               error: error instanceof Error ? error.message : 'Unknown error',
             });

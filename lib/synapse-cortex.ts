@@ -102,6 +102,9 @@ export async function fetchCanonicalContinuityContext(input: {
   const query = new URLSearchParams({
     workspace_id: ids.workspaceId,
     session_id: ids.sessionId,
+    // Owner scope: source-linked attention (task/calendar follow-ups) remains
+    // visible across the owner's chats.
+    peer_id: ids.userPeerId,
     now: (input.now ?? new Date()).toISOString(),
     timezone: input.timeZone,
   });
@@ -212,6 +215,106 @@ export async function persistSophieAttention(input: {
       error: error instanceof Error ? error.message : 'Unknown error',
     });
     return { persisted: false as const };
+  }
+}
+
+/**
+ * Deterministic object-state projection into Cortex lifecycle state.
+ *
+ * Canonical tasks (app Postgres) and Google Calendar events are referenced by
+ * stable source system + object id + integer version — never embedded as
+ * duplicate provider objects. Cortex derives lifecycle/attention state only.
+ * Fire-and-forget by design: callers mark canonical rows dirty and a cron
+ * sweep re-pushes on failure, so a dropped call never loses state.
+ */
+export async function postObjectState(
+  input: {
+    userId: string;
+    chatId: string;
+    now?: Date;
+    timeZone?: string;
+    source: {
+      system: 'app_task' | 'google_calendar';
+      objectId: string;
+      version: number;
+      kind: 'task' | 'calendar_event';
+    };
+    action: 'created' | 'updated' | 'completed' | 'cancelled';
+    title: string;
+    notes?: string | null;
+    dueAt?: Date | null;
+    eventStart?: Date | null;
+    eventEnd?: Date | null;
+    reminderWindows?: Array<{
+      start: Date;
+      end?: Date | null;
+      label?: string | null;
+    }>;
+    followupWindowHours?: number | null;
+  },
+  opts: { post?: typeof fetch; timeoutMs?: number } = {},
+): Promise<{
+  pushed: boolean;
+  result?: Record<string, unknown>;
+  error?: string;
+}> {
+  const config = configuration();
+  if (!config.enabled || !config.baseURL) {
+    return { pushed: false, error: 'cortex_disabled' };
+  }
+  const ids = honchoIds(input.userId, input.chatId);
+  const now = (input.now ?? new Date()).toISOString();
+  const body = {
+    workspace_id: ids.workspaceId,
+    session_id: ids.sessionId,
+    peer_id: ids.userPeerId,
+    owner_peer_id: ids.userPeerId,
+    now,
+    timezone:
+      input.timeZone?.trim() ||
+      process.env.ASH_TIME_ZONE?.trim() ||
+      'Europe/London',
+    source: {
+      system: input.source.system,
+      object_id: input.source.objectId,
+      version: input.source.version,
+      kind: input.source.kind,
+    },
+    action: input.action,
+    title: input.title,
+    notes: input.notes ?? null,
+    due_at: input.dueAt ? input.dueAt.toISOString() : null,
+    event_start: input.eventStart ? input.eventStart.toISOString() : null,
+    event_end: input.eventEnd ? input.eventEnd.toISOString() : null,
+    reminder_windows: (input.reminderWindows ?? []).map((window) => ({
+      start: window.start.toISOString(),
+      end: window.end ? window.end.toISOString() : null,
+      label: window.label ?? null,
+    })),
+    followup_window_hours: input.followupWindowHours ?? null,
+  };
+  const post = opts.post ?? fetch;
+  try {
+    const response = await post(`${config.baseURL}/v1/events/object`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(config.token ? { Authorization: `Bearer ${config.token}` } : {}),
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(opts.timeoutMs ?? config.timeoutMs),
+      cache: 'no-store',
+    });
+    if (!response.ok) {
+      return { pushed: false, error: `cortex_http_${response.status}` };
+    }
+    const result = (await response.json()) as Record<string, unknown>;
+    return { pushed: true, result };
+  } catch (error) {
+    return {
+      pushed: false,
+      error: error instanceof Error ? error.message : 'unknown_error',
+    };
   }
 }
 
