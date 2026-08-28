@@ -25,6 +25,8 @@ import {
   serverInitiativeScanCandidates,
   initiativeSituationSnapshot,
 } from './store';
+import { markTaskReminderFired } from '@/lib/tasks/domain';
+import { consumeCalendarFollowup } from '@/lib/calendar/sync';
 import type { InitiativeTrigger } from './types';
 import {
   ambientCandidateForSituation,
@@ -43,6 +45,17 @@ export type InitiativeTraceEvent = {
     | 'dedupe'
     | 'persistence';
   value: unknown;
+};
+
+/**
+ * Deterministic reason attached to commitment/calendar triggers. The
+ * evaluator may act on it, but the decision stays editorial: a reminder is a
+ * reason to think, never an instruction to send.
+ */
+export type DeterministicReason = {
+  kind: 'task_reminder' | 'calendar_followup';
+  title: string;
+  detail: string;
 };
 
 type InitiativeRuntimeOptions = {
@@ -84,6 +97,7 @@ export async function runRelationshipInitiative(
     situation?: InitiativeSituation | null;
     ambientCandidate?: AmbientCandidate | null;
     ownedObject?: Record<string, unknown> | null;
+    deterministicReason?: DeterministicReason | null;
     dedupeScopeKey?: string;
   } & InitiativeRuntimeOptions,
 ) {
@@ -214,6 +228,7 @@ export async function runRelationshipInitiative(
       situation,
       ambientCandidate: input.ambientCandidate,
       ownedObject: input.ownedObject,
+      deterministicReason: input.deterministicReason,
     });
     input.onTrace?.({ stage: 'editorial', value: decision });
 
@@ -408,9 +423,61 @@ export async function runServerInitiativeScan(
     const hasContinuity = hasPlausibleContinuityCandidate(continuity);
     const scheduledTrigger =
       candidate.trigger === 'second_thought' ||
-      candidate.trigger === 'active_idle'
+      candidate.trigger === 'active_idle' ||
+      candidate.trigger === 'task_reminder' ||
+      candidate.trigger === 'calendar_followup'
         ? candidate.trigger
         : null;
+    // Deterministic wake-ups consume their bookkeeping exactly once, before
+    // evaluation: an active conversation (claim failure) or a declined send
+    // never re-offers the same reminder/callback. Reactive continuity still
+    // carries the underlying state.
+    let deterministicReason: DeterministicReason | null = null;
+    let dedupeScopeKey: string | undefined;
+    if (candidate.trigger === 'task_reminder' && candidate.context) {
+      const context = candidate.context as Record<string, unknown>;
+      const reminderId =
+        typeof context.reminderId === 'string' ? context.reminderId : null;
+      const taskTitle =
+        typeof context.taskTitle === 'string' ? context.taskTitle : 'a task';
+      const windowLabel =
+        typeof context.windowLabel === 'string' && context.windowLabel
+          ? context.windowLabel
+          : 'its reminder window';
+      if (reminderId) {
+        await markTaskReminderFired(reminderId, evaluationNow);
+        deterministicReason = {
+          kind: 'task_reminder',
+          title: taskTitle,
+          detail: `The user asked to be reminded about "${taskTitle}" and ${windowLabel} is open now.`,
+        };
+        dedupeScopeKey = `task_reminder:${reminderId}`;
+      }
+    } else if (candidate.trigger === 'calendar_followup' && candidate.context) {
+      const context = candidate.context as Record<string, unknown>;
+      const eventId =
+        typeof context.eventId === 'string' ? context.eventId : null;
+      const eventTitle =
+        typeof context.eventTitle === 'string' && context.eventTitle
+          ? context.eventTitle
+          : 'their event';
+      if (eventId) {
+        await consumeCalendarFollowup(
+          String(candidate.userId),
+          eventId,
+          evaluationNow,
+        );
+        deterministicReason = {
+          kind: 'calendar_followup',
+          title: eventTitle,
+          detail: `"${eventTitle}" on the user's Google Calendar finished within the last few minutes; a bounded follow-up window is open.`,
+        };
+        dedupeScopeKey = `calendar_followup:${eventId}`;
+      }
+    }
+    if (candidate.trigger === 'task_reminder' && !deterministicReason) continue;
+    if (candidate.trigger === 'calendar_followup' && !deterministicReason)
+      continue;
     if (!scheduledTrigger && !hasContinuity && !ambientCandidate) continue;
     const selectedAmbientCandidate =
       scheduledTrigger || hasContinuity ? null : ambientCandidate;
@@ -423,7 +490,8 @@ export async function runServerInitiativeScan(
       continuityContext: continuity,
       situation,
       ambientCandidate: selectedAmbientCandidate,
-      dedupeScopeKey: selectedAmbientCandidate?.key,
+      deterministicReason,
+      dedupeScopeKey: dedupeScopeKey ?? selectedAmbientCandidate?.key,
       ownedObject:
         candidate.context && typeof candidate.context === 'object'
           ? ((candidate.context as Record<string, unknown>).ownedObject as

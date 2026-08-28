@@ -14,6 +14,14 @@ export const INITIATIVE_POLICY = {
     process.env.RELATIONSHIP_FIRST_UNANSWERED_FOLLOWUP_JITTER_MS ?? 50 * 60_000,
   ),
   maxUnanswered: Number(process.env.RELATIONSHIP_MAX_UNANSWERED ?? 2),
+  // Commitment/calendar reminders are deterministic wake-ups, but proactive
+  // sending stays budgeted so canonical state can never drive nagging.
+  taskReminderDailyLimit: Number(
+    process.env.RELATIONSHIP_TASK_REMINDER_DAILY_LIMIT ?? 6,
+  ),
+  calendarFollowupDailyLimit: Number(
+    process.env.RELATIONSHIP_CALENDAR_FOLLOWUP_DAILY_LIMIT ?? 2,
+  ),
 } as const;
 
 export function initiativeOpportunityForRuntimeOutcome(
@@ -34,10 +42,9 @@ export function initiativeOpportunityForRuntimeOutcome(
     outcome?.objectActionExecuted !== 'none' &&
     typeof ownedObject?.summary === 'string' &&
     ownedObject.summary.trim().length > 0;
-  const trigger =
-    concreteOwnedObject
-      ? ('second_thought' as const)
-      : ('active_idle' as const);
+  const trigger = concreteOwnedObject
+    ? ('second_thought' as const)
+    : ('active_idle' as const);
   const delayMs =
     trigger === 'second_thought'
       ? INITIATIVE_POLICY.secondThoughtMs
@@ -153,6 +160,8 @@ export function checkInitiativeEligibility(input: {
   idleForMs: number;
   dailyCount: number;
   idleDailyCount?: number;
+  taskReminderDailyCount?: number;
+  calendarFollowupDailyCount?: number;
   unansweredCount: number;
   msSinceLatestUnanswered?: number | null;
   requiredUnansweredGapMs?: number;
@@ -172,6 +181,18 @@ export function checkInitiativeEligibility(input: {
     (input.idleDailyCount ?? 0) >= INITIATIVE_POLICY.idleDailyLimit
   )
     return 'idle_daily_limit';
+  if (
+    input.trigger === 'task_reminder' &&
+    (input.taskReminderDailyCount ?? 0) >=
+      INITIATIVE_POLICY.taskReminderDailyLimit
+  )
+    return 'task_reminder_daily_limit';
+  if (
+    input.trigger === 'calendar_followup' &&
+    (input.calendarFollowupDailyCount ?? 0) >=
+      INITIATIVE_POLICY.calendarFollowupDailyLimit
+  )
+    return 'calendar_followup_daily_limit';
   if (input.unansweredCount >= INITIATIVE_POLICY.maxUnanswered)
     return 'unanswered_limit';
   if (

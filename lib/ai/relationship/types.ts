@@ -6,6 +6,8 @@ export const initiativeTriggerSchema = z.enum([
   'second_thought',
   'server_scan',
   'ambient_scan',
+  'task_reminder',
+  'calendar_followup',
 ]);
 export type InitiativeTrigger = z.infer<typeof initiativeTriggerSchema>;
 
