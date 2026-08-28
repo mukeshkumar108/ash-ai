@@ -23,7 +23,9 @@ export type TurnActionInput = {
   candidateKey?: string | null;
 };
 
-export async function recordTurnAction(input: TurnActionInput): Promise<TurnAction | null> {
+export async function recordTurnAction(
+  input: TurnActionInput,
+): Promise<TurnAction | null> {
   if (input.taskId == null && input.messageId == null) return null;
   const inserted = await db
     .insert(turnAction)
@@ -49,7 +51,9 @@ export async function listTurnActionsForMessage(
   return db
     .select()
     .from(turnAction)
-    .where(and(eq(turnAction.userId, userId), eq(turnAction.messageId, messageId)))
+    .where(
+      and(eq(turnAction.userId, userId), eq(turnAction.messageId, messageId)),
+    )
     .orderBy(desc(turnAction.createdAt));
 }
 

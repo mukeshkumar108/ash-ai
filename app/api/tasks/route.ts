@@ -51,6 +51,20 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
+  // Trust boundary: the public POST boundary must not fabricate privileged
+  // provenance. `conversation`/`sophie_accepted`/`system` are set only by
+  // server-controlled internal create paths; a client may only claim
+  // `manual`/`api` (and if omitted the default is derived from chat presence).
+  if (
+    parsed.data.source &&
+    parsed.data.source !== 'manual' &&
+    parsed.data.source !== 'api'
+  ) {
+    return NextResponse.json(
+      { ok: false, error: 'invalid_source' },
+      { status: 400 },
+    );
+  }
   // If a chat is supplied as origin provenance, verify it belongs to the caller.
   if (parsed.data.chatId) {
     const chat = await getChatById({ id: parsed.data.chatId });

@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm';
 import type { InferSelectModel } from 'drizzle-orm';
 import {
   pgTable,
@@ -530,9 +531,7 @@ export const task = pgTable(
       .default('pending'),
     dueAt: timestamp('dueAt'),
     snoozeCount: integer('snoozeCount').notNull().default(0),
-    source: varchar('source', { length: 24 })
-      .notNull()
-      .default('conversation'),
+    source: varchar('source', { length: 24 }).notNull().default('conversation'),
     sourceMessageId: uuid('sourceMessageId').references(() => message.id, {
       onDelete: 'set null',
     }),
@@ -562,6 +561,11 @@ export const task = pgTable(
     candidateIdx: index('task_materialized_candidate_idx').on(
       table.materializedCandidateKey,
     ),
+    // Promotion idempotency: the same candidate key can never materialize a
+    // second canonical Task for the same owner, even under retries/races.
+    candidateKeyUnique: uniqueIndex('task_materialized_candidate_key_unique')
+      .on(table.userId, table.materializedCandidateKey)
+      .where(sql`"materializedCandidateKey" IS NOT NULL`),
   }),
 );
 
@@ -677,6 +681,21 @@ export const turnAction = pgTable(
       table.action,
       table.taskId,
     ),
+    // Postgres treats NULLs as distinct, so the composite above cannot dedupe
+    // rows where either id is null. Two partial unique indexes close both
+    // NULL holes scoped to the ledger contract:
+    // - record_action_without_task_id: anonymous pre-task create records,
+    //   keyed by (user, message, action) where the target task is unknown.
+    // - manual_ui_action: message-less (null messageId) task-targeted actions,
+    //   keyed by (user, action, task).
+    userMessageActionNullTaskIdx: uniqueIndex(
+      'turn_action_user_message_action_idx',
+    )
+      .on(table.userId, table.messageId, table.action)
+      .where(sql`"taskId" IS NULL`),
+    userActionNullMessageIdx: uniqueIndex('turn_action_user_action_idx')
+      .on(table.userId, table.action, table.taskId)
+      .where(sql`"messageId" IS NULL`),
     messageIdx: index('turn_action_message_idx').on(table.messageId),
     taskIdx: index('turn_action_task_idx').on(table.taskId),
   }),

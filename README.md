@@ -68,4 +68,24 @@ Built on a modular foundation for scalable roleplay:
 
 ---
 
+## 🗄️ Database migrations
+
+Migrations are **hand-authored SQL + journal entries** under `lib/db/migrations/`
+(`NNNN_short_name.sql` + a matching `meta/_journal.json` entry), applied with
+`pnpm exec tsx lib/db/migrate.ts` (drizzle `migrate()`).
+
+Repo convention: `drizzle-kit` snapshots exist **only for migrations
+`0000`–`0008`**. Everything from `0009` onward is written by hand, so there are
+no matching `meta/*_snapshot.json` files (`0009`–`0026`), and `drizzle-kit
+generate` against the current schema would produce a misleading diff off the
+stale `0008` snapshot. Do **not** manufacture a single snapshot for one recent
+migration; keep hand-writing SQL + journal entries, or do a deliberate
+snapshot-rebuild pass across `0009`+ as one explicit task.
+
+Each migration is written to be safely re-runnable (`CREATE … IF NOT EXISTS`,
+`DO $$ … EXCEPTION WHEN duplicate_object`), and the migrator only applies
+journal entries newer than the DB's last applied `created_at`.
+
+---
+
 **Ready to start your story? Choose your partner and begin the experience.** 🚀✨

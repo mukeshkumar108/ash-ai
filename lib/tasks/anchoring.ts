@@ -10,7 +10,9 @@ import { db } from '@/lib/db/queries';
  * projection coordinate, so a chatless (manual/system) task anchors to the
  * user's most recently active conversation at push time.
  */
-export async function resolveCurrentBestChatId(userId: string): Promise<string | null> {
+export async function resolveCurrentBestChatId(
+  userId: string,
+): Promise<string | null> {
   const rows = await db.execute(sql`
     SELECT c.id AS "chatId"
     FROM "Chat" c
@@ -22,7 +24,8 @@ export async function resolveCurrentBestChatId(userId: string): Promise<string |
     ORDER BY COALESCE(lm."lastAt", c."createdAt") DESC
     LIMIT 1
   `);
-  const typedRows = (rows as unknown as { rows?: Array<Record<string, unknown>> }).rows ??
+  const typedRows =
+    (rows as unknown as { rows?: Array<Record<string, unknown>> }).rows ??
     (rows as unknown as Array<Record<string, unknown>>);
   const first = (Array.isArray(typedRows) ? typedRows : [])[0];
   return first ? String(first.chatId) : null;

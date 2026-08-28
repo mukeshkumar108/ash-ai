@@ -1,3 +1,5 @@
+import 'server-only';
+
 import { and, asc, eq, inArray } from 'drizzle-orm';
 
 import { db } from '@/lib/db/queries';
@@ -71,6 +73,12 @@ export type MutationProvenance = {
   evidenceClass?: string | null;
   evidenceText?: string | null;
 };
+
+function isUniqueConstraintError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const code = (error as { code?: string | number }).code;
+  return code === '23505' || code === 23505;
+}
 
 function normalizeReminderWindows(
   reminders: ReminderWindowInput[] | undefined,
@@ -157,23 +165,48 @@ export async function createTask(
   input: CreateTaskInput,
 ): Promise<TaskWithReminders> {
   const reminders = normalizeReminderWindows(input.reminders);
-  const [created] = await db
-    .insert(taskTable)
-    .values({
-      userId: input.userId,
-      // Origin provenance only — nullable for manual/system tasks.
-      chatId: input.chatId ?? null,
-      title: input.title,
-      notes: input.notes ?? null,
-      dueAt: input.dueAt ?? null,
-      source: input.source ?? 'conversation',
-      sourceMessageId: input.sourceMessageId ?? null,
-      materializedCandidateKey: input.materializedCandidateKey ?? null,
-      status: 'pending',
-      cortexVersion: 1,
-      cortexDirty: true,
-    })
-    .returning();
+  const candidateKey = input.materializedCandidateKey ?? null;
+  let created: Task;
+  try {
+    [created] = await db
+      .insert(taskTable)
+      .values({
+        userId: input.userId,
+        // Origin provenance only — nullable for manual/system tasks.
+        chatId: input.chatId ?? null,
+        title: input.title,
+        notes: input.notes ?? null,
+        dueAt: input.dueAt ?? null,
+        source: input.source ?? 'conversation',
+        sourceMessageId: input.sourceMessageId ?? null,
+        materializedCandidateKey: candidateKey,
+        status: 'pending',
+        cortexVersion: 1,
+        cortexDirty: true,
+      })
+      .returning();
+  } catch (error) {
+    // Candidate promotion idempotency: the (userId, materializedCandidateKey)
+    // unique index rejects a second materialization of the same candidate under
+    // retries/races. Return the already-materialized task instead of failing.
+    if (candidateKey && isUniqueConstraintError(error)) {
+      const [existing] = await db
+        .select()
+        .from(taskTable)
+        .where(
+          and(
+            eq(taskTable.userId, input.userId),
+            eq(taskTable.materializedCandidateKey, candidateKey),
+          ),
+        )
+        .limit(1);
+      if (existing) {
+        const persisted = await getTaskWithReminders(input.userId, existing.id);
+        return persisted ?? { ...existing, reminders: [] };
+      }
+    }
+    throw error;
+  }
   const reminderRows = reminders.length
     ? await db
         .insert(taskReminderTable)
@@ -612,7 +645,12 @@ export async function rescheduleTask(
 export async function editTask(
   userId: string,
   taskId: string,
-  input: { title?: string; notes?: string | null; timeZone?: string | null },
+  input: {
+    title?: string;
+    notes?: string | null;
+    timeZone?: string | null;
+    provenance?: MutationProvenance;
+  },
 ): Promise<MutateOutcome> {
   const row = await loadTaskOwned(userId, taskId);
   if (!row) return { ok: false, reason: 'not_found' };
@@ -629,6 +667,15 @@ export async function editTask(
     })
     .where(eq(taskTable.id, taskId))
     .returning();
+  const provenance = input.provenance;
+  await recordTurnAction({
+    userId,
+    messageId: provenance?.originMessageId ?? null,
+    taskId,
+    action: 'updated',
+    evidenceClass: provenance?.evidenceClass ?? null,
+    evidenceText: provenance?.evidenceText ?? null,
+  });
   const task = await getTaskWithReminders(userId, taskId);
   const pushed = await pushTaskToCortex({
     userId,

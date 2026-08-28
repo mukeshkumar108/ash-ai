@@ -15,18 +15,20 @@ config({ path: '.env.local' });
 
 import { randomUUID } from 'node:crypto';
 
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 import { db } from '@/lib/db/queries';
 import {
   chat as chatTable,
   message as messageTable,
+  turnAction as turnActionTable,
   user as userTable,
 } from '@/lib/db/schema';
 import {
   cancelTask,
   completeTask,
   createTask,
+  editTask,
   evaluateTaskCommitment,
   getTaskWithReminders,
   listTasksForUser,
@@ -35,7 +37,9 @@ import {
   snoozeTask,
   sweepDirtyTaskProjections,
 } from '@/lib/tasks/domain';
+import { recordTurnAction } from '@/lib/tasks/turn-actions';
 import { evaluateCommitment } from '@/lib/tasks/reminder-state';
+import { serverInitiativeScanCandidates } from '@/lib/ai/relationship/store';
 
 process.env.SYNAPSE_CORTEX_ENABLED = 'false'; // push path must fail open and stay dirty
 
@@ -60,6 +64,9 @@ async function main() {
   const userId = randomUUID();
   const chatId = randomUUID();
   const secondChatId = randomUUID();
+  const ledgerOtherUser = randomUUID();
+  const reminderOtherUser = randomUUID();
+  const reminderOtherChat = randomUUID();
   const now = new Date();
 
   await db
@@ -325,15 +332,276 @@ async function main() {
         persisted.cortexVersion === rescheduled.task?.cortexVersion,
       'canonical state (latest mutation) persists across "restart" (fresh connection reads)',
     );
+
+    // ── TurnAction ledger NULL-arity idempotency (DB-enforced, Fix 2) ──
+    await db.insert(userTable).values({
+      id: ledgerOtherUser,
+      email: `ledger-other-${ledgerOtherUser}@test.local`,
+    });
+    const triggerMessageId = randomUUID();
+    const anonymousCreate1 = await recordTurnAction({
+      userId,
+      messageId: triggerMessageId,
+      taskId: null,
+      action: 'created',
+    });
+    const anonymousCreate2 = await recordTurnAction({
+      userId,
+      messageId: triggerMessageId,
+      taskId: null,
+      action: 'created',
+    });
+    const anonymousRows = await db
+      .select()
+      .from(turnActionTable)
+      .where(
+        and(
+          eq(turnActionTable.userId, userId),
+          eq(turnActionTable.messageId, triggerMessageId),
+          eq(turnActionTable.action, 'created'),
+        ),
+      );
+    assert(
+      Boolean(anonymousCreate1?.id),
+      'anonymous create ledger row inserted',
+    );
+    assert(
+      anonymousCreate2 === null,
+      'duplicate anonymous create (NULL taskId) is deduped by the DB',
+    );
+    assert(
+      anonymousRows.length === 1,
+      'exactly one created ledger row survives for the same user/message/action with NULL taskId',
+    );
+    const distinctActionRow = await recordTurnAction({
+      userId,
+      messageId: triggerMessageId,
+      taskId: null,
+      action: 'completed',
+    });
+    assert(
+      Boolean(distinctActionRow?.id),
+      'a distinct action in the same message still records',
+    );
+    const otherUserCreate = await recordTurnAction({
+      userId: ledgerOtherUser,
+      messageId: triggerMessageId,
+      taskId: null,
+      action: 'created',
+    });
+    assert(
+      Boolean(otherUserCreate?.id),
+      'different users never collide on the same message/action',
+    );
+    const ledgerTask = await createTask({
+      userId,
+      chatId,
+      title: 'Ledger manual action target',
+    });
+    const messageLess1 = await recordTurnAction({
+      userId,
+      taskId: ledgerTask.id,
+      action: 'updated',
+    });
+    const messageLess2 = await recordTurnAction({
+      userId,
+      taskId: ledgerTask.id,
+      action: 'updated',
+    });
+    assert(
+      Boolean(messageLess1?.id),
+      'message-less manual (UI) action records once',
+    );
+    assert(
+      messageLess2 === null,
+      'duplicate message-less manual action (NULL messageId) is deduped by the DB',
+    );
+
+    // ── Candidate materialization idempotency (Fix 3) ──
+    const candidateKey = `cand_${randomUUID()}`;
+    const promoted = await createTask({
+      userId,
+      chatId,
+      title: 'Promoted task',
+      materializedCandidateKey: candidateKey,
+    });
+    const promotedRetry = await createTask({
+      userId,
+      chatId: null,
+      title: 'Promoted task (retry)',
+      materializedCandidateKey: candidateKey,
+    });
+    assert(
+      promotedRetry.id === promoted.id,
+      're-materializing the same candidate returns the same canonical task',
+    );
+    const candidateOwnedTasks = (await listTasksForUser(userId)).filter(
+      (task) => task.materializedCandidateKey === candidateKey,
+    );
+    assert(
+      candidateOwnedTasks.length === 1,
+      'exactly one canonical task per (user, candidate key)',
+    );
+    const otherOwnerPromoted = await createTask({
+      userId: ledgerOtherUser,
+      chatId: null,
+      title: 'Their promoted task',
+      materializedCandidateKey: candidateKey,
+    });
+    assert(
+      otherOwnerPromoted.id !== promoted.id,
+      'different owners never collide on the same candidate key',
+    );
+
+    // ── editTask ledger parity (Fix 4) ──
+    const editTarget = await createTask({
+      userId,
+      chatId,
+      title: 'Edit me',
+    });
+    const edited = await editTask(userId, editTarget.id, {
+      title: 'Edited title',
+    });
+    assert(
+      edited.ok && edited.task?.title === 'Edited title',
+      'edit updates canonical title',
+    );
+    const editLedgerRows = await db
+      .select()
+      .from(turnActionTable)
+      .where(
+        and(
+          eq(turnActionTable.userId, userId),
+          eq(turnActionTable.taskId, editTarget.id),
+          eq(turnActionTable.action, 'updated'),
+        ),
+      );
+    assert(
+      editLedgerRows.length >= 1,
+      'edit records an updated TurnAction ledger row',
+    );
+    assert(
+      editLedgerRows[0].messageId === null,
+      'edit ledger row is message-less (manual UI provenance)',
+    );
+
+    // ── Chatless reminder delivery (Fix 1): proactive scan resolves a current chat ──
+    // Give the birth chat an unambiguous most-recent message so the "current
+    // best chat" resolution is deterministic for this user.
+    const scanAnchorMessageId = randomUUID();
+    await db.insert(messageTable).values({
+      id: scanAnchorMessageId,
+      chatId,
+      role: 'assistant',
+      parts: [{ type: 'text', text: 'latest anchor for scan' }],
+      attachments: [],
+      createdAt: new Date(now.getTime() + 5_000),
+    });
+    const chatlessReminderTask = await createTask({
+      userId,
+      chatId: null,
+      title: 'Chatless reminder task',
+      dueAt: new Date(now.getTime() + 48 * HOUR),
+      reminders: [
+        {
+          startAt: new Date(now.getTime() - 5 * 60_000),
+          endAt: null,
+          label: 'due now',
+        },
+      ],
+    });
+    const scanCandidates: Array<Record<string, any>> =
+      await serverInitiativeScanCandidates(100, new Date());
+    const scanTaskReminders = scanCandidates.filter(
+      (candidate) =>
+        String(candidate.userId) === userId &&
+        candidate.trigger === 'task_reminder',
+    );
+    const chatlessScan = scanTaskReminders.filter(
+      (candidate) =>
+        String(candidate.context?.taskId) === chatlessReminderTask.id,
+    );
+    assert(
+      chatlessScan.length === 1,
+      'chatless task + due reminder produced a proactive task_reminder candidate',
+    );
+    const chatlessChatId: unknown = chatlessScan[0]?.chatId;
+    assert(
+      typeof chatlessChatId === 'string' && String(chatlessChatId).length > 0,
+      'chatless reminder candidate has a resolved delivery chat (not a "null" string)',
+    );
+    if (typeof chatlessChatId === 'string') {
+      const [candidateChat] = await db
+        .select()
+        .from(chatTable)
+        .where(eq(chatTable.id, chatlessChatId));
+      assert(
+        Boolean(candidateChat) && candidateChat.userId === userId,
+        'resolved delivery chat belongs to the user',
+      );
+    }
+    assert(
+      !chatlessReminderTask.chatId,
+      'the current-best chat is NOT persisted back onto Task (provenance stays null)',
+    );
+
+    // Anchored reminders keep birth-chat anchoring (existing behavior).
+    await db.insert(userTable).values({
+      id: reminderOtherUser,
+      email: `reminder-own-${reminderOtherUser}@test.local`,
+    });
+    await db.insert(chatTable).values({
+      id: reminderOtherChat,
+      userId: reminderOtherUser,
+      title: 'birth chat',
+      createdAt: now,
+    });
+    await db.insert(messageTable).values({
+      id: randomUUID(),
+      chatId: reminderOtherChat,
+      role: 'assistant',
+      parts: [{ type: 'text', text: 'anchor' }],
+      attachments: [],
+      createdAt: now,
+    });
+    const anchoredReminderTask = await createTask({
+      userId: reminderOtherUser,
+      chatId: reminderOtherChat,
+      title: 'Anchored reminder task',
+      dueAt: new Date(now.getTime() + 48 * HOUR),
+      reminders: [
+        {
+          startAt: new Date(now.getTime() - 5 * 60_000),
+          endAt: null,
+          label: 'due now too',
+        },
+      ],
+    });
+    const anchoredScan = (
+      await serverInitiativeScanCandidates(100, new Date())
+    ).filter(
+      (candidate) =>
+        String(candidate.userId) === reminderOtherUser &&
+        candidate.trigger === 'task_reminder',
+    );
+    assert(
+      anchoredScan.length === 1 &&
+        String(anchoredScan[0].context?.taskId) === anchoredReminderTask.id,
+      'anchored-task reminder still produces a candidate',
+    );
+    assert(
+      String(anchoredScan[0].chatId) === reminderOtherChat,
+      'anchored reminder still anchored to its birth chat',
+    );
   } finally {
-    // Explicit cleanup order: the live schema's legacy FKs are NO ACTION for
-    // User→Chat, so children go first.
+    // Cleanup ordering: the live schema's legacy FKs for Message_v2→Chat and
+    // Chat→User are NO ACTION, so children first: messages → chats → users
+    // (the user delete cascades Task/TaskReminder/TurnAction).
     await db.delete(messageTable).where(eq(messageTable.chatId, chatId));
     await db.delete(messageTable).where(eq(messageTable.chatId, secondChatId));
     await db
-      .delete(userTable)
-      .where(eq(userTable.id, userId))
-      .catch(() => undefined);
+      .delete(messageTable)
+      .where(eq(messageTable.chatId, reminderOtherChat));
     await db
       .delete(chatTable)
       .where(eq(chatTable.id, secondChatId))
@@ -343,9 +611,12 @@ async function main() {
       .where(eq(chatTable.id, chatId))
       .catch(() => undefined);
     await db
-      .delete(userTable)
-      .where(eq(userTable.id, userId))
+      .delete(chatTable)
+      .where(eq(chatTable.id, reminderOtherChat))
       .catch(() => undefined);
+    await db.delete(userTable).where(eq(userTable.id, userId));
+    await db.delete(userTable).where(eq(userTable.id, ledgerOtherUser));
+    await db.delete(userTable).where(eq(userTable.id, reminderOtherUser));
   }
 
   if (failures > 0) {

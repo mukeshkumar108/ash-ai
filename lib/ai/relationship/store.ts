@@ -240,8 +240,8 @@ export async function serverInitiativeScanCandidates(
         AND "lastMessageAt" >= ${evaluationNow}::timestamp - interval '48 hours'
     )
     , due_task_reminders AS (
-      SELECT r."userId", t."chatId",
-        lm.id AS "anchorMessageId",
+      SELECT r."userId", lm."chatId",
+        lm."anchorMessageId",
         'task_reminder' AS trigger,
         r."startAt" AS "lastMessageAt",
         json_build_object(
@@ -252,10 +252,36 @@ export async function serverInitiativeScanCandidates(
       FROM "TaskReminder" r
       JOIN "Task" t ON t.id = r."taskId"
       JOIN LATERAL (
-        SELECT m.id FROM "Message_v2" m
-        WHERE m."chatId" = t."chatId"
-        ORDER BY m."createdAt" DESC, m.id DESC LIMIT 1
-      ) lm ON true
+        -- Delivery coordinate resolution. Tasks are owner-scoped; the chat is
+        -- only the projection coordinate, so chatless (manual/system) tasks
+        -- anchor to the user's current best chat at evaluation time. Tasks
+        -- with a birth chat keep anchoring there (existing behavior), falling
+        -- back to the current best chat only if the birth chat has no message.
+        SELECT
+          COALESCE(birth."chatId", current."chatId") AS "chatId",
+          COALESCE(birth."anchorMessageId", current."anchorMessageId") AS "anchorMessageId"
+        FROM (VALUES (1)) AS v
+        LEFT JOIN LATERAL (
+          SELECT t."chatId" AS "chatId", m.id AS "anchorMessageId"
+          FROM "Message_v2" m
+          WHERE m."chatId" = t."chatId"
+          ORDER BY m."createdAt" DESC, m.id DESC LIMIT 1
+        ) birth ON t."chatId" IS NOT NULL
+        LEFT JOIN LATERAL (
+          SELECT c.id AS "chatId", latest_m.id AS "anchorMessageId"
+          FROM "Chat" c
+          JOIN LATERAL (
+            SELECT m.id FROM "Message_v2" m WHERE m."chatId" = c.id
+            ORDER BY m."createdAt" DESC, m.id DESC LIMIT 1
+          ) latest_m ON true
+          WHERE c."userId" = t."userId"
+          ORDER BY COALESCE(
+            (SELECT MAX(m2."createdAt") FROM "Message_v2" m2 WHERE m2."chatId" = c.id),
+            c."createdAt"
+          ) DESC
+          LIMIT 1
+        ) current ON true
+      ) lm ON lm."anchorMessageId" IS NOT NULL
       WHERE r.status = 'scheduled' AND t.status = 'pending'
         AND r."startAt" <= ${evaluationNow}
         AND (r."endAt" IS NULL OR r."endAt" >= ${evaluationNow})
