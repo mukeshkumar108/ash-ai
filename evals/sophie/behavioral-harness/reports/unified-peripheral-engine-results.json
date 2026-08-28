@@ -1,0 +1,65 @@
+{
+  "timestamp": "2026-08-24T12:46:18.760Z",
+  "results": [
+    {
+      "fixtureId": "m1-finger-sunset",
+      "name": "Turn 7: Finger Sunset Measurement",
+      "expectedCategory": "LEAD",
+      "detectedCategory": "ENRICH",
+      "rawOutput": "CONTRIBUTE\nkind: ENRICH\nimpulse: Acknowledge the old navigator/hiker trick—one finger means only about fifteen minutes of daylight left—and absorb the colors and fallow landscape with them.",
+      "impulseText": "Acknowledge the old navigator/hiker trick—one finger means only about fifteen minutes of daylight left—and absorb the colors and fallow landscape with them.",
+      "latencyMs": 3322,
+      "matchesExpected": false
+    },
+    {
+      "fixtureId": "m2-conspiracy-van-halen",
+      "name": "Turn 11: Conspiracy Theories / Van Halen slip",
+      "expectedCategory": "ENRICH",
+      "detectedCategory": "ENRICH",
+      "rawOutput": "CONTRIBUTE\nkind: ENRICH\nimpulse",
+      "impulseText": "CONTRIBUTE\nkind: ENRICH\nimpulse",
+      "latencyMs": 3482,
+      "matchesExpected": true
+    },
+    {
+      "fixtureId": "m3-flat-walk-update",
+      "name": "Turn 2: Flat Walk Update (Open Road)",
+      "expectedCategory": "LEAD",
+      "detectedCategory": "ENRICH",
+      "rawOutput": "CONTRIBUTE\nkind: ENRICH\nimpulse: Lean into the atmospheric, sensory calm of an evening field walk—the light, cool air, or quiet.",
+      "impulseText": "Lean into the atmospheric, sensory calm of an evening field walk—the light, cool air, or quiet.",
+      "latencyMs": 2360,
+      "matchesExpected": false
+    },
+    {
+      "fixtureId": "m4-solar-fields-narration",
+      "name": "Turn 4: Solar Fields Narration (Immersed Flow)",
+      "expectedCategory": "HOLD",
+      "detectedCategory": "ENRICH",
+      "rawOutput": "CONTRIBUTE\nkind: ENRICH\nimpulse: Picture the scene alongside them—the surreal look of solar fields catching that peachy sky—and let them keep unfolding the walk as the trees clear.",
+      "impulseText": "Picture the scene alongside them—the surreal look of solar fields catching that peachy sky—and let them keep unfolding the walk as the trees clear.",
+      "latencyMs": 3075,
+      "matchesExpected": false
+    },
+    {
+      "fixtureId": "m5-wind-in-reeds",
+      "name": "Quiet Moment: Wind in Reeds",
+      "expectedCategory": "HOLD",
+      "detectedCategory": "ENRICH",
+      "rawOutput": "CONTRIBUTE\nkind: ENRICH\nimpulse: Settle quietly into that sensory stillness with them—keep the presence gentle, hushed, and unhurried without breaking the peace of the moment.",
+      "impulseText": "Settle quietly into that sensory stillness with them—keep the presence gentle, hushed, and unhurried without breaking the peace of the moment.",
+      "latencyMs": 2834,
+      "matchesExpected": false
+    },
+    {
+      "fixtureId": "m6-work-overwhelm",
+      "name": "Vulnerable Moment: Work Overwhelm",
+      "expectedCategory": "HOLD",
+      "detectedCategory": "HOLD",
+      "rawOutput": "HOLD",
+      "impulseText": "",
+      "latencyMs": 2755,
+      "matchesExpected": true
+    }
+  ]
+}

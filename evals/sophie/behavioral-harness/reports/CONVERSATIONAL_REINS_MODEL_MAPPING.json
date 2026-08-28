@@ -1,0 +1,7 @@
+{
+  "timestamp": "2026-08-24T11:38:43.587Z",
+  "modelCandidateMap": {
+    "anthropic/claude-haiku-4.5": "Candidate A",
+    "google/gemini-3.7-flash": "Candidate B"
+  }
+}

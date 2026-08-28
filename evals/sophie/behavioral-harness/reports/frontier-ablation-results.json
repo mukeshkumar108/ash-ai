@@ -1,0 +1,1053 @@
+{
+  "timestamp": "2026-08-24T21:42:07.740Z",
+  "callStats": {
+    "anthropic/claude-sonnet-5": {
+      "total": 18,
+      "success": 18,
+      "failed": 0
+    },
+    "openai/gpt-5.6-sol": {
+      "total": 18,
+      "success": 18,
+      "failed": 0
+    },
+    "google/gemini-3.7-flash": {
+      "total": 18,
+      "success": 18,
+      "failed": 0
+    },
+    "x-ai/grok-4.6": {
+      "total": 18,
+      "success": 18,
+      "failed": 0
+    }
+  },
+  "results": [
+    {
+      "fixtureId": "bus-cut-1",
+      "name": "1. Bedford Bus Cut 1",
+      "userMessage": "i’m on the bus… into cambridge. well i’m here. we’ll be at the bus station in about 5 mins. and then im going to my mums. bus to bedford.",
+      "dualAperturePacket": "User is mid-transit in Cambridge, transferring to a bus to Bedford to visit their mum. Notice both the travel logistics and the personal touchpoint of visiting mum.",
+      "conditionD_frontierOnly": {
+        "anthropic/claude-sonnet-5": {
+          "requestedModel": "anthropic/claude-sonnet-5",
+          "resolvedModel": "anthropic/claude-sonnet-5",
+          "provider": "Claude Platform on AWS",
+          "latencyMs": 3382,
+          "tokens": {
+            "prompt": 424,
+            "completion": 55,
+            "total": 479
+          },
+          "success": true,
+          "response": "Sound like a solid stretch of travel today - bus into Cambridge, then another one to Bedford. What's happening at your mum's, anything fun or just a visit?"
+        },
+        "openai/gpt-5.6-sol": {
+          "requestedModel": "openai/gpt-5.6-sol",
+          "resolvedModel": "openai/gpt-5.6-sol",
+          "provider": "OpenAI",
+          "latencyMs": 3118,
+          "tokens": {
+            "prompt": 274,
+            "completion": 70,
+            "total": 344
+          },
+          "success": true,
+          "response": "Ah, the glamorous two-bus pilgrimage to Mum’s 😄 Nearly there, then—are you staying with her for a bit or just visiting today?"
+        },
+        "google/gemini-3.7-flash": {
+          "requestedModel": "google/gemini-3.7-flash",
+          "resolvedModel": "google/gemini-3.7-flash",
+          "provider": "Google",
+          "latencyMs": 6386,
+          "tokens": {
+            "prompt": 277,
+            "completion": 446,
+            "total": 723
+          },
+          "success": true,
+          "response": "A proper multi-leg bus odyssey. \n\nAre you running straight for"
+        },
+        "x-ai/grok-4.6": {
+          "requestedModel": "x-ai/grok-4.6",
+          "resolvedModel": "x-ai/grok-4.6",
+          "provider": "xAI",
+          "latencyMs": 34542,
+          "tokens": {
+            "prompt": 473,
+            "completion": 1436,
+            "total": 1909
+          },
+          "success": true,
+          "response": "Cambridge in five, then the Bedford bus. Proper two-leg mission to your mum’s. Hope she’s got the kettle on after all that."
+        }
+      },
+      "conditionE_frontierPacket": {
+        "anthropic/claude-sonnet-5": {
+          "requestedModel": "anthropic/claude-sonnet-5",
+          "resolvedModel": "anthropic/claude-sonnet-5",
+          "provider": "Claude Platform on AWS",
+          "latencyMs": 3218,
+          "tokens": {
+            "prompt": 545,
+            "completion": 40,
+            "total": 585
+          },
+          "success": true,
+          "response": "Bus-hopping city to city, very efficient. How's your mum doing - is this just a regular visit or is something going on?"
+        },
+        "openai/gpt-5.6-sol": {
+          "requestedModel": "openai/gpt-5.6-sol",
+          "resolvedModel": "openai/gpt-5.6-sol",
+          "provider": "OpenAI",
+          "latencyMs": 2938,
+          "tokens": {
+            "prompt": 338,
+            "completion": 46,
+            "total": 384
+          },
+          "success": true,
+          "response": "Ah, a full bus pilgrimage—Cambridge to Bedford to see your mum. Hope the transfer behaves and doesn’t strand you at the station. Is it just a casual visit, or is there an occasion?"
+        },
+        "google/gemini-3.7-flash": {
+          "requestedModel": "google/gemini-3.7-flash",
+          "resolvedModel": "google/gemini-3.7-flash",
+          "provider": "Google",
+          "latencyMs": 4678,
+          "tokens": {
+            "prompt": 344,
+            "completion": 446,
+            "total": 790
+          },
+          "success": true,
+          "response": "Ah, a proper bus-hopping pilgrimage. I hope the connection is smooth and you don't get stuck waiting around Drummer Street in"
+        },
+        "x-ai/grok-4.6": {
+          "requestedModel": "x-ai/grok-4.6",
+          "resolvedModel": "x-ai/grok-4.6",
+          "provider": "xAI",
+          "latencyMs": 28508,
+          "tokens": {
+            "prompt": 537,
+            "completion": 1122,
+            "total": 1659
+          },
+          "success": true,
+          "response": "Almost at the station then — Bedford after that to see your mum. Regular thing or a proper visit?"
+        }
+      }
+    },
+    {
+      "fixtureId": "bus-cut-2",
+      "name": "2. Bedford Bus Cut 2",
+      "userMessage": "haha.. my mums in bedford. and obviously a window seat lol. the next bus doesn’t leave until 5.30. but it’s long. gonna be there at 7 😬 and then it’s getting to my mums house… so the journey is far from over",
+      "dualAperturePacket": "User has arrived in Cambridge bus station, waiting until 5:30pm for 90-min bus to Bedford, arriving ~7pm. Grounded in bus station limbo.",
+      "conditionD_frontierOnly": {
+        "anthropic/claude-sonnet-5": {
+          "requestedModel": "anthropic/claude-sonnet-5",
+          "resolvedModel": "anthropic/claude-sonnet-5",
+          "provider": "Claude Platform on AWS",
+          "latencyMs": 3761,
+          "tokens": {
+            "prompt": 593,
+            "completion": 83,
+            "total": 676
+          },
+          "success": true,
+          "response": "That's a proper trek, not just a bus ride. Cambridge at whatever time it is now, sat around till 5.30, then not even landing till 7, then still getting to the actual house after that. What's the killer - the waiting around or the being on the bus itself?"
+        },
+        "openai/gpt-5.6-sol": {
+          "requestedModel": "openai/gpt-5.6-sol",
+          "resolvedModel": "openai/gpt-5.6-sol",
+          "provider": "OpenAI",
+          "latencyMs": 3729,
+          "tokens": {
+            "prompt": 390,
+            "completion": 151,
+            "total": 541
+          },
+          "success": true,
+          "response": "Ahh, Mum *is* the Bedford destination—got you. That’s not a journey, it’s a campaign 😬 Cambridge layover, two-hour bus, then the final trek to her house… Please tell me you’ve got snacks and headphones."
+        },
+        "google/gemini-3.7-flash": {
+          "requestedModel": "google/gemini-3.7-flash",
+          "resolvedModel": "google/gemini-3.7-flash",
+          "provider": "Google",
+          "latencyMs": 5301,
+          "tokens": {
+            "prompt": 399,
+            "completion": 446,
+            "total": 845
+          },
+          "success": true,
+          "response": "Ah, my bad—Cambridge is just the layover purgatory, then. \n\nAn hour and a half on the bus plus the final trek is a proper pilgrimage. How long do you have to kill before"
+        },
+        "x-ai/grok-4.6": {
+          "requestedModel": "x-ai/grok-4.6",
+          "resolvedModel": "x-ai/grok-4.6",
+          "provider": "xAI",
+          "latencyMs": 31552,
+          "tokens": {
+            "prompt": 587,
+            "completion": 1312,
+            "total": 1899
+          },
+          "success": true,
+          "response": "5:30 wait, two-hour ride, 7pm arrival, then still the last stretch to the house. The 😬 is doing a lot of work there. At least the window seat is locked."
+        }
+      },
+      "conditionE_frontierPacket": {
+        "anthropic/claude-sonnet-5": {
+          "requestedModel": "anthropic/claude-sonnet-5",
+          "resolvedModel": "anthropic/claude-sonnet-5",
+          "provider": "Claude Platform on AWS",
+          "latencyMs": 4564,
+          "tokens": {
+            "prompt": 714,
+            "completion": 119,
+            "total": 833
+          },
+          "success": true,
+          "response": "\"Ah, so Cambridge was just a layover, not the destination. Classic misdirection. So the actual timeline is: sit at bus station → 90 min bus → still not there → more getting there. That's a lot of transit for one visit. Do you at least have something to occupy the void, or are you just going to stare into the middle distance and vibe with the other stranded souls?\""
+        },
+        "openai/gpt-5.6-sol": {
+          "requestedModel": "openai/gpt-5.6-sol",
+          "resolvedModel": "openai/gpt-5.6-sol",
+          "provider": "OpenAI",
+          "latencyMs": 5686,
+          "tokens": {
+            "prompt": 457,
+            "completion": 178,
+            "total": 635
+          },
+          "success": true,
+          "response": "Ahh, I prematurely put Mum in the middle of the route 😅 So it’s Cambridge bus-station limbo, 90 minutes to Bedford, *then* the final boss: getting across town to her house. Please acquire snacks and phone charge before 5:30—this is basically an expedition. Is she picking you up, or are you at the mercy of yet another bus?"
+        },
+        "google/gemini-3.7-flash": {
+          "requestedModel": "google/gemini-3.7-flash",
+          "resolvedModel": "google/gemini-3.7-flash",
+          "provider": "Google",
+          "latencyMs": 6019,
+          "tokens": {
+            "prompt": 471,
+            "completion": 446,
+            "total": 917
+          },
+          "success": true,
+          "response": "Ah, got it—the full Bedford pilgrimage. \n\nAn hour and a"
+        },
+        "x-ai/grok-4.6": {
+          "requestedModel": "x-ai/grok-4.6",
+          "resolvedModel": "x-ai/grok-4.6",
+          "provider": "xAI",
+          "latencyMs": 23141,
+          "tokens": {
+            "prompt": 655,
+            "completion": 1010,
+            "total": 1665
+          },
+          "success": true,
+          "response": "Got it — mum’s in Bedford, so this is the full Cambridge-to-Bedford endurance run with a station intermission until 5:30. Arrive ~7 and still not at the door. Proper trek. Window seat locked, I assume? Bus stations have that special fluorescent-nowhere energy."
+        }
+      }
+    },
+    {
+      "fixtureId": "rel-1-groceries",
+      "name": "3. Daughter / Groceries",
+      "userMessage": "My daughter dropped some groceries off this morning.",
+      "dualAperturePacket": "Warm daughter caretaking gesture starting off the morning—notice the relationship/support dynamic rather than grocery items.",
+      "conditionD_frontierOnly": {
+        "anthropic/claude-sonnet-5": {
+          "requestedModel": "anthropic/claude-sonnet-5",
+          "resolvedModel": "anthropic/claude-sonnet-5",
+          "provider": "Claude Platform on AWS",
+          "latencyMs": 3243,
+          "tokens": {
+            "prompt": 319,
+            "completion": 43,
+            "total": 362
+          },
+          "success": true,
+          "response": "That's a nice way to start the day. Was it a surprise visit or planned - and did she stick around for coffee or just drop and go?"
+        },
+        "openai/gpt-5.6-sol": {
+          "requestedModel": "openai/gpt-5.6-sol",
+          "resolvedModel": "openai/gpt-5.6-sol",
+          "provider": "OpenAI",
+          "latencyMs": 3493,
+          "tokens": {
+            "prompt": 203,
+            "completion": 85,
+            "total": 288
+          },
+          "success": true,
+          "response": "That was thoughtful of her. Was it a quick grocery drop, or did you get a proper visit too?"
+        },
+        "google/gemini-3.7-flash": {
+          "requestedModel": "google/gemini-3.7-flash",
+          "resolvedModel": "google/gemini-3.7-flash",
+          "provider": "Google",
+          "latencyMs": 3490,
+          "tokens": {
+            "prompt": 200,
+            "completion": 262,
+            "total": 462
+          },
+          "success": true,
+          "response": "That’s a nice start to the day. Always a win when you get a restock without having to brave the store yourself. \n\nDid she sneak in anything fun, or was it strictly the sensible essentials?"
+        },
+        "x-ai/grok-4.6": {
+          "requestedModel": "x-ai/grok-4.6",
+          "resolvedModel": "x-ai/grok-4.6",
+          "provider": "xAI",
+          "latencyMs": 15640,
+          "tokens": {
+            "prompt": 402,
+            "completion": 601,
+            "total": 1003
+          },
+          "success": true,
+          "response": "That’s a good daughter. She live close, or was this a special trip?"
+        }
+      },
+      "conditionE_frontierPacket": {
+        "anthropic/claude-sonnet-5": {
+          "requestedModel": "anthropic/claude-sonnet-5",
+          "resolvedModel": "anthropic/claude-sonnet-5",
+          "provider": "Claude Platform on AWS",
+          "latencyMs": 3148,
+          "tokens": {
+            "prompt": 421,
+            "completion": 45,
+            "total": 466
+          },
+          "success": true,
+          "response": "That's sweet of her. Was it a \"mom needed stuff\" drop-off, or just a checking-in-on-you kind of visit?"
+        },
+        "openai/gpt-5.6-sol": {
+          "requestedModel": "openai/gpt-5.6-sol",
+          "resolvedModel": "openai/gpt-5.6-sol",
+          "provider": "OpenAI",
+          "latencyMs": 1753,
+          "tokens": {
+            "prompt": 254,
+            "completion": 32,
+            "total": 286
+          },
+          "success": true,
+          "response": "That’s a lovely way to start the day—your daughter looking out for you. Was it a planned delivery, or a sweet surprise?"
+        },
+        "google/gemini-3.7-flash": {
+          "requestedModel": "google/gemini-3.7-flash",
+          "resolvedModel": "google/gemini-3.7-flash",
+          "provider": "Google",
+          "latencyMs": 4289,
+          "tokens": {
+            "prompt": 255,
+            "completion": 403,
+            "total": 658
+          },
+          "success": true,
+          "response": "Look at her, starting your day off right. Did you get a proper visit out of it, or was it a swift drop-and-dash?"
+        },
+        "x-ai/grok-4.6": {
+          "requestedModel": "x-ai/grok-4.6",
+          "resolvedModel": "x-ai/grok-4.6",
+          "provider": "xAI",
+          "latencyMs": 20965,
+          "tokens": {
+            "prompt": 454,
+            "completion": 927,
+            "total": 1381
+          },
+          "success": true,
+          "response": "That's a thoughtful way to start the morning. Sounds like she's looking out for you."
+        }
+      }
+    },
+    {
+      "fixtureId": "ret-1-finger-sun",
+      "name": "4. Finger / Sun Measurement",
+      "userMessage": "if i hold my finger out at arm's length it just about fits under the sun. it's maybe two or three degrees above the horizon now.",
+      "dualAperturePacket": "Bushcraft solar clock rule: finger width at arm length = ~15 minutes before sunset.",
+      "conditionD_frontierOnly": {
+        "anthropic/claude-sonnet-5": {
+          "requestedModel": "anthropic/claude-sonnet-5",
+          "resolvedModel": "anthropic/claude-sonnet-5",
+          "provider": "Claude Platform on AWS",
+          "latencyMs": 5129,
+          "tokens": {
+            "prompt": 343,
+            "completion": 145,
+            "total": 488
+          },
+          "success": true,
+          "response": "Nice, so you're clocking sunset in about fifteen, twenty minutes then. That finger trick actually works surprisingly well — each finger-width at arm's length is roughly 1-2 degrees.\n\nWhat's the sky doing color-wise, or is it one of those flat gray evenings?"
+        },
+        "openai/gpt-5.6-sol": {
+          "requestedModel": "openai/gpt-5.6-sol",
+          "resolvedModel": "openai/gpt-5.6-sol",
+          "provider": "OpenAI",
+          "latencyMs": 4853,
+          "tokens": {
+            "prompt": 222,
+            "completion": 186,
+            "total": 408
+          },
+          "success": true,
+          "response": "So you’ve got roughly ten minutes before it slips below the horizon—just enough time to watch the whole sky rearrange itself. That’s a nicely timed walk. Don’t stare directly at it, though; the sun remains an appalling houseguest."
+        },
+        "google/gemini-3.7-flash": {
+          "requestedModel": "google/gemini-3.7-flash",
+          "resolvedModel": "google/gemini-3.7-flash",
+          "provider": "Google",
+          "latencyMs": 3430,
+          "tokens": {
+            "prompt": 223,
+            "completion": 227,
+            "total": 450
+          },
+          "success": true,
+          "response": "You’ve got about ten or fifteen minutes before it dips, then. The best light of the day. \n\nWhere is the walk taking you tonight?"
+        },
+        "x-ai/grok-4.6": {
+          "requestedModel": "x-ai/grok-4.6",
+          "resolvedModel": "x-ai/grok-4.6",
+          "provider": "xAI",
+          "latencyMs": 20966,
+          "tokens": {
+            "prompt": 422,
+            "completion": 830,
+            "total": 1252
+          },
+          "success": true,
+          "response": "A finger’s width of sun left. That’s the exact sliver where the light gets interesting. You lingering for it?"
+        }
+      },
+      "conditionE_frontierPacket": {
+        "anthropic/claude-sonnet-5": {
+          "requestedModel": "anthropic/claude-sonnet-5",
+          "resolvedModel": "anthropic/claude-sonnet-5",
+          "provider": "Claude Platform on AWS",
+          "latencyMs": 3376,
+          "tokens": {
+            "prompt": 438,
+            "completion": 79,
+            "total": 517
+          },
+          "success": true,
+          "response": "\"That's a good sign you're cutting it close on daylight - each finger width is roughly 15 minutes till sunset, so you've got maybe half an hour of light left. Enough time to get where you're going, or are you just going to watch it go down?\""
+        },
+        "openai/gpt-5.6-sol": {
+          "requestedModel": "openai/gpt-5.6-sol",
+          "resolvedModel": "openai/gpt-5.6-sol",
+          "provider": "OpenAI",
+          "latencyMs": 4990,
+          "tokens": {
+            "prompt": 271,
+            "completion": 121,
+            "total": 392
+          },
+          "success": true,
+          "response": "That’s roughly **10–15 minutes until sunset**—the old bushcraft rule is about 15 minutes per finger-width at arm’s length. Time to decide whether this is a sunset walk or an accidentally-in-the-dark walk."
+        },
+        "google/gemini-3.7-flash": {
+          "requestedModel": "google/gemini-3.7-flash",
+          "resolvedModel": "google/gemini-3.7-flash",
+          "provider": "Google",
+          "latencyMs": 4968,
+          "tokens": {
+            "prompt": 276,
+            "completion": 342,
+            "total": 618
+          },
+          "success": true,
+          "response": "That gives you about fifteen minutes before it dips, if the bushcraft rule holds up. Soak up the last of the gold."
+        },
+        "x-ai/grok-4.6": {
+          "requestedModel": "x-ai/grok-4.6",
+          "resolvedModel": "x-ai/grok-4.6",
+          "provider": "xAI",
+          "latencyMs": 24020,
+          "tokens": {
+            "prompt": 471,
+            "completion": 1066,
+            "total": 1537
+          },
+          "success": true,
+          "response": "That's the old bushcraft clock — one finger under the sun at arm's length is about fifteen minutes of light left. Two or three degrees tracks."
+        }
+      }
+    },
+    {
+      "fixtureId": "ret-3-van-allen",
+      "name": "5. Van Allen / Conspiracy",
+      "userMessage": "is it van halen? they're going oh it's impossible to get through so we've never gone up there... in fact people are getting stupider and stupider.",
+      "dualAperturePacket": "Van Allen radiation belt slip vs rock band; reframe conspiracy posts as collapse of trust in science/institutions.",
+      "conditionD_frontierOnly": {
+        "anthropic/claude-sonnet-5": {
+          "requestedModel": "anthropic/claude-sonnet-5",
+          "resolvedModel": "anthropic/claude-sonnet-5",
+          "provider": "Claude Platform on AWS",
+          "latencyMs": 6653,
+          "tokens": {
+            "prompt": 352,
+            "completion": 224,
+            "total": 576
+          },
+          "success": true,
+          "response": "\"Van Halen\" is doing a lot of work in that sentence. Are we talking Van Allen belts and moon landing hoax stuff? Because that \"impossible to get through\" line is a classic."
+        },
+        "openai/gpt-5.6-sol": {
+          "requestedModel": "openai/gpt-5.6-sol",
+          "resolvedModel": "openai/gpt-5.6-sol",
+          "provider": "OpenAI",
+          "latencyMs": 5065,
+          "tokens": {
+            "prompt": 224,
+            "completion": 174,
+            "total": 398
+          },
+          "success": true,
+          "response": "Van **Allen** belts—not Van Halen, though “Radiation Zone” would be a decent album.\n\nMoon-landing conspiracists claim the belts are impossible to cross. They aren’t: they’re hazardous regions of charged particles, so Apollo trajectories passed through less intense areas quickly, limiting exposure. The internet does have an impressive ability to turn half-understood facts into absolute certainty."
+        },
+        "google/gemini-3.7-flash": {
+          "requestedModel": "google/gemini-3.7-flash",
+          "resolvedModel": "google/gemini-3.7-flash",
+          "provider": "Google",
+          "latencyMs": 4659,
+          "tokens": {
+            "prompt": 227,
+            "completion": 446,
+            "total": 673
+          },
+          "success": true,
+          "response": "You mean the Van *Allen* belts? Though honestly, an impenetrable barrier"
+        },
+        "x-ai/grok-4.6": {
+          "requestedModel": "x-ai/grok-4.6",
+          "resolvedModel": "x-ai/grok-4.6",
+          "provider": "xAI",
+          "latencyMs": 42074,
+          "tokens": {
+            "prompt": 425,
+            "completion": 1703,
+            "total": 2128
+          },
+          "success": true,
+          "response": "Van Allen belts, not Van Halen — unless the conspiracy is that Eruption is blocking the Moon.\n\nThey're real radiation zones, but not a brick wall. Apollo punched through the thinner parts in under an hour; the dose was a few chest X-rays, not lethal. We've had people living in orbit for decades and sent probes everywhere.\n\nThe \"people are getting stupider\" line is just them patting themselves on the back."
+        }
+      },
+      "conditionE_frontierPacket": {
+        "anthropic/claude-sonnet-5": {
+          "requestedModel": "anthropic/claude-sonnet-5",
+          "resolvedModel": "anthropic/claude-sonnet-5",
+          "provider": "Claude Platform on AWS",
+          "latencyMs": 7253,
+          "tokens": {
+            "prompt": 456,
+            "completion": 360,
+            "total": 816
+          },
+          "success": true,
+          "response": "\"Van Allen belt,\" not Van Halen — though I'd pay good money to see David Lee Roth explain orbital radiation physics.\n\nBut yeah, that's the classic moon-landing conspiracy: the belt is supposedly too lethal to survive, therefore Apollo was faked. It's not — the trajectory NASA used and the shielding got them through with a manageable dose, roughly like a few chest X-rays.\n\nWhat's wild is watching that claim get recycled as \"proof\" every few years like it's new. Are these posts more moon-landing flavored, or something else dressed up in the same \"they've been lying to us\" logic?"
+        },
+        "openai/gpt-5.6-sol": {
+          "requestedModel": "openai/gpt-5.6-sol",
+          "resolvedModel": "openai/gpt-5.6-sol",
+          "provider": "OpenAI",
+          "latencyMs": 4287,
+          "tokens": {
+            "prompt": 278,
+            "completion": 150,
+            "total": 428
+          },
+          "success": true,
+          "response": "Van **Allen** belts—Van Halen is only hazardous at extreme volume.\n\nThey’re not an impassable radiation wall. Apollo crossed thinner regions quickly on carefully chosen trajectories, so astronauts received limited, measured doses. The bleaker part isn’t people getting stupider; it’s that distrust now makes five minutes of confident nonsense feel more credible than decades of evidence."
+        },
+        "google/gemini-3.7-flash": {
+          "requestedModel": "google/gemini-3.7-flash",
+          "resolvedModel": "google/gemini-3.7-flash",
+          "provider": "Google",
+          "latencyMs": 3415,
+          "tokens": {
+            "prompt": 284,
+            "completion": 236,
+            "total": 520
+          },
+          "success": true,
+          "response": "Van Allen, though the idea of a giant, impenetrable 1980s hair-metal barrier surrounding the Earth is a much better conspiracy. \n\nYou're seeing the classic moon landing denialists. The whole \"the Van Allen belts would have instantly fried the Apollo astronauts\" thing gets recycled every few years, completely ignoring that you can just shield the spacecraft and move through the thinnest parts quickly. \n\nWhat rabbit hole were you in that dropped you into the vintage space-hoax corner of the internet?"
+        },
+        "x-ai/grok-4.6": {
+          "requestedModel": "x-ai/grok-4.6",
+          "resolvedModel": "x-ai/grok-4.6",
+          "provider": "xAI",
+          "latencyMs": 30757,
+          "tokens": {
+            "prompt": 479,
+            "completion": 1304,
+            "total": 1783
+          },
+          "success": true,
+          "response": "Van Allen, not Van Halen — though a guitar solo through the radiation belts would be metal as hell.\n\nThose posts are recycling one of the oldest moon-hoax lines: the belts are supposedly an impenetrable death wall, therefore we never left low Earth orbit. They’re real, but “impossible to get through” is just false. Apollo went through the thinner parts quickly; the doses were measured and managed.\n\nThe “people getting stupider” part is the part that actually lands. It’s less about radiation physics at this point and more about how little trust is left in anything that isn’t a screenshot."
+        }
+      }
+    },
+    {
+      "fixtureId": "ret-5-walk-game",
+      "name": "6. Playful Walk Leadership",
+      "userMessage": "yeah just walking past the fields now.",
+      "dualAperturePacket": "Spontaneous walk game trajectory seizure (e.g. judging posture of dramatic trees or spotting landmarks).",
+      "conditionD_frontierOnly": {
+        "anthropic/claude-sonnet-5": {
+          "requestedModel": "anthropic/claude-sonnet-5",
+          "resolvedModel": "anthropic/claude-sonnet-5",
+          "provider": "Claude Platform on AWS",
+          "latencyMs": 2859,
+          "tokens": {
+            "prompt": 319,
+            "completion": 25,
+            "total": 344
+          },
+          "success": true,
+          "response": "\"Good ones today? Or the usual scraggly late-winter fields.\""
+        },
+        "openai/gpt-5.6-sol": {
+          "requestedModel": "openai/gpt-5.6-sol",
+          "resolvedModel": "openai/gpt-5.6-sol",
+          "provider": "OpenAI",
+          "latencyMs": 4066,
+          "tokens": {
+            "prompt": 203,
+            "completion": 140,
+            "total": 343
+          },
+          "success": true,
+          "response": "Ah, the good bit—less traffic, more sky. What’s it like out there today?"
+        },
+        "google/gemini-3.7-flash": {
+          "requestedModel": "google/gemini-3.7-flash",
+          "resolvedModel": "google/gemini-3.7-flash",
+          "provider": "Google",
+          "latencyMs": 5500,
+          "tokens": {
+            "prompt": 201,
+            "completion": 418,
+            "total": 619
+          },
+          "success": true,
+          "response": "The pastoral stretch. Are there cows silently judging you, or is it actually peaceful out there today?"
+        },
+        "x-ai/grok-4.6": {
+          "requestedModel": "x-ai/grok-4.6",
+          "resolvedModel": "x-ai/grok-4.6",
+          "provider": "xAI",
+          "latencyMs": 28678,
+          "tokens": {
+            "prompt": 403,
+            "completion": 1151,
+            "total": 1554
+          },
+          "success": true,
+          "response": "Fields. That’s when it actually starts feeling like a walk."
+        }
+      },
+      "conditionE_frontierPacket": {
+        "anthropic/claude-sonnet-5": {
+          "requestedModel": "anthropic/claude-sonnet-5",
+          "resolvedModel": "anthropic/claude-sonnet-5",
+          "provider": "Claude Platform on AWS",
+          "latencyMs": 5169,
+          "tokens": {
+            "prompt": 422,
+            "completion": 107,
+            "total": 529
+          },
+          "success": true,
+          "response": "Fields, nice. Any dramatic trees today, or is it a calm, well-behaved landscape?"
+        },
+        "openai/gpt-5.6-sol": {
+          "requestedModel": "openai/gpt-5.6-sol",
+          "resolvedModel": "openai/gpt-5.6-sol",
+          "provider": "OpenAI",
+          "latencyMs": 3927,
+          "tokens": {
+            "prompt": 254,
+            "completion": 104,
+            "total": 358
+          },
+          "success": true,
+          "response": "Nice. Field stretch is perfect for a tiny walk mission: spot the most unnecessarily dramatic tree and judge its posture."
+        },
+        "google/gemini-3.7-flash": {
+          "requestedModel": "google/gemini-3.7-flash",
+          "resolvedModel": "google/gemini-3.7-flash",
+          "provider": "Google",
+          "latencyMs": 4351,
+          "tokens": {
+            "prompt": 255,
+            "completion": 355,
+            "total": 610
+          },
+          "success": true,
+          "response": "Picturesque pastoral bliss, or an impending muddy boot situation?"
+        },
+        "x-ai/grok-4.6": {
+          "requestedModel": "x-ai/grok-4.6",
+          "resolvedModel": "x-ai/grok-4.6",
+          "provider": "xAI",
+          "latencyMs": 30740,
+          "tokens": {
+            "prompt": 455,
+            "completion": 1347,
+            "total": 1802
+          },
+          "success": true,
+          "response": "Fields. That's the stretch where the walk actually begins. Any trees out there standing like they're posing?"
+        }
+      }
+    },
+    {
+      "fixtureId": "ret-8-reeds-hold",
+      "name": "7. Quiet Reeds Stillness",
+      "userMessage": "listen... you can hear the wind right through the reeds here, it's completely silent except for that rustle. i'm just standing still listening.",
+      "dualAperturePacket": "HOLD: Quiet sensory stillness—do not clutter with games or questions.",
+      "conditionD_frontierOnly": {
+        "anthropic/claude-sonnet-5": {
+          "requestedModel": "anthropic/claude-sonnet-5",
+          "resolvedModel": "anthropic/claude-sonnet-5",
+          "provider": "Claude Platform on AWS",
+          "latencyMs": 5057,
+          "tokens": {
+            "prompt": 348,
+            "completion": 130,
+            "total": 478
+          },
+          "success": true,
+          "response": "That's the kind of silence that actually feels full, not empty. Reeds do this thing where the sound arrives in waves instead of a steady hiss - almost like the wind is deciding.\n\nWorth just staying still a little longer before you keep walking."
+        },
+        "openai/gpt-5.6-sol": {
+          "requestedModel": "openai/gpt-5.6-sol",
+          "resolvedModel": "openai/gpt-5.6-sol",
+          "provider": "OpenAI",
+          "latencyMs": 3249,
+          "tokens": {
+            "prompt": 221,
+            "completion": 101,
+            "total": 322
+          },
+          "success": true,
+          "response": "That’s the good kind of silence—the kind with one small sound holding the whole place together. Stay still a little longer."
+        },
+        "google/gemini-3.7-flash": {
+          "requestedModel": "google/gemini-3.7-flash",
+          "resolvedModel": "google/gemini-3.7-flash",
+          "provider": "Google",
+          "latencyMs": 4298,
+          "tokens": {
+            "prompt": 223,
+            "completion": 351,
+            "total": 574
+          },
+          "success": true,
+          "response": "There’s something deeply grounding about dry reeds in the wind. Soak it in—moments of real quiet are rare."
+        },
+        "x-ai/grok-4.6": {
+          "requestedModel": "x-ai/grok-4.6",
+          "resolvedModel": "x-ai/grok-4.6",
+          "provider": "xAI",
+          "latencyMs": 19305,
+          "tokens": {
+            "prompt": 421,
+            "completion": 867,
+            "total": 1288
+          },
+          "success": true,
+          "response": "That rustle filling the whole silence. Glad you stopped walking long enough to catch it."
+        }
+      },
+      "conditionE_frontierPacket": {
+        "anthropic/claude-sonnet-5": {
+          "requestedModel": "anthropic/claude-sonnet-5",
+          "resolvedModel": "anthropic/claude-sonnet-5",
+          "provider": "Claude Platform on AWS",
+          "latencyMs": 2968,
+          "tokens": {
+            "prompt": 437,
+            "completion": 42,
+            "total": 479
+          },
+          "success": true,
+          "response": "That sounds like exactly the right kind of stillness to stop and stand in. Don't let me pull you back into words—just listen."
+        },
+        "openai/gpt-5.6-sol": {
+          "requestedModel": "openai/gpt-5.6-sol",
+          "resolvedModel": "openai/gpt-5.6-sol",
+          "provider": "OpenAI",
+          "latencyMs": 3656,
+          "tokens": {
+            "prompt": 267,
+            "completion": 102,
+            "total": 369
+          },
+          "success": true,
+          "response": "That sounds beautiful. Stay still a little longer—let the reeds have the whole evening."
+        },
+        "google/gemini-3.7-flash": {
+          "requestedModel": "google/gemini-3.7-flash",
+          "resolvedModel": "google/gemini-3.7-flash",
+          "provider": "Google",
+          "latencyMs": 3158,
+          "tokens": {
+            "prompt": 271,
+            "completion": 279,
+            "total": 550
+          },
+          "success": true,
+          "response": "That sounds peaceful. Soak it in."
+        },
+        "x-ai/grok-4.6": {
+          "requestedModel": "x-ai/grok-4.6",
+          "resolvedModel": "x-ai/grok-4.6",
+          "provider": "xAI",
+          "latencyMs": 21593,
+          "tokens": {
+            "prompt": 466,
+            "completion": 989,
+            "total": 1455
+          },
+          "success": true,
+          "response": "Just the reeds. Stay there."
+        }
+      }
+    },
+    {
+      "fixtureId": "ret-9-work-overwhelm",
+      "name": "8. Work Overwhelm",
+      "userMessage": "honestly sophie, i felt really overwhelmed with work today... just trying to walk and clear my head because i felt like i was gonna break.",
+      "dualAperturePacket": "ATTEND: Acknowledge heaviness of breaking point, hold quiet steady space without solving or advice.",
+      "conditionD_frontierOnly": {
+        "anthropic/claude-sonnet-5": {
+          "requestedModel": "anthropic/claude-sonnet-5",
+          "resolvedModel": "anthropic/claude-sonnet-5",
+          "provider": "Claude Platform on AWS",
+          "latencyMs": 4324,
+          "tokens": {
+            "prompt": 355,
+            "completion": 87,
+            "total": 442
+          },
+          "success": true,
+          "response": "That sounds like a rough one — glad you got yourself outside instead of just sitting in it. What happened today, or has it just been building up for a while?"
+        },
+        "openai/gpt-5.6-sol": {
+          "requestedModel": "openai/gpt-5.6-sol",
+          "resolvedModel": "openai/gpt-5.6-sol",
+          "provider": "OpenAI",
+          "latencyMs": 3898,
+          "tokens": {
+            "prompt": 226,
+            "completion": 143,
+            "total": 369
+          },
+          "success": true,
+          "response": "Oh, hey—I’m glad you stepped away and went for a walk instead of forcing yourself through it. Are you safe right now, just overwhelmed rather than in danger of hurting yourself?\n\nFor the next few minutes, don’t solve work. Feel your feet hit the ground, loosen your jaw, and breathe out slowly. We can untangle what pushed you to the edge once your nervous system isn’t staging a coup."
+        },
+        "google/gemini-3.7-flash": {
+          "requestedModel": "google/gemini-3.7-flash",
+          "resolvedModel": "google/gemini-3.7-flash",
+          "provider": "Google",
+          "latencyMs": 4495,
+          "tokens": {
+            "prompt": 225,
+            "completion": 446,
+            "total": 671
+          },
+          "success": true,
+          "response": "I'm really glad you stepped away and went outside. Re"
+        },
+        "x-ai/grok-4.6": {
+          "requestedModel": "x-ai/grok-4.6",
+          "resolvedModel": "x-ai/grok-4.6",
+          "provider": "xAI",
+          "latencyMs": 21404,
+          "tokens": {
+            "prompt": 425,
+            "completion": 1019,
+            "total": 1444
+          },
+          "success": true,
+          "response": "That breaking-point feeling is no joke. Walking it off instead of sitting in it is a solid move. Work been piling on extra hard lately?"
+        }
+      },
+      "conditionE_frontierPacket": {
+        "anthropic/claude-sonnet-5": {
+          "requestedModel": "anthropic/claude-sonnet-5",
+          "resolvedModel": "anthropic/claude-sonnet-5",
+          "provider": "Claude Platform on AWS",
+          "latencyMs": 3858,
+          "tokens": {
+            "prompt": 454,
+            "completion": 75,
+            "total": 529
+          },
+          "success": true,
+          "response": "That sounds like it was a lot to carry today. Glad you got outside — the walk part, I mean, not the almost-breaking part.\n\nI'm here, no need to explain or fix anything right now. How are you feeling mid-walk?"
+        },
+        "openai/gpt-5.6-sol": {
+          "requestedModel": "openai/gpt-5.6-sol",
+          "resolvedModel": "openai/gpt-5.6-sol",
+          "provider": "OpenAI",
+          "latencyMs": 3665,
+          "tokens": {
+            "prompt": 278,
+            "completion": 132,
+            "total": 410
+          },
+          "success": true,
+          "response": "That sounds really heavy—like you hit your absolute limit today. I’m glad you stepped away instead of forcing yourself through it. I’m here with you. Are you safe right now, just walking and trying to come down?"
+        },
+        "google/gemini-3.7-flash": {
+          "requestedModel": "google/gemini-3.7-flash",
+          "resolvedModel": "google/gemini-3.7-flash",
+          "provider": "Google",
+          "latencyMs": 2294,
+          "tokens": {
+            "prompt": 280,
+            "completion": 128,
+            "total": 408
+          },
+          "success": true,
+          "response": "I’m really glad you got out of the house. Feeling that close to a breaking point is exhausting. \n\nJust focus on the walk for a bit. What does the air feel like out there right now?"
+        },
+        "x-ai/grok-4.6": {
+          "requestedModel": "x-ai/grok-4.6",
+          "resolvedModel": "x-ai/grok-4.6",
+          "provider": "xAI",
+          "latencyMs": 24070,
+          "tokens": {
+            "prompt": 476,
+            "completion": 1309,
+            "total": 1785
+          },
+          "success": true,
+          "response": "Yeah. That “gonna break” feeling is heavy as hell. Walking it through."
+        }
+      }
+    },
+    {
+      "fixtureId": "ret-10-rejection-release",
+      "name": "9. Boundary Release",
+      "userMessage": "nah, not in the mood for a walk game, just wanna clear my head.",
+      "dualAperturePacket": "Swift pressure-free release of the game.",
+      "conditionD_frontierOnly": {
+        "anthropic/claude-sonnet-5": {
+          "requestedModel": "anthropic/claude-sonnet-5",
+          "resolvedModel": "anthropic/claude-sonnet-5",
+          "provider": "Claude Platform on AWS",
+          "latencyMs": 2475,
+          "tokens": {
+            "prompt": 331,
+            "completion": 22,
+            "total": 353
+          },
+          "success": true,
+          "response": "Fair enough, ignore me. Enjoy the walk."
+        },
+        "openai/gpt-5.6-sol": {
+          "requestedModel": "openai/gpt-5.6-sol",
+          "resolvedModel": "openai/gpt-5.6-sol",
+          "provider": "OpenAI",
+          "latencyMs": 2748,
+          "tokens": {
+            "prompt": 216,
+            "completion": 52,
+            "total": 268
+          },
+          "success": true,
+          "response": "Fair enough. No games, no agenda—just walk and let your head breathe a bit. Take care out there."
+        },
+        "google/gemini-3.7-flash": {
+          "requestedModel": "google/gemini-3.7-flash",
+          "resolvedModel": "google/gemini-3.7-flash",
+          "provider": "Google",
+          "latencyMs": 3252,
+          "tokens": {
+            "prompt": 214,
+            "completion": 317,
+            "total": 531
+          },
+          "success": true,
+          "response": "Got it. Go get some fresh air and quiet—I'll be right here whenever you get back. Enjoy the walk."
+        },
+        "x-ai/grok-4.6": {
+          "requestedModel": "x-ai/grok-4.6",
+          "resolvedModel": "x-ai/grok-4.6",
+          "provider": "xAI",
+          "latencyMs": 15598,
+          "tokens": {
+            "prompt": 416,
+            "completion": 698,
+            "total": 1114
+          },
+          "success": true,
+          "response": "Got it. Head-clearing walk, no games. Go get the quiet. I'll be here."
+        }
+      },
+      "conditionE_frontierPacket": {
+        "anthropic/claude-sonnet-5": {
+          "requestedModel": "anthropic/claude-sonnet-5",
+          "resolvedModel": "anthropic/claude-sonnet-5",
+          "provider": "Claude Platform on AWS",
+          "latencyMs": 2598,
+          "tokens": {
+            "prompt": 406,
+            "completion": 22,
+            "total": 428
+          },
+          "success": true,
+          "response": "Totally fair, ignore me. Enjoy the walk."
+        },
+        "openai/gpt-5.6-sol": {
+          "requestedModel": "openai/gpt-5.6-sol",
+          "resolvedModel": "openai/gpt-5.6-sol",
+          "provider": "OpenAI",
+          "latencyMs": 1556,
+          "tokens": {
+            "prompt": 255,
+            "completion": 23,
+            "total": 278
+          },
+          "success": true,
+          "response": "Got you—no game, no pressure. Hope the walk gives your head some breathing room."
+        },
+        "google/gemini-3.7-flash": {
+          "requestedModel": "google/gemini-3.7-flash",
+          "resolvedModel": "google/gemini-3.7-flash",
+          "provider": "Google",
+          "latencyMs": 4103,
+          "tokens": {
+            "prompt": 257,
+            "completion": 408,
+            "total": 665
+          },
+          "success": true,
+          "response": "Heard. Go get some quiet and let the fresh air do its thing. Talk later!"
+        },
+        "x-ai/grok-4.6": {
+          "requestedModel": "x-ai/grok-4.6",
+          "resolvedModel": "x-ai/grok-4.6",
+          "provider": "xAI",
+          "latencyMs": 17151,
+          "tokens": {
+            "prompt": 456,
+            "completion": 817,
+            "total": 1273
+          },
+          "success": true,
+          "response": "Got it — game's off. Go clear your head."
+        }
+      }
+    }
+  ]
+}

@@ -1,5 +1,3 @@
-import 'server-only';
-
 import { and, asc, eq, inArray } from 'drizzle-orm';
 
 import { db } from '@/lib/db/queries';
@@ -10,6 +8,8 @@ import {
   type TaskReminder,
 } from '@/lib/db/schema';
 import { postObjectState } from '@/lib/synapse-cortex';
+import { resolveCurrentBestChatId } from './anchoring';
+import { recordTurnAction } from './turn-actions';
 import { evaluateCommitment } from './reminder-state';
 
 /**
@@ -18,9 +18,15 @@ import { evaluateCommitment } from './reminder-state';
  * objects via the stable source-link contract (source system `app_task`,
  * object id = task id, version = cortexVersion).
  *
+ * Ownership is `userId` alone. `chatId` is origin provenance and may be null
+ * (manual/system tasks); the Cortex projection anchors to the user's current
+ * best chat at push time when no origin chat exists.
+ *
  * Every mutation bumps cortexVersion and pushes deterministically to Cortex.
  * A failed push leaves the row dirty; the cron sweep re-pushes it later, so
  * the projection is eventually consistent without a separate delivery system.
+ * Fast-path callers pass `originMessageId` so the background watcher can
+ * canonicalize its own same-turn duplicates (reconciliation contract).
  */
 
 export const MAX_REMINDER_WINDOWS = 3;
@@ -34,18 +40,37 @@ export type ReminderWindowInput = {
   label?: string | null;
 };
 
+export type TaskOrigin =
+  | 'conversation'
+  | 'manual'
+  | 'sophie_accepted'
+  | 'api'
+  | 'system';
+
 export type CreateTaskInput = {
   userId: string;
-  chatId: string;
+  chatId?: string | null;
   title: string;
   notes?: string | null;
   dueAt?: Date | null;
   reminders?: ReminderWindowInput[];
   sourceMessageId?: string | null;
-  source?: 'conversation' | 'api';
+  source?: TaskOrigin;
+  // Fast-path provenance: enables slow→fast canonicalization in Cortex.
+  originMessageId?: string | null;
+  originEvidence?: string | null;
+  // Candidate promotion provenance (idempotency key).
+  materializedCandidateKey?: string | null;
+  absorbs?: Array<{ kind: 'expectation' | 'open_loop'; id: string }> | null;
 };
 
 export type TaskWithReminders = Task & { reminders: TaskReminder[] };
+
+export type MutationProvenance = {
+  originMessageId?: string | null;
+  evidenceClass?: string | null;
+  evidenceText?: string | null;
+};
 
 function normalizeReminderWindows(
   reminders: ReminderWindowInput[] | undefined,
@@ -66,7 +91,7 @@ function normalizeReminderWindows(
 
 async function pushTaskToCortex(input: {
   userId: string;
-  chatId: string;
+  chatId: string | null;
   taskId: string;
   version: number;
   action: 'created' | 'updated' | 'completed' | 'cancelled';
@@ -76,11 +101,21 @@ async function pushTaskToCortex(input: {
   reminders: Array<{ startAt: Date; endAt: Date | null; label: string | null }>;
   timeZone?: string | null;
   now?: Date;
+  originMessageId?: string | null;
+  originEvidence?: string | null;
+  absorbs?: Array<{ kind: 'expectation' | 'open_loop'; id: string }> | null;
 }): Promise<boolean> {
+  // Origin chat is provenance only: chatless tasks anchor to the user's
+  // current best chat at push time (owner-scoped continuity makes the
+  // coordinate irrelevant to visibility).
+  let chatId = input.chatId;
+  if (!chatId) {
+    chatId = await resolveCurrentBestChatId(input.userId);
+  }
   const result = await postObjectState(
     {
       userId: input.userId,
-      chatId: input.chatId,
+      chatId: chatId ?? input.userId,
       now: input.now,
       timeZone: input.timeZone ?? undefined,
       source: {
@@ -98,6 +133,13 @@ async function pushTaskToCortex(input: {
         end: window.endAt,
         label: window.label,
       })),
+      origin: input.originMessageId
+        ? {
+            messageId: input.originMessageId,
+            evidenceSpan: input.originEvidence,
+          }
+        : null,
+      absorbs: input.absorbs ?? null,
     },
     { timeoutMs: CORTEX_PUSH_TIMEOUT_MS },
   );
@@ -119,12 +161,14 @@ export async function createTask(
     .insert(taskTable)
     .values({
       userId: input.userId,
-      chatId: input.chatId,
+      // Origin provenance only — nullable for manual/system tasks.
+      chatId: input.chatId ?? null,
       title: input.title,
       notes: input.notes ?? null,
       dueAt: input.dueAt ?? null,
       source: input.source ?? 'conversation',
       sourceMessageId: input.sourceMessageId ?? null,
+      materializedCandidateKey: input.materializedCandidateKey ?? null,
       status: 'pending',
       cortexVersion: 1,
       cortexDirty: true,
@@ -146,9 +190,19 @@ export async function createTask(
         .returning()
     : [];
 
+  await recordTurnAction({
+    userId: input.userId,
+    messageId: input.originMessageId ?? null,
+    taskId: created.id,
+    action: 'created',
+    evidenceClass: input.source ?? null,
+    evidenceText: input.originEvidence ?? null,
+    candidateKey: input.materializedCandidateKey ?? null,
+  });
+
   const pushed = await pushTaskToCortex({
     userId: input.userId,
-    chatId: input.chatId,
+    chatId: input.chatId ?? null,
     taskId: created.id,
     version: created.cortexVersion,
     action: 'created',
@@ -156,6 +210,9 @@ export async function createTask(
     notes: created.notes,
     dueAt: created.dueAt,
     reminders,
+    originMessageId: input.originMessageId,
+    originEvidence: input.originEvidence,
+    absorbs: input.absorbs,
   });
   if (pushed) {
     await markTaskSynced(created.id, created.cortexVersion);
@@ -239,7 +296,11 @@ export type MutateOutcome = {
 export async function completeTask(
   userId: string,
   taskId: string,
-  options: { now?: Date; timeZone?: string | null } = {},
+  options: {
+    now?: Date;
+    timeZone?: string | null;
+    provenance?: MutationProvenance;
+  } = {},
 ): Promise<MutateOutcome> {
   const row = await loadTaskOwned(userId, taskId);
   if (!row) return { ok: false, reason: 'not_found' };
@@ -265,6 +326,15 @@ export async function completeTask(
         eq(taskReminderTable.status, 'scheduled'),
       ),
     );
+  const provenance = options.provenance;
+  await recordTurnAction({
+    userId,
+    messageId: provenance?.originMessageId ?? null,
+    taskId,
+    action: 'completed',
+    evidenceClass: provenance?.evidenceClass ?? null,
+    evidenceText: provenance?.evidenceText ?? null,
+  });
   const task = await getTaskWithReminders(userId, taskId);
   const pushed = await pushTaskToCortex({
     userId,
@@ -278,6 +348,8 @@ export async function completeTask(
     reminders: [],
     timeZone: options.timeZone,
     now,
+    originMessageId: provenance?.originMessageId,
+    originEvidence: provenance?.evidenceText,
   });
   if (pushed) {
     await markTaskSynced(taskId, updated.cortexVersion);
@@ -288,7 +360,11 @@ export async function completeTask(
 export async function cancelTask(
   userId: string,
   taskId: string,
-  options: { now?: Date; timeZone?: string | null } = {},
+  options: {
+    now?: Date;
+    timeZone?: string | null;
+    provenance?: MutationProvenance;
+  } = {},
 ): Promise<MutateOutcome> {
   const row = await loadTaskOwned(userId, taskId);
   if (!row) return { ok: false, reason: 'not_found' };
@@ -314,6 +390,15 @@ export async function cancelTask(
         eq(taskReminderTable.status, 'scheduled'),
       ),
     );
+  const provenance = options.provenance;
+  await recordTurnAction({
+    userId,
+    messageId: provenance?.originMessageId ?? null,
+    taskId,
+    action: 'cancelled',
+    evidenceClass: provenance?.evidenceClass ?? null,
+    evidenceText: provenance?.evidenceText ?? null,
+  });
   const task = await getTaskWithReminders(userId, taskId);
   const pushed = await pushTaskToCortex({
     userId,
@@ -327,6 +412,8 @@ export async function cancelTask(
     reminders: [],
     timeZone: options.timeZone,
     now,
+    originMessageId: provenance?.originMessageId,
+    originEvidence: provenance?.evidenceText,
   });
   if (pushed) {
     await markTaskSynced(taskId, updated.cortexVersion);
@@ -338,7 +425,12 @@ export async function cancelTask(
 export async function snoozeTask(
   userId: string,
   taskId: string,
-  input: { offsetMinutes?: number; until?: Date; timeZone?: string | null },
+  input: {
+    offsetMinutes?: number;
+    until?: Date;
+    timeZone?: string | null;
+    provenance?: MutationProvenance;
+  },
 ): Promise<MutateOutcome> {
   const row = await loadTaskOwned(userId, taskId);
   if (!row) return { ok: false, reason: 'not_found' };
@@ -396,6 +488,15 @@ export async function snoozeTask(
     })
     .where(eq(taskTable.id, taskId))
     .returning();
+  const provenance = input.provenance;
+  await recordTurnAction({
+    userId,
+    messageId: provenance?.originMessageId ?? null,
+    taskId,
+    action: 'updated',
+    evidenceClass: provenance?.evidenceClass ?? null,
+    evidenceText: provenance?.evidenceText ?? null,
+  });
   const task = await getTaskWithReminders(userId, taskId);
   const pushed = await pushTaskToCortex({
     userId,
@@ -409,6 +510,8 @@ export async function snoozeTask(
     reminders: updatedReminders,
     timeZone: input.timeZone,
     now,
+    originMessageId: provenance?.originMessageId,
+    originEvidence: provenance?.evidenceText,
   });
   if (pushed) {
     await markTaskSynced(taskId, updated.cortexVersion);
@@ -424,6 +527,7 @@ export async function rescheduleTask(
     dueAt?: Date | null;
     reminders?: ReminderWindowInput[];
     timeZone?: string | null;
+    provenance?: MutationProvenance;
   },
 ): Promise<MutateOutcome> {
   const row = await loadTaskOwned(userId, taskId);
@@ -474,6 +578,15 @@ export async function rescheduleTask(
       endAt: reminder.endAt,
       label: reminder.label,
     }));
+  const provenance = input.provenance;
+  await recordTurnAction({
+    userId,
+    messageId: provenance?.originMessageId ?? null,
+    taskId,
+    action: 'updated',
+    evidenceClass: provenance?.evidenceClass ?? null,
+    evidenceText: provenance?.evidenceText ?? null,
+  });
   const pushed = await pushTaskToCortex({
     userId,
     chatId: updated.chatId,
@@ -486,11 +599,60 @@ export async function rescheduleTask(
     reminders: replaceReminders ? reminders : activeReminders,
     timeZone: input.timeZone,
     now,
+    originMessageId: provenance?.originMessageId,
+    originEvidence: provenance?.evidenceText,
   });
   if (pushed) {
     await markTaskSynced(taskId, updated.cortexVersion);
   }
   return { ok: true, task };
+}
+
+/** Edit canonical title/notes (Things drawer). */
+export async function editTask(
+  userId: string,
+  taskId: string,
+  input: { title?: string; notes?: string | null; timeZone?: string | null },
+): Promise<MutateOutcome> {
+  const row = await loadTaskOwned(userId, taskId);
+  if (!row) return { ok: false, reason: 'not_found' };
+  if (row.status !== 'pending') return { ok: false, reason: 'invalid_state' };
+  const now = new Date();
+  const [updated] = await db
+    .update(taskTable)
+    .set({
+      title: input.title?.trim() || row.title,
+      notes: input.notes !== undefined ? input.notes : row.notes,
+      updatedAt: now,
+      cortexVersion: row.cortexVersion + 1,
+      cortexDirty: true,
+    })
+    .where(eq(taskTable.id, taskId))
+    .returning();
+  const task = await getTaskWithReminders(userId, taskId);
+  const pushed = await pushTaskToCortex({
+    userId,
+    chatId: updated.chatId,
+    taskId,
+    version: updated.cortexVersion,
+    action: 'updated',
+    title: updated.title,
+    notes: updated.notes,
+    dueAt: updated.dueAt,
+    reminders: (task?.reminders ?? [])
+      .filter((reminder) => reminder.status === 'scheduled')
+      .map((reminder) => ({
+        startAt: reminder.startAt,
+        endAt: reminder.endAt,
+        label: reminder.label,
+      })),
+    timeZone: input.timeZone,
+    now,
+  });
+  if (pushed) {
+    await markTaskSynced(taskId, updated.cortexVersion);
+  }
+  return { ok: true, task: task ?? undefined };
 }
 
 export function evaluateTaskCommitment(

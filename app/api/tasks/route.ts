@@ -51,17 +51,19 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
-  // Tasks are anchored to a conversation; the chat must belong to the caller.
-  const chat = await getChatById({ id: parsed.data.chatId });
-  if (!chat || chat.userId !== session.user.id) {
-    return NextResponse.json(
-      { ok: false, error: 'invalid_chat' },
-      { status: 400 },
-    );
+  // If a chat is supplied as origin provenance, verify it belongs to the caller.
+  if (parsed.data.chatId) {
+    const chat = await getChatById({ id: parsed.data.chatId });
+    if (!chat || chat.userId !== session.user.id) {
+      return NextResponse.json(
+        { ok: false, error: 'invalid_chat' },
+        { status: 400 },
+      );
+    }
   }
   const task = await createTask({
     userId: session.user.id,
-    chatId: parsed.data.chatId,
+    chatId: parsed.data.chatId ?? null,
     title: parsed.data.title,
     notes: parsed.data.notes ?? null,
     dueAt: parsed.data.dueAt ?? null,
@@ -71,7 +73,8 @@ export async function POST(request: Request) {
       label: window.label ?? null,
     })),
     sourceMessageId: parsed.data.sourceMessageId ?? null,
-    source: parsed.data.source ?? 'api',
+    source: parsed.data.source ?? (parsed.data.chatId ? 'api' : 'manual'),
+    materializedCandidateKey: parsed.data.materializedCandidateKey ?? null,
   });
   return NextResponse.json(
     { ok: true, data: task },

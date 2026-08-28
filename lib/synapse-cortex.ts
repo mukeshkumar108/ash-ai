@@ -251,6 +251,11 @@ export async function postObjectState(
       label?: string | null;
     }>;
     followupWindowHours?: number | null;
+    // Real-time provenance: originating app/honcho user message id — lets the
+    // watcher canonicalize (supersede) its own same-message duplicates.
+    origin?: { messageId: string; evidenceSpan?: string | null } | null;
+    // Promotion: derived Cortex objects absorbed into this canonical object.
+    absorbs?: Array<{ kind: 'expectation' | 'open_loop'; id: string }> | null;
   },
   opts: { post?: typeof fetch; timeoutMs?: number } = {},
 ): Promise<{
@@ -292,6 +297,16 @@ export async function postObjectState(
       label: window.label ?? null,
     })),
     followup_window_hours: input.followupWindowHours ?? null,
+    origin: input.origin
+      ? {
+          message_id: input.origin.messageId,
+          evidence_span: input.origin.evidenceSpan ?? null,
+        }
+      : null,
+    absorbs: (input.absorbs ?? []).map((ref) => ({
+      kind: ref.kind,
+      id: ref.id,
+    })),
   };
   const post = opts.post ?? fetch;
   try {

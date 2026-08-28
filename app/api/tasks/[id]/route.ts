@@ -5,6 +5,7 @@ import { getUserById } from '@/lib/db/queries';
 import {
   cancelTask,
   completeTask,
+  editTask,
   getTaskWithReminders,
   rescheduleTask,
   snoozeTask,
@@ -73,6 +74,12 @@ export async function PATCH(
         return completeTask(userId, id, { timeZone });
       case 'cancel':
         return cancelTask(userId, id, { timeZone });
+      case 'edit':
+        return editTask(userId, id, {
+          title: input.title,
+          notes: input.notes,
+          timeZone,
+        });
       case 'snooze':
         return snoozeTask(userId, id, {
           offsetMinutes: input.offsetMinutes,

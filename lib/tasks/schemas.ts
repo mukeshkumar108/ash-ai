@@ -7,18 +7,26 @@ export const reminderWindowSchema = z.object({
 });
 
 export const createTaskSchema = z.object({
-  chatId: z.string().uuid(),
+  chatId: z.string().uuid().nullish(),
   title: z.string().trim().min(1).max(280),
   notes: z.string().trim().max(2000).nullish(),
   dueAt: z.coerce.date().nullish(),
   reminders: z.array(reminderWindowSchema).max(3).optional(),
   sourceMessageId: z.string().uuid().nullish(),
-  source: z.enum(['conversation', 'api']).optional(),
+  source: z
+    .enum(['conversation', 'manual', 'sophie_accepted', 'api', 'system'])
+    .optional(),
+  materializedCandidateKey: z.string().trim().max(160).nullish(),
 });
 
 export const mutateTaskSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('complete') }),
   z.object({ action: z.literal('cancel') }),
+  z.object({
+    action: z.literal('edit'),
+    title: z.string().trim().min(1).max(280).optional(),
+    notes: z.string().trim().max(2000).nullish(),
+  }),
   z.object({
     action: z.literal('snooze'),
     offsetMinutes: z

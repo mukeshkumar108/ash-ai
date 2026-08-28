@@ -454,6 +454,7 @@ export const cortexOutbox = pgTable(
     workspaceId: varchar('workspace_id', { length: 128 }).notNull(),
     sessionId: varchar('session_id', { length: 128 }).notNull(),
     honchoMessageId: varchar('honcho_message_id', { length: 256 }).notNull(),
+    appMessageId: uuid('app_message_id'),
     peerId: varchar('peer_id', { length: 64 }).notNull(),
     text: text('text').notNull(),
     timezone: varchar('timezone', { length: 64 })
@@ -493,7 +494,14 @@ export type CortexOutboxInsert = typeof cortexOutbox.$inferInsert;
 export const taskStatus = ['pending', 'completed', 'cancelled'] as const;
 export type TaskStatus = (typeof taskStatus)[number];
 
-export const taskSource = ['conversation', 'api'] as const;
+/** Origin semantics: who/what brought the canonical task into existence. */
+export const taskSource = [
+  'conversation',
+  'manual',
+  'sophie_accepted',
+  'api',
+  'system',
+] as const;
 export type TaskSource = (typeof taskSource)[number];
 
 /**
@@ -501,6 +509,11 @@ export type TaskSource = (typeof taskSource)[number];
  * source of truth for tasks; Synapse-Cortex only derives lifecycle/attention
  * state from them via the stable source-link contract
  * (source system `app_task`, object id = task id, version = cortexVersion).
+ *
+ * Ownership is `userId` alone. `chatId` is ORIGIN PROVENANCE (the chat that
+ * produced the task) and is nullable: manual/system tasks need no invented
+ * conversation, and the initiative system resolves a current delivery chat at
+ * send/evaluation time rather than assuming the birth chat.
  */
 export const task = pgTable(
   'Task',
@@ -509,9 +522,7 @@ export const task = pgTable(
     userId: uuid('userId')
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
-    chatId: uuid('chatId')
-      .notNull()
-      .references(() => chat.id, { onDelete: 'cascade' }),
+    chatId: uuid('chatId').references(() => chat.id, { onDelete: 'set null' }),
     title: varchar('title', { length: 280 }).notNull(),
     notes: text('notes'),
     status: varchar('status', { enum: taskStatus, length: 16 })
@@ -519,7 +530,7 @@ export const task = pgTable(
       .default('pending'),
     dueAt: timestamp('dueAt'),
     snoozeCount: integer('snoozeCount').notNull().default(0),
-    source: varchar('source', { enum: taskSource, length: 16 })
+    source: varchar('source', { length: 24 })
       .notNull()
       .default('conversation'),
     sourceMessageId: uuid('sourceMessageId').references(() => message.id, {
@@ -530,6 +541,11 @@ export const task = pgTable(
     cortexVersion: integer('cortexVersion').notNull().default(1),
     cortexDirty: boolean('cortexDirty').notNull().default(true),
     cortexSyncedAt: timestamp('cortexSyncedAt'),
+    // Candidate promotion provenance: the derived Cortex commitment candidate
+    // this task materialized from, when applicable (idempotency key).
+    materializedCandidateKey: varchar('materializedCandidateKey', {
+      length: 160,
+    }),
     createdAt: timestamp('createdAt').notNull().defaultNow(),
     updatedAt: timestamp('updatedAt').notNull().defaultNow(),
     completedAt: timestamp('completedAt'),
@@ -543,6 +559,9 @@ export const task = pgTable(
     ),
     dirtyIdx: index('task_cortex_dirty_idx').on(table.cortexDirty),
     chatIdx: index('task_chat_idx').on(table.chatId),
+    candidateIdx: index('task_materialized_candidate_idx').on(
+      table.materializedCandidateKey,
+    ),
   }),
 );
 
@@ -627,3 +646,40 @@ export const calendarEventSync = pgTable(
 );
 
 export type CalendarEventSync = InferSelectModel<typeof calendarEventSync>;
+
+/**
+ * Real-time action ledger. One row per canonical action the fast-path
+ * interpreter committed from a user turn (or a manual UI action). Doubles as:
+ * 1. the fast→slow reconciliation source — the Cortex outbox delivery enriches
+ *    the turn payload with these so the watcher never duplicates them;
+ * 2. the data behind inline "Reminder set — Friday 09:00 · undo" chips.
+ */
+export const turnAction = pgTable(
+  'TurnAction',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    // The originating app user message (null for manual UI actions).
+    messageId: uuid('messageId'),
+    taskId: uuid('taskId').references(() => task.id, { onDelete: 'cascade' }),
+    action: varchar('action', { length: 24 }).notNull(),
+    evidenceClass: varchar('evidenceClass', { length: 48 }),
+    evidenceText: varchar('evidenceText', { length: 500 }),
+    candidateKey: varchar('candidateKey', { length: 160 }),
+    createdAt: timestamp('createdAt').notNull().defaultNow(),
+  },
+  (table) => ({
+    // Idempotency: the same message can never record the same action twice.
+    messageActionIdx: uniqueIndex('turn_action_message_action_idx').on(
+      table.messageId,
+      table.action,
+      table.taskId,
+    ),
+    messageIdx: index('turn_action_message_idx').on(table.messageId),
+    taskIdx: index('turn_action_task_idx').on(table.taskId),
+  }),
+);
+
+export type TurnAction = InferSelectModel<typeof turnAction>;

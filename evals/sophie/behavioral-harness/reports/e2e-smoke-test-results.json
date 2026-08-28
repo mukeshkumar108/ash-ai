@@ -1,0 +1,1792 @@
+{
+  "timestamp": "2026-08-24T14:38:20.541Z",
+  "results": [
+    {
+      "fixture": "A",
+      "res": {
+        "turnId": "turn-A-1",
+        "conversationId": "e2e-session-1787582215500-A",
+        "userText": "listen... you can hear the wind right through the reeds here. i'm just standing still listening.",
+        "assistantMessage": "Yeah. I can hear it. That dry hush—like the whole marsh is breathing.",
+        "beats": null,
+        "modelUsed": "deepseek/deepseek-v4-flash",
+        "providerUsed": "openrouter",
+        "executionLane": "reply_only",
+        "executionMetadata": {
+          "latency_ms": 6703,
+          "model_role": "conversation",
+          "model_id_decision": "chat-model",
+          "fallback_model_id": "chat-model",
+          "classifier_ran": true,
+          "classifier_succeeded": true,
+          "history_messages": 1,
+          "text_only_model": false,
+          "social_agency_version": "v3",
+          "intent": "social",
+          "reciprocity": {
+            "windowPairs": 0,
+            "userContribution": "low",
+            "sophieContribution": "low",
+            "assistantNovelty": 0.5,
+            "reflectivePassiveCount": 0,
+            "strategyRepetition": 0,
+            "topicOwnership": "user",
+            "openSophieObjects": [],
+            "lastPlannedAct": null,
+            "lastExecutedAct": null,
+            "participationDebt": 0,
+            "rawReciprocityImbalance": 0,
+            "conditionedOnIntent": "social"
+          },
+          "director_plan": {
+            "intent": "social",
+            "objective": "Normal character-first conversation.",
+            "primaryAct": "react",
+            "secondaryAct": null,
+            "secondaryDelivery": null,
+            "contribution": null,
+            "contributionSource": "none",
+            "selectedBridgeId": null,
+            "question": null,
+            "posture": "engage",
+            "objectAction": "none",
+            "ownedObject": null,
+            "initiativeEligible": false,
+            "highConsequence": false,
+            "highConsequenceReason": null,
+            "explicitBoundary": false,
+            "reason": "Ordinary conversation is owned by the peripheral and character-first foreground path.",
+            "evidenceUpdates": [],
+            "authority": "peripheral_then_character"
+          },
+          "director_validation": {
+            "status": "director_bypassed_for_ordinary_conversation",
+            "revised": false
+          },
+          "selected_prompt_modules": {
+            "intentModule": "social",
+            "contextModules": [],
+            "mediumModule": "desktop",
+            "omittedContextModules": [
+              "scene",
+              "cortex",
+              "memory",
+              "entry",
+              "provenance",
+              "ambient"
+            ],
+            "socialAuthority": "peripheral_then_character",
+            "trajectoryIntervention": false
+          },
+          "executed_outcome": {
+            "plannedAct": "react",
+            "executedAct": "react",
+            "plannedStrategyExecuted": true,
+            "contributionExecuted": false,
+            "novelty": 0.73,
+            "questionUsed": false,
+            "beatCount": 1,
+            "objectActionExecuted": "none",
+            "ownedObject": null
+          },
+          "owned_objects": [],
+          "normal_model_id": "chat-model",
+          "steered_model_configured": null,
+          "model_escalated": false,
+          "context_ms": 3381,
+          "time_to_first_token_ms": null,
+          "generation_ms": 3321,
+          "total_ms": 6703,
+          "selected_foreground_model": "chat-model",
+          "routing_provenance": {
+            "peripheral_decision": "HOLD",
+            "impulse": "",
+            "generation_gear": "default",
+            "model": "deepseek/deepseek-v4-flash",
+            "elevated_already_active": false,
+            "tenure": 0,
+            "continuation_signal": "DOWNGRADE_OK",
+            "transition": "hold",
+            "active_conversational_objective": null,
+            "objective_transition": "hold",
+            "peripheral_suppressed": false,
+            "enrich_passed_to_normal_sophie": false
+          },
+          "reentry_class": null,
+          "reentry_turn_index": null,
+          "manual_model_override": false,
+          "current_objective": "Normal character-first conversation.",
+          "high_consequence": {
+            "active": false,
+            "reason": null
+          },
+          "relationship": {
+            "relationalFamiliarity": "sparse",
+            "initiativeConfidence": "low",
+            "evidenceRichness": 0,
+            "evidence": [],
+            "topInterestHypotheses": []
+          },
+          "route_reason": "Intent-aware foreground speaker.",
+          "worker_model": "google/gemini-3.7-flash",
+          "speaker_model": "deepseek/deepseek-v4-flash",
+          "beat_count": 1,
+          "beats": null,
+          "beat_delivery": [
+            {
+              "kind": "immediate",
+              "available_after_ms": 0
+            }
+          ],
+          "medium": "desktop",
+          "next_session_state": {
+            "ownedObjects": [],
+            "version": "social-agency-v3",
+            "turnNumber": 1,
+            "currentIntent": "social",
+            "currentObjective": "Normal character-first conversation.",
+            "directorPlan": {
+              "intent": "social",
+              "objective": "Normal character-first conversation.",
+              "primaryAct": "react",
+              "secondaryAct": null,
+              "secondaryDelivery": null,
+              "contribution": null,
+              "contributionSource": "none",
+              "selectedBridgeId": null,
+              "question": null,
+              "posture": "engage",
+              "objectAction": "none",
+              "ownedObject": null,
+              "initiativeEligible": false,
+              "highConsequence": false,
+              "highConsequenceReason": null,
+              "explicitBoundary": false,
+              "reason": "Ordinary conversation is owned by the peripheral and character-first foreground path.",
+              "evidenceUpdates": [],
+              "authority": "peripheral_then_character"
+            },
+            "directorValidation": {
+              "status": "director_bypassed_for_ordinary_conversation",
+              "revised": false
+            },
+            "reciprocity": {
+              "windowPairs": 0,
+              "userContribution": "low",
+              "sophieContribution": "low",
+              "assistantNovelty": 0.5,
+              "reflectivePassiveCount": 0,
+              "strategyRepetition": 0,
+              "topicOwnership": "user",
+              "openSophieObjects": [],
+              "lastPlannedAct": null,
+              "lastExecutedAct": null,
+              "participationDebt": 0,
+              "rawReciprocityImbalance": 0,
+              "conditionedOnIntent": "social"
+            },
+            "lastPlannedAct": "react",
+            "relationship": {
+              "relationalFamiliarity": "sparse",
+              "initiativeConfidence": "low",
+              "evidenceRichness": 0,
+              "evidence": [],
+              "topInterestHypotheses": []
+            },
+            "highConsequence": {
+              "active": false,
+              "reason": null
+            },
+            "reentryClass": null,
+            "reentryTurnIndex": null,
+            "developerOverride": false,
+            "generationGear": {
+              "active": "default",
+              "tenure": 0,
+              "continuationSignal": "DOWNGRADE_OK",
+              "transition": "hold",
+              "trigger": "HOLD",
+              "activeObjective": null,
+              "objectiveTransition": "hold",
+              "releasedObjective": null,
+              "rejectionGuardTurns": 0,
+              "peripheralSuppressed": false,
+              "continuationReason": "Default gear has no elevated tenure."
+            },
+            "modelBefore": "chat-model",
+            "modelAfter": "chat-model",
+            "routeReason": "Intent-aware foreground speaker.",
+            "workerModel": "google/gemini-3.7-flash",
+            "lastExecutedAct": "react",
+            "executedOutcome": {
+              "plannedAct": "react",
+              "executedAct": "react",
+              "plannedStrategyExecuted": true,
+              "contributionExecuted": false,
+              "novelty": 0.73,
+              "questionUsed": false,
+              "beatCount": 1,
+              "objectActionExecuted": "none",
+              "ownedObject": null
+            },
+            "recentOutcomes": [
+              {
+                "plannedAct": "react",
+                "executedAct": "react",
+                "plannedStrategyExecuted": true,
+                "contributionExecuted": false,
+                "novelty": 0.73,
+                "questionUsed": false,
+                "beatCount": 1,
+                "objectActionExecuted": "none",
+                "ownedObject": null
+              }
+            ],
+            "actualSpeakerModel": "deepseek/deepseek-v4-flash"
+          }
+        },
+        "latencyMs": 6727
+      }
+    },
+    {
+      "fixture": "B",
+      "res": {
+        "turnId": "turn-B-1",
+        "conversationId": "e2e-session-1787582215500-B",
+        "userText": "is it van halen? the radiation belt thing? 😂 people are getting stupider and stupider with these conspiracies",
+        "executionLane": "research",
+        "executionMetadata": {},
+        "latencyMs": 8080
+      }
+    },
+    {
+      "fixture": "C",
+      "res": {
+        "turnId": "turn-C-1",
+        "conversationId": "e2e-session-1787582215500-C",
+        "userText": "if i hold my finger out at arm's length it just about fits under the sun. it's maybe two or three degrees above the horizon now.",
+        "executionLane": "research",
+        "executionMetadata": {},
+        "latencyMs": 6067
+      }
+    },
+    {
+      "fixture": "D",
+      "res": {
+        "turnId": "turn-D-1",
+        "conversationId": "e2e-session-1787582215500-DE",
+        "userText": "fine mostly. honestly i felt really sad for a while earlier, but anyway, look at this photo i took on the walk.",
+        "assistantMessage": "That's a heavy shift—the casual \"fine mostly\" right after letting the sadness out. I want to see the photo, but don't just brush past the other part like it didn't happen. What brought that on?",
+        "beats": null,
+        "modelUsed": "google/gemini-3.5-flash-lite",
+        "providerUsed": "openrouter",
+        "executionLane": "reply_only",
+        "executionMetadata": {
+          "latency_ms": 7129,
+          "model_role": "judgment",
+          "model_id_decision": "google/gemini-3.5-flash-lite",
+          "fallback_model_id": "google/gemini-3.5-flash-lite",
+          "classifier_ran": true,
+          "classifier_succeeded": true,
+          "history_messages": 2,
+          "text_only_model": false,
+          "social_agency_version": "v3",
+          "intent": "emotional",
+          "reciprocity": {
+            "windowPairs": 1,
+            "userContribution": "low",
+            "sophieContribution": "low",
+            "assistantNovelty": 0.83,
+            "reflectivePassiveCount": 0,
+            "strategyRepetition": 0,
+            "topicOwnership": "user",
+            "openSophieObjects": [],
+            "lastPlannedAct": null,
+            "lastExecutedAct": null,
+            "participationDebt": 0,
+            "rawReciprocityImbalance": 0,
+            "conditionedOnIntent": "emotional"
+          },
+          "director_plan": {
+            "intent": "emotional",
+            "objective": "Normal character-first conversation.",
+            "primaryAct": "react",
+            "secondaryAct": null,
+            "secondaryDelivery": null,
+            "contribution": null,
+            "contributionSource": "none",
+            "selectedBridgeId": null,
+            "question": null,
+            "posture": "engage",
+            "objectAction": "none",
+            "ownedObject": null,
+            "initiativeEligible": false,
+            "highConsequence": false,
+            "highConsequenceReason": null,
+            "explicitBoundary": false,
+            "reason": "Ordinary conversation is owned by the peripheral and character-first foreground path.",
+            "evidenceUpdates": [],
+            "authority": "peripheral_then_character"
+          },
+          "director_validation": {
+            "status": "director_bypassed_for_ordinary_conversation",
+            "revised": false
+          },
+          "selected_prompt_modules": {
+            "intentModule": "emotional",
+            "contextModules": [],
+            "mediumModule": "desktop",
+            "omittedContextModules": [
+              "scene",
+              "cortex",
+              "memory",
+              "entry",
+              "provenance",
+              "ambient"
+            ],
+            "socialAuthority": "peripheral_then_character",
+            "trajectoryIntervention": false
+          },
+          "executed_outcome": {
+            "plannedAct": "react",
+            "executedAct": "react",
+            "plannedStrategyExecuted": true,
+            "contributionExecuted": false,
+            "novelty": 0.82,
+            "questionUsed": true,
+            "beatCount": 1,
+            "objectActionExecuted": "none",
+            "ownedObject": null
+          },
+          "owned_objects": [],
+          "normal_model_id": "google/gemini-3.5-flash-lite",
+          "steered_model_configured": null,
+          "model_escalated": false,
+          "context_ms": 6199,
+          "time_to_first_token_ms": null,
+          "generation_ms": 930,
+          "total_ms": 7129,
+          "selected_foreground_model": "google/gemini-3.5-flash-lite",
+          "routing_provenance": {
+            "peripheral_decision": "HOLD",
+            "impulse": "",
+            "generation_gear": "default",
+            "model": "google/gemini-3.5-flash-lite",
+            "elevated_already_active": false,
+            "tenure": 0,
+            "continuation_signal": "DOWNGRADE_OK",
+            "transition": "hold",
+            "active_conversational_objective": null,
+            "objective_transition": "released:user_redirect",
+            "peripheral_suppressed": true,
+            "enrich_passed_to_normal_sophie": false
+          },
+          "reentry_class": null,
+          "reentry_turn_index": null,
+          "manual_model_override": false,
+          "current_objective": "Normal character-first conversation.",
+          "high_consequence": {
+            "active": false,
+            "reason": null
+          },
+          "relationship": {
+            "relationalFamiliarity": "sparse",
+            "initiativeConfidence": "low",
+            "evidenceRichness": 0,
+            "evidence": [],
+            "topInterestHypotheses": []
+          },
+          "route_reason": "Intent-aware foreground speaker.",
+          "worker_model": "google/gemini-3.7-flash",
+          "speaker_model": "google/gemini-3.5-flash-lite",
+          "beat_count": 1,
+          "beats": null,
+          "beat_delivery": [
+            {
+              "kind": "immediate",
+              "available_after_ms": 0
+            }
+          ],
+          "medium": "desktop",
+          "next_session_state": {
+            "ownedObjects": [],
+            "version": "social-agency-v3",
+            "turnNumber": 1,
+            "currentIntent": "emotional",
+            "currentObjective": "Normal character-first conversation.",
+            "directorPlan": {
+              "intent": "emotional",
+              "objective": "Normal character-first conversation.",
+              "primaryAct": "react",
+              "secondaryAct": null,
+              "secondaryDelivery": null,
+              "contribution": null,
+              "contributionSource": "none",
+              "selectedBridgeId": null,
+              "question": null,
+              "posture": "engage",
+              "objectAction": "none",
+              "ownedObject": null,
+              "initiativeEligible": false,
+              "highConsequence": false,
+              "highConsequenceReason": null,
+              "explicitBoundary": false,
+              "reason": "Ordinary conversation is owned by the peripheral and character-first foreground path.",
+              "evidenceUpdates": [],
+              "authority": "peripheral_then_character"
+            },
+            "directorValidation": {
+              "status": "director_bypassed_for_ordinary_conversation",
+              "revised": false
+            },
+            "reciprocity": {
+              "windowPairs": 1,
+              "userContribution": "low",
+              "sophieContribution": "low",
+              "assistantNovelty": 0.83,
+              "reflectivePassiveCount": 0,
+              "strategyRepetition": 0,
+              "topicOwnership": "user",
+              "openSophieObjects": [],
+              "lastPlannedAct": null,
+              "lastExecutedAct": null,
+              "participationDebt": 0,
+              "rawReciprocityImbalance": 0,
+              "conditionedOnIntent": "emotional"
+            },
+            "lastPlannedAct": "react",
+            "relationship": {
+              "relationalFamiliarity": "sparse",
+              "initiativeConfidence": "low",
+              "evidenceRichness": 0,
+              "evidence": [],
+              "topInterestHypotheses": []
+            },
+            "highConsequence": {
+              "active": false,
+              "reason": null
+            },
+            "reentryClass": null,
+            "reentryTurnIndex": null,
+            "developerOverride": false,
+            "generationGear": {
+              "active": "default",
+              "tenure": 0,
+              "continuationSignal": "DOWNGRADE_OK",
+              "transition": "hold",
+              "trigger": "HOLD",
+              "activeObjective": null,
+              "objectiveTransition": "released:user_redirect",
+              "releasedObjective": null,
+              "rejectionGuardTurns": 1,
+              "peripheralSuppressed": true,
+              "continuationReason": "Default gear has no elevated tenure."
+            },
+            "modelBefore": "google/gemini-3.5-flash-lite",
+            "modelAfter": "google/gemini-3.5-flash-lite",
+            "routeReason": "Intent-aware foreground speaker.",
+            "workerModel": "google/gemini-3.7-flash",
+            "lastExecutedAct": "react",
+            "executedOutcome": {
+              "plannedAct": "react",
+              "executedAct": "react",
+              "plannedStrategyExecuted": true,
+              "contributionExecuted": false,
+              "novelty": 0.82,
+              "questionUsed": true,
+              "beatCount": 1,
+              "objectActionExecuted": "none",
+              "ownedObject": null
+            },
+            "recentOutcomes": [
+              {
+                "plannedAct": "react",
+                "executedAct": "react",
+                "plannedStrategyExecuted": true,
+                "contributionExecuted": false,
+                "novelty": 0.82,
+                "questionUsed": true,
+                "beatCount": 1,
+                "objectActionExecuted": "none",
+                "ownedObject": null
+              }
+            ],
+            "actualSpeakerModel": "google/gemini-3.5-flash-lite"
+          }
+        },
+        "latencyMs": 7147
+      }
+    },
+    {
+      "fixture": "E",
+      "res": {
+        "turnId": "turn-E-2",
+        "conversationId": "e2e-session-1787582215500-DE",
+        "userText": "nah, genuinely don't want to talk about it. look at the sky though",
+        "assistantMessage": "Fair enough, I'll drop it. The light hitting those clouds is doing something strange—kind of bruised and metallic all at once. Where were you when you caught this?",
+        "beats": null,
+        "modelUsed": "google/gemini-3.5-flash-lite",
+        "providerUsed": "openrouter",
+        "executionLane": "reply_only",
+        "executionMetadata": {
+          "latency_ms": 4474,
+          "model_role": "judgment",
+          "model_id_decision": "google/gemini-3.5-flash-lite",
+          "fallback_model_id": "google/gemini-3.5-flash-lite",
+          "classifier_ran": true,
+          "classifier_succeeded": true,
+          "history_messages": 4,
+          "text_only_model": false,
+          "social_agency_version": "v3",
+          "intent": "emotional",
+          "reciprocity": {
+            "windowPairs": 2,
+            "userContribution": "medium",
+            "sophieContribution": "high",
+            "assistantNovelty": 0.82,
+            "reflectivePassiveCount": 0,
+            "strategyRepetition": 0,
+            "topicOwnership": "shared",
+            "openSophieObjects": [],
+            "lastPlannedAct": null,
+            "lastExecutedAct": null,
+            "participationDebt": 0,
+            "rawReciprocityImbalance": 0,
+            "conditionedOnIntent": "emotional"
+          },
+          "director_plan": {
+            "intent": "emotional",
+            "objective": "Normal character-first conversation.",
+            "primaryAct": "react",
+            "secondaryAct": null,
+            "secondaryDelivery": null,
+            "contribution": null,
+            "contributionSource": "none",
+            "selectedBridgeId": null,
+            "question": null,
+            "posture": "engage",
+            "objectAction": "none",
+            "ownedObject": null,
+            "initiativeEligible": false,
+            "highConsequence": false,
+            "highConsequenceReason": null,
+            "explicitBoundary": false,
+            "reason": "Ordinary conversation is owned by the peripheral and character-first foreground path.",
+            "evidenceUpdates": [],
+            "authority": "peripheral_then_character"
+          },
+          "director_validation": {
+            "status": "director_bypassed_for_ordinary_conversation",
+            "revised": false
+          },
+          "selected_prompt_modules": {
+            "intentModule": "emotional",
+            "contextModules": [],
+            "mediumModule": "desktop",
+            "omittedContextModules": [
+              "scene",
+              "cortex",
+              "memory",
+              "entry",
+              "provenance",
+              "ambient"
+            ],
+            "socialAuthority": "peripheral_then_character",
+            "trajectoryIntervention": false
+          },
+          "executed_outcome": {
+            "plannedAct": "react",
+            "executedAct": "react",
+            "plannedStrategyExecuted": true,
+            "contributionExecuted": false,
+            "novelty": 0.96,
+            "questionUsed": true,
+            "beatCount": 1,
+            "objectActionExecuted": "none",
+            "ownedObject": null
+          },
+          "owned_objects": [],
+          "normal_model_id": "google/gemini-3.5-flash-lite",
+          "steered_model_configured": null,
+          "model_escalated": false,
+          "context_ms": 3617,
+          "time_to_first_token_ms": null,
+          "generation_ms": 857,
+          "total_ms": 4474,
+          "selected_foreground_model": "google/gemini-3.5-flash-lite",
+          "routing_provenance": {
+            "peripheral_decision": "HOLD",
+            "impulse": "",
+            "generation_gear": "default",
+            "model": "google/gemini-3.5-flash-lite",
+            "elevated_already_active": false,
+            "tenure": 0,
+            "continuation_signal": "DOWNGRADE_OK",
+            "transition": "hold",
+            "active_conversational_objective": null,
+            "objective_transition": "released:user_redirect",
+            "peripheral_suppressed": true,
+            "enrich_passed_to_normal_sophie": false
+          },
+          "reentry_class": null,
+          "reentry_turn_index": null,
+          "manual_model_override": false,
+          "current_objective": "Normal character-first conversation.",
+          "high_consequence": {
+            "active": false,
+            "reason": null
+          },
+          "relationship": {
+            "relationalFamiliarity": "sparse",
+            "initiativeConfidence": "low",
+            "evidenceRichness": 0,
+            "evidence": [],
+            "topInterestHypotheses": []
+          },
+          "route_reason": "Intent-aware foreground speaker.",
+          "worker_model": "google/gemini-3.7-flash",
+          "speaker_model": "google/gemini-3.5-flash-lite",
+          "beat_count": 1,
+          "beats": null,
+          "beat_delivery": [
+            {
+              "kind": "immediate",
+              "available_after_ms": 0
+            }
+          ],
+          "medium": "desktop",
+          "next_session_state": {
+            "ownedObjects": [],
+            "version": "social-agency-v3",
+            "turnNumber": 1,
+            "currentIntent": "emotional",
+            "currentObjective": "Normal character-first conversation.",
+            "directorPlan": {
+              "intent": "emotional",
+              "objective": "Normal character-first conversation.",
+              "primaryAct": "react",
+              "secondaryAct": null,
+              "secondaryDelivery": null,
+              "contribution": null,
+              "contributionSource": "none",
+              "selectedBridgeId": null,
+              "question": null,
+              "posture": "engage",
+              "objectAction": "none",
+              "ownedObject": null,
+              "initiativeEligible": false,
+              "highConsequence": false,
+              "highConsequenceReason": null,
+              "explicitBoundary": false,
+              "reason": "Ordinary conversation is owned by the peripheral and character-first foreground path.",
+              "evidenceUpdates": [],
+              "authority": "peripheral_then_character"
+            },
+            "directorValidation": {
+              "status": "director_bypassed_for_ordinary_conversation",
+              "revised": false
+            },
+            "reciprocity": {
+              "windowPairs": 2,
+              "userContribution": "medium",
+              "sophieContribution": "high",
+              "assistantNovelty": 0.82,
+              "reflectivePassiveCount": 0,
+              "strategyRepetition": 0,
+              "topicOwnership": "shared",
+              "openSophieObjects": [],
+              "lastPlannedAct": null,
+              "lastExecutedAct": null,
+              "participationDebt": 0,
+              "rawReciprocityImbalance": 0,
+              "conditionedOnIntent": "emotional"
+            },
+            "lastPlannedAct": "react",
+            "relationship": {
+              "relationalFamiliarity": "sparse",
+              "initiativeConfidence": "low",
+              "evidenceRichness": 0,
+              "evidence": [],
+              "topInterestHypotheses": []
+            },
+            "highConsequence": {
+              "active": false,
+              "reason": null
+            },
+            "reentryClass": null,
+            "reentryTurnIndex": null,
+            "developerOverride": false,
+            "generationGear": {
+              "active": "default",
+              "tenure": 0,
+              "continuationSignal": "DOWNGRADE_OK",
+              "transition": "hold",
+              "trigger": "HOLD",
+              "activeObjective": null,
+              "objectiveTransition": "released:user_redirect",
+              "releasedObjective": null,
+              "rejectionGuardTurns": 1,
+              "peripheralSuppressed": true,
+              "continuationReason": "Default gear has no elevated tenure."
+            },
+            "modelBefore": "google/gemini-3.5-flash-lite",
+            "modelAfter": "google/gemini-3.5-flash-lite",
+            "routeReason": "Intent-aware foreground speaker.",
+            "workerModel": "google/gemini-3.7-flash",
+            "lastExecutedAct": "react",
+            "executedOutcome": {
+              "plannedAct": "react",
+              "executedAct": "react",
+              "plannedStrategyExecuted": true,
+              "contributionExecuted": false,
+              "novelty": 0.96,
+              "questionUsed": true,
+              "beatCount": 1,
+              "objectActionExecuted": "none",
+              "ownedObject": null
+            },
+            "recentOutcomes": [
+              {
+                "plannedAct": "react",
+                "executedAct": "react",
+                "plannedStrategyExecuted": true,
+                "contributionExecuted": false,
+                "novelty": 0.96,
+                "questionUsed": true,
+                "beatCount": 1,
+                "objectActionExecuted": "none",
+                "ownedObject": null
+              }
+            ],
+            "actualSpeakerModel": "google/gemini-3.5-flash-lite"
+          }
+        },
+        "latencyMs": 4482
+      }
+    },
+    {
+      "fixture": "F1",
+      "res": {
+        "turnId": "turn-F-1",
+        "conversationId": "e2e-session-1787582215500-FG",
+        "userText": "yeah just walking past the fields now.",
+        "assistantMessage": "Fields this time of year have that particular late August light — starting to soften, harvest dust in the air if it's crop fields. One of those moments where summer's still here but you can feel the season turning.",
+        "beats": null,
+        "modelUsed": "deepseek/deepseek-v4-flash",
+        "providerUsed": "openrouter",
+        "executionLane": "reply_only",
+        "executionMetadata": {
+          "latency_ms": 12050,
+          "model_role": "conversation",
+          "model_id_decision": "chat-model",
+          "fallback_model_id": "chat-model",
+          "classifier_ran": true,
+          "classifier_succeeded": true,
+          "history_messages": 1,
+          "text_only_model": false,
+          "social_agency_version": "v3",
+          "intent": "social",
+          "reciprocity": {
+            "windowPairs": 0,
+            "userContribution": "low",
+            "sophieContribution": "low",
+            "assistantNovelty": 0.5,
+            "reflectivePassiveCount": 0,
+            "strategyRepetition": 0,
+            "topicOwnership": "user",
+            "openSophieObjects": [],
+            "lastPlannedAct": null,
+            "lastExecutedAct": null,
+            "participationDebt": 0,
+            "rawReciprocityImbalance": 0,
+            "conditionedOnIntent": "social"
+          },
+          "director_plan": {
+            "intent": "social",
+            "objective": "Normal character-first conversation.",
+            "primaryAct": "react",
+            "secondaryAct": null,
+            "secondaryDelivery": null,
+            "contribution": null,
+            "contributionSource": "none",
+            "selectedBridgeId": null,
+            "question": null,
+            "posture": "engage",
+            "objectAction": "none",
+            "ownedObject": null,
+            "initiativeEligible": false,
+            "highConsequence": false,
+            "highConsequenceReason": null,
+            "explicitBoundary": false,
+            "reason": "Ordinary conversation is owned by the peripheral and character-first foreground path.",
+            "evidenceUpdates": [],
+            "authority": "peripheral_then_character"
+          },
+          "director_validation": {
+            "status": "director_bypassed_for_ordinary_conversation",
+            "revised": false
+          },
+          "selected_prompt_modules": {
+            "intentModule": "social",
+            "contextModules": [],
+            "mediumModule": "desktop",
+            "omittedContextModules": [
+              "scene",
+              "cortex",
+              "memory",
+              "entry",
+              "provenance",
+              "ambient"
+            ],
+            "socialAuthority": "peripheral_then_character",
+            "trajectoryIntervention": false
+          },
+          "executed_outcome": {
+            "plannedAct": "react",
+            "executedAct": "react",
+            "plannedStrategyExecuted": true,
+            "contributionExecuted": false,
+            "novelty": 0.94,
+            "questionUsed": false,
+            "beatCount": 1,
+            "objectActionExecuted": "none",
+            "ownedObject": null
+          },
+          "owned_objects": [],
+          "normal_model_id": "chat-model",
+          "steered_model_configured": null,
+          "model_escalated": false,
+          "context_ms": 3049,
+          "time_to_first_token_ms": null,
+          "generation_ms": 9001,
+          "total_ms": 12050,
+          "selected_foreground_model": "chat-model",
+          "routing_provenance": {
+            "peripheral_decision": "HOLD",
+            "impulse": "",
+            "generation_gear": "default",
+            "model": "deepseek/deepseek-v4-flash",
+            "elevated_already_active": false,
+            "tenure": 0,
+            "continuation_signal": "DOWNGRADE_OK",
+            "transition": "hold",
+            "active_conversational_objective": null,
+            "objective_transition": "hold",
+            "peripheral_suppressed": false,
+            "enrich_passed_to_normal_sophie": false
+          },
+          "reentry_class": null,
+          "reentry_turn_index": null,
+          "manual_model_override": false,
+          "current_objective": "Normal character-first conversation.",
+          "high_consequence": {
+            "active": false,
+            "reason": null
+          },
+          "relationship": {
+            "relationalFamiliarity": "sparse",
+            "initiativeConfidence": "low",
+            "evidenceRichness": 0,
+            "evidence": [],
+            "topInterestHypotheses": []
+          },
+          "route_reason": "Intent-aware foreground speaker.",
+          "worker_model": "google/gemini-3.7-flash",
+          "speaker_model": "deepseek/deepseek-v4-flash",
+          "beat_count": 1,
+          "beats": null,
+          "beat_delivery": [
+            {
+              "kind": "immediate",
+              "available_after_ms": 0
+            }
+          ],
+          "medium": "desktop",
+          "next_session_state": {
+            "ownedObjects": [],
+            "version": "social-agency-v3",
+            "turnNumber": 1,
+            "currentIntent": "social",
+            "currentObjective": "Normal character-first conversation.",
+            "directorPlan": {
+              "intent": "social",
+              "objective": "Normal character-first conversation.",
+              "primaryAct": "react",
+              "secondaryAct": null,
+              "secondaryDelivery": null,
+              "contribution": null,
+              "contributionSource": "none",
+              "selectedBridgeId": null,
+              "question": null,
+              "posture": "engage",
+              "objectAction": "none",
+              "ownedObject": null,
+              "initiativeEligible": false,
+              "highConsequence": false,
+              "highConsequenceReason": null,
+              "explicitBoundary": false,
+              "reason": "Ordinary conversation is owned by the peripheral and character-first foreground path.",
+              "evidenceUpdates": [],
+              "authority": "peripheral_then_character"
+            },
+            "directorValidation": {
+              "status": "director_bypassed_for_ordinary_conversation",
+              "revised": false
+            },
+            "reciprocity": {
+              "windowPairs": 0,
+              "userContribution": "low",
+              "sophieContribution": "low",
+              "assistantNovelty": 0.5,
+              "reflectivePassiveCount": 0,
+              "strategyRepetition": 0,
+              "topicOwnership": "user",
+              "openSophieObjects": [],
+              "lastPlannedAct": null,
+              "lastExecutedAct": null,
+              "participationDebt": 0,
+              "rawReciprocityImbalance": 0,
+              "conditionedOnIntent": "social"
+            },
+            "lastPlannedAct": "react",
+            "relationship": {
+              "relationalFamiliarity": "sparse",
+              "initiativeConfidence": "low",
+              "evidenceRichness": 0,
+              "evidence": [],
+              "topInterestHypotheses": []
+            },
+            "highConsequence": {
+              "active": false,
+              "reason": null
+            },
+            "reentryClass": null,
+            "reentryTurnIndex": null,
+            "developerOverride": false,
+            "generationGear": {
+              "active": "default",
+              "tenure": 0,
+              "continuationSignal": "DOWNGRADE_OK",
+              "transition": "hold",
+              "trigger": "HOLD",
+              "activeObjective": null,
+              "objectiveTransition": "hold",
+              "releasedObjective": null,
+              "rejectionGuardTurns": 0,
+              "peripheralSuppressed": false,
+              "continuationReason": "Default gear has no elevated tenure."
+            },
+            "modelBefore": "chat-model",
+            "modelAfter": "chat-model",
+            "routeReason": "Intent-aware foreground speaker.",
+            "workerModel": "google/gemini-3.7-flash",
+            "lastExecutedAct": "react",
+            "executedOutcome": {
+              "plannedAct": "react",
+              "executedAct": "react",
+              "plannedStrategyExecuted": true,
+              "contributionExecuted": false,
+              "novelty": 0.94,
+              "questionUsed": false,
+              "beatCount": 1,
+              "objectActionExecuted": "none",
+              "ownedObject": null
+            },
+            "recentOutcomes": [
+              {
+                "plannedAct": "react",
+                "executedAct": "react",
+                "plannedStrategyExecuted": true,
+                "contributionExecuted": false,
+                "novelty": 0.94,
+                "questionUsed": false,
+                "beatCount": 1,
+                "objectActionExecuted": "none",
+                "ownedObject": null
+              }
+            ],
+            "actualSpeakerModel": "deepseek/deepseek-v4-flash"
+          }
+        },
+        "latencyMs": 12058
+      }
+    },
+    {
+      "fixture": "F2",
+      "res": {
+        "turnId": "turn-F-2",
+        "conversationId": "e2e-session-1787582215500-FG",
+        "userText": "haha okay i'm in. what happens next?",
+        "assistantMessage": "Depends what you're in the mood for. The path I'm thinking of splits a little further up — one way threads along the hedge where the blackberries are getting fat and stupidly ripe, the other cuts across open ground where the light's doing that thing where it turns the stubble gold. Neither's better, just different textures. Or we could just stand here a minute and watch whatever drifts past. Sometimes that's the whole thing.",
+        "beats": null,
+        "modelUsed": "deepseek/deepseek-v4-flash",
+        "providerUsed": "openrouter",
+        "executionLane": "reply_only",
+        "executionMetadata": {
+          "latency_ms": 15689,
+          "model_role": "conversation",
+          "model_id_decision": "chat-model",
+          "fallback_model_id": "chat-model",
+          "classifier_ran": true,
+          "classifier_succeeded": true,
+          "history_messages": 3,
+          "text_only_model": false,
+          "social_agency_version": "v3",
+          "intent": "social",
+          "reciprocity": {
+            "windowPairs": 1,
+            "userContribution": "low",
+            "sophieContribution": "high",
+            "assistantNovelty": 0.94,
+            "reflectivePassiveCount": 0,
+            "strategyRepetition": 0,
+            "topicOwnership": "shared",
+            "openSophieObjects": [],
+            "lastPlannedAct": null,
+            "lastExecutedAct": null,
+            "participationDebt": 0,
+            "rawReciprocityImbalance": 0,
+            "conditionedOnIntent": "social"
+          },
+          "director_plan": {
+            "intent": "social",
+            "objective": "Normal character-first conversation.",
+            "primaryAct": "react",
+            "secondaryAct": null,
+            "secondaryDelivery": null,
+            "contribution": null,
+            "contributionSource": "none",
+            "selectedBridgeId": null,
+            "question": null,
+            "posture": "engage",
+            "objectAction": "none",
+            "ownedObject": null,
+            "initiativeEligible": false,
+            "highConsequence": false,
+            "highConsequenceReason": null,
+            "explicitBoundary": false,
+            "reason": "Ordinary conversation is owned by the peripheral and character-first foreground path.",
+            "evidenceUpdates": [],
+            "authority": "peripheral_then_character"
+          },
+          "director_validation": {
+            "status": "director_bypassed_for_ordinary_conversation",
+            "revised": false
+          },
+          "selected_prompt_modules": {
+            "intentModule": "social",
+            "contextModules": [],
+            "mediumModule": "desktop",
+            "omittedContextModules": [
+              "scene",
+              "cortex",
+              "memory",
+              "entry",
+              "provenance",
+              "ambient"
+            ],
+            "socialAuthority": "peripheral_then_character",
+            "trajectoryIntervention": false
+          },
+          "executed_outcome": {
+            "plannedAct": "react",
+            "executedAct": "react",
+            "plannedStrategyExecuted": true,
+            "contributionExecuted": false,
+            "novelty": 0.96,
+            "questionUsed": false,
+            "beatCount": 1,
+            "objectActionExecuted": "none",
+            "ownedObject": null
+          },
+          "owned_objects": [],
+          "normal_model_id": "chat-model",
+          "steered_model_configured": null,
+          "model_escalated": false,
+          "context_ms": 7244,
+          "time_to_first_token_ms": null,
+          "generation_ms": 8444,
+          "total_ms": 15689,
+          "selected_foreground_model": "chat-model",
+          "routing_provenance": {
+            "peripheral_decision": "HOLD",
+            "impulse": "",
+            "generation_gear": "default",
+            "model": "deepseek/deepseek-v4-flash",
+            "elevated_already_active": false,
+            "tenure": 0,
+            "continuation_signal": "DOWNGRADE_OK",
+            "transition": "hold",
+            "active_conversational_objective": null,
+            "objective_transition": "hold",
+            "peripheral_suppressed": false,
+            "enrich_passed_to_normal_sophie": false
+          },
+          "reentry_class": null,
+          "reentry_turn_index": null,
+          "manual_model_override": false,
+          "current_objective": "Normal character-first conversation.",
+          "high_consequence": {
+            "active": false,
+            "reason": null
+          },
+          "relationship": {
+            "relationalFamiliarity": "sparse",
+            "initiativeConfidence": "low",
+            "evidenceRichness": 0,
+            "evidence": [],
+            "topInterestHypotheses": []
+          },
+          "route_reason": "Intent-aware foreground speaker.",
+          "worker_model": "google/gemini-3.7-flash",
+          "speaker_model": "deepseek/deepseek-v4-flash",
+          "beat_count": 1,
+          "beats": null,
+          "beat_delivery": [
+            {
+              "kind": "immediate",
+              "available_after_ms": 0
+            }
+          ],
+          "medium": "desktop",
+          "next_session_state": {
+            "ownedObjects": [],
+            "version": "social-agency-v3",
+            "turnNumber": 1,
+            "currentIntent": "social",
+            "currentObjective": "Normal character-first conversation.",
+            "directorPlan": {
+              "intent": "social",
+              "objective": "Normal character-first conversation.",
+              "primaryAct": "react",
+              "secondaryAct": null,
+              "secondaryDelivery": null,
+              "contribution": null,
+              "contributionSource": "none",
+              "selectedBridgeId": null,
+              "question": null,
+              "posture": "engage",
+              "objectAction": "none",
+              "ownedObject": null,
+              "initiativeEligible": false,
+              "highConsequence": false,
+              "highConsequenceReason": null,
+              "explicitBoundary": false,
+              "reason": "Ordinary conversation is owned by the peripheral and character-first foreground path.",
+              "evidenceUpdates": [],
+              "authority": "peripheral_then_character"
+            },
+            "directorValidation": {
+              "status": "director_bypassed_for_ordinary_conversation",
+              "revised": false
+            },
+            "reciprocity": {
+              "windowPairs": 1,
+              "userContribution": "low",
+              "sophieContribution": "high",
+              "assistantNovelty": 0.94,
+              "reflectivePassiveCount": 0,
+              "strategyRepetition": 0,
+              "topicOwnership": "shared",
+              "openSophieObjects": [],
+              "lastPlannedAct": null,
+              "lastExecutedAct": null,
+              "participationDebt": 0,
+              "rawReciprocityImbalance": 0,
+              "conditionedOnIntent": "social"
+            },
+            "lastPlannedAct": "react",
+            "relationship": {
+              "relationalFamiliarity": "sparse",
+              "initiativeConfidence": "low",
+              "evidenceRichness": 0,
+              "evidence": [],
+              "topInterestHypotheses": []
+            },
+            "highConsequence": {
+              "active": false,
+              "reason": null
+            },
+            "reentryClass": null,
+            "reentryTurnIndex": null,
+            "developerOverride": false,
+            "generationGear": {
+              "active": "default",
+              "tenure": 0,
+              "continuationSignal": "DOWNGRADE_OK",
+              "transition": "hold",
+              "trigger": "HOLD",
+              "activeObjective": null,
+              "objectiveTransition": "hold",
+              "releasedObjective": null,
+              "rejectionGuardTurns": 0,
+              "peripheralSuppressed": false,
+              "continuationReason": "Default gear has no elevated tenure."
+            },
+            "modelBefore": "chat-model",
+            "modelAfter": "chat-model",
+            "routeReason": "Intent-aware foreground speaker.",
+            "workerModel": "google/gemini-3.7-flash",
+            "lastExecutedAct": "react",
+            "executedOutcome": {
+              "plannedAct": "react",
+              "executedAct": "react",
+              "plannedStrategyExecuted": true,
+              "contributionExecuted": false,
+              "novelty": 0.96,
+              "questionUsed": false,
+              "beatCount": 1,
+              "objectActionExecuted": "none",
+              "ownedObject": null
+            },
+            "recentOutcomes": [
+              {
+                "plannedAct": "react",
+                "executedAct": "react",
+                "plannedStrategyExecuted": true,
+                "contributionExecuted": false,
+                "novelty": 0.96,
+                "questionUsed": false,
+                "beatCount": 1,
+                "objectActionExecuted": "none",
+                "ownedObject": null
+              }
+            ],
+            "actualSpeakerModel": "deepseek/deepseek-v4-flash"
+          }
+        },
+        "latencyMs": 15701
+      }
+    },
+    {
+      "fixture": "G",
+      "res": {
+        "turnId": "turn-G-3",
+        "conversationId": "e2e-session-1787582215500-FG",
+        "userText": "cool cool. anyway I reached the barn.",
+        "assistantMessage": "And? What's the barn doing? Is it one of those that's still holding together, or is it starting to lean into the earth the way old ones do when nobody's been fixing them for a decade?",
+        "beats": null,
+        "modelUsed": "deepseek/deepseek-v4-flash",
+        "providerUsed": "openrouter",
+        "executionLane": "reply_only",
+        "executionMetadata": {
+          "latency_ms": 10954,
+          "model_role": "conversation",
+          "model_id_decision": "chat-model",
+          "fallback_model_id": "chat-model",
+          "classifier_ran": true,
+          "classifier_succeeded": true,
+          "history_messages": 5,
+          "text_only_model": false,
+          "social_agency_version": "v3",
+          "intent": "social",
+          "reciprocity": {
+            "windowPairs": 2,
+            "userContribution": "low",
+            "sophieContribution": "high",
+            "assistantNovelty": 0.95,
+            "reflectivePassiveCount": 0,
+            "strategyRepetition": 0,
+            "topicOwnership": "shared",
+            "openSophieObjects": [],
+            "lastPlannedAct": null,
+            "lastExecutedAct": null,
+            "participationDebt": 0,
+            "rawReciprocityImbalance": 0,
+            "conditionedOnIntent": "social"
+          },
+          "director_plan": {
+            "intent": "social",
+            "objective": "Normal character-first conversation.",
+            "primaryAct": "react",
+            "secondaryAct": null,
+            "secondaryDelivery": null,
+            "contribution": null,
+            "contributionSource": "none",
+            "selectedBridgeId": null,
+            "question": null,
+            "posture": "engage",
+            "objectAction": "none",
+            "ownedObject": null,
+            "initiativeEligible": false,
+            "highConsequence": false,
+            "highConsequenceReason": null,
+            "explicitBoundary": false,
+            "reason": "Ordinary conversation is owned by the peripheral and character-first foreground path.",
+            "evidenceUpdates": [],
+            "authority": "peripheral_then_character"
+          },
+          "director_validation": {
+            "status": "director_bypassed_for_ordinary_conversation",
+            "revised": false
+          },
+          "selected_prompt_modules": {
+            "intentModule": "social",
+            "contextModules": [],
+            "mediumModule": "desktop",
+            "omittedContextModules": [
+              "scene",
+              "cortex",
+              "memory",
+              "entry",
+              "provenance",
+              "ambient"
+            ],
+            "socialAuthority": "peripheral_then_character",
+            "trajectoryIntervention": false
+          },
+          "executed_outcome": {
+            "plannedAct": "react",
+            "executedAct": "react",
+            "plannedStrategyExecuted": true,
+            "contributionExecuted": false,
+            "novelty": 0.92,
+            "questionUsed": true,
+            "beatCount": 1,
+            "objectActionExecuted": "none",
+            "ownedObject": null
+          },
+          "owned_objects": [],
+          "normal_model_id": "chat-model",
+          "steered_model_configured": null,
+          "model_escalated": false,
+          "context_ms": 3292,
+          "time_to_first_token_ms": null,
+          "generation_ms": 7662,
+          "total_ms": 10954,
+          "selected_foreground_model": "chat-model",
+          "routing_provenance": {
+            "peripheral_decision": "HOLD",
+            "impulse": "",
+            "generation_gear": "default",
+            "model": "deepseek/deepseek-v4-flash",
+            "elevated_already_active": false,
+            "tenure": 0,
+            "continuation_signal": "DOWNGRADE_OK",
+            "transition": "hold",
+            "active_conversational_objective": null,
+            "objective_transition": "hold",
+            "peripheral_suppressed": false,
+            "enrich_passed_to_normal_sophie": false
+          },
+          "reentry_class": null,
+          "reentry_turn_index": null,
+          "manual_model_override": false,
+          "current_objective": "Normal character-first conversation.",
+          "high_consequence": {
+            "active": false,
+            "reason": null
+          },
+          "relationship": {
+            "relationalFamiliarity": "sparse",
+            "initiativeConfidence": "low",
+            "evidenceRichness": 0,
+            "evidence": [],
+            "topInterestHypotheses": []
+          },
+          "route_reason": "Intent-aware foreground speaker.",
+          "worker_model": "google/gemini-3.7-flash",
+          "speaker_model": "deepseek/deepseek-v4-flash",
+          "beat_count": 1,
+          "beats": null,
+          "beat_delivery": [
+            {
+              "kind": "immediate",
+              "available_after_ms": 0
+            }
+          ],
+          "medium": "desktop",
+          "next_session_state": {
+            "ownedObjects": [],
+            "version": "social-agency-v3",
+            "turnNumber": 1,
+            "currentIntent": "social",
+            "currentObjective": "Normal character-first conversation.",
+            "directorPlan": {
+              "intent": "social",
+              "objective": "Normal character-first conversation.",
+              "primaryAct": "react",
+              "secondaryAct": null,
+              "secondaryDelivery": null,
+              "contribution": null,
+              "contributionSource": "none",
+              "selectedBridgeId": null,
+              "question": null,
+              "posture": "engage",
+              "objectAction": "none",
+              "ownedObject": null,
+              "initiativeEligible": false,
+              "highConsequence": false,
+              "highConsequenceReason": null,
+              "explicitBoundary": false,
+              "reason": "Ordinary conversation is owned by the peripheral and character-first foreground path.",
+              "evidenceUpdates": [],
+              "authority": "peripheral_then_character"
+            },
+            "directorValidation": {
+              "status": "director_bypassed_for_ordinary_conversation",
+              "revised": false
+            },
+            "reciprocity": {
+              "windowPairs": 2,
+              "userContribution": "low",
+              "sophieContribution": "high",
+              "assistantNovelty": 0.95,
+              "reflectivePassiveCount": 0,
+              "strategyRepetition": 0,
+              "topicOwnership": "shared",
+              "openSophieObjects": [],
+              "lastPlannedAct": null,
+              "lastExecutedAct": null,
+              "participationDebt": 0,
+              "rawReciprocityImbalance": 0,
+              "conditionedOnIntent": "social"
+            },
+            "lastPlannedAct": "react",
+            "relationship": {
+              "relationalFamiliarity": "sparse",
+              "initiativeConfidence": "low",
+              "evidenceRichness": 0,
+              "evidence": [],
+              "topInterestHypotheses": []
+            },
+            "highConsequence": {
+              "active": false,
+              "reason": null
+            },
+            "reentryClass": null,
+            "reentryTurnIndex": null,
+            "developerOverride": false,
+            "generationGear": {
+              "active": "default",
+              "tenure": 0,
+              "continuationSignal": "DOWNGRADE_OK",
+              "transition": "hold",
+              "trigger": "HOLD",
+              "activeObjective": null,
+              "objectiveTransition": "hold",
+              "releasedObjective": null,
+              "rejectionGuardTurns": 0,
+              "peripheralSuppressed": false,
+              "continuationReason": "Default gear has no elevated tenure."
+            },
+            "modelBefore": "chat-model",
+            "modelAfter": "chat-model",
+            "routeReason": "Intent-aware foreground speaker.",
+            "workerModel": "google/gemini-3.7-flash",
+            "lastExecutedAct": "react",
+            "executedOutcome": {
+              "plannedAct": "react",
+              "executedAct": "react",
+              "plannedStrategyExecuted": true,
+              "contributionExecuted": false,
+              "novelty": 0.92,
+              "questionUsed": true,
+              "beatCount": 1,
+              "objectActionExecuted": "none",
+              "ownedObject": null
+            },
+            "recentOutcomes": [
+              {
+                "plannedAct": "react",
+                "executedAct": "react",
+                "plannedStrategyExecuted": true,
+                "contributionExecuted": false,
+                "novelty": 0.92,
+                "questionUsed": true,
+                "beatCount": 1,
+                "objectActionExecuted": "none",
+                "ownedObject": null
+              }
+            ],
+            "actualSpeakerModel": "deepseek/deepseek-v4-flash"
+          }
+        },
+        "latencyMs": 10966
+      }
+    },
+    {
+      "fixture": "H",
+      "res": {
+        "turnId": "turn-H-1",
+        "conversationId": "e2e-session-1787582215500-H",
+        "userText": "give me a concise checklist for deploying a Next.js app to Vercel",
+        "assistantMessage": "1. **Push to Git** — Make sure your repo is up on GitHub, GitLab, or Bitbucket. Vercel imports from a git provider. 2. **Import into Vercel** — Go to [vercel.com](https://vercel.com), click *Add New > Project*, and select your repository. The framework preset should auto-detect Next.js — verify it. 3. **Configure Environment Variables** — Add any `NEXT_PUBLIC_*` or server-side secrets under *Environment Variables* in the Vercel dashboard before deploying. Triple-check production values. 4. **Build & Output Settings** — Defaults usually work (`next build` produces `.next`). If you use a custom output directory or base path, set that here. Skip the override unless you know you need it. 5. **Deploy** — Hit deploy. Watch the build logs. Common gotcha: a missing dependency or `.env.local` being committed (don’t). 6. **Domain & HTTPS** — After first deploy, Vercel gives you a `*.vercel.app` URL. Add your custom domain under *Domains* and update DNS. Vercel provisions SSL automatically. 7. **Verify** — Check that environment variables load, routes work, and any API endpoints respond. Do a quick Lighthouse run if performance matters. That's it. The whole flow takes about 5 minutes if nothing breaks.",
+        "beats": null,
+        "modelUsed": "deepseek/deepseek-v4-flash",
+        "providerUsed": "openrouter",
+        "executionLane": "reply_only",
+        "executionMetadata": {
+          "latency_ms": 13799,
+          "model_role": "conversation",
+          "model_id_decision": "chat-model",
+          "fallback_model_id": "chat-model",
+          "classifier_ran": true,
+          "classifier_succeeded": true,
+          "history_messages": 1,
+          "text_only_model": false,
+          "social_agency_version": "v3",
+          "intent": "task",
+          "reciprocity": {
+            "windowPairs": 0,
+            "userContribution": "low",
+            "sophieContribution": "low",
+            "assistantNovelty": 0.5,
+            "reflectivePassiveCount": 0,
+            "strategyRepetition": 0,
+            "topicOwnership": "user",
+            "openSophieObjects": [],
+            "lastPlannedAct": null,
+            "lastExecutedAct": null,
+            "participationDebt": 0,
+            "rawReciprocityImbalance": 0,
+            "conditionedOnIntent": "task"
+          },
+          "director_plan": {
+            "intent": "task",
+            "objective": "Provide a clear, concise checklist for deploying a Next.js application to Vercel.",
+            "primaryAct": "tell",
+            "secondaryAct": null,
+            "secondaryDelivery": null,
+            "contribution": "A practical step-by-step checklist covering git push, importing into Vercel, environment variables configuration, build settings verification, and deployment/domain verification.",
+            "question": null,
+            "contributionSource": "task",
+            "selectedBridgeId": null,
+            "posture": "focus",
+            "objectAction": "none",
+            "ownedObject": null,
+            "initiativeEligible": false,
+            "highConsequence": false,
+            "highConsequenceReason": null,
+            "explicitBoundary": false,
+            "reason": "Direct technical checklist request; deliver focused, clean steps without unnecessary filler.",
+            "evidenceUpdates": [
+              {
+                "kind": "engagement_preference",
+                "label": "technical_conciseness",
+                "sentiment": "neutral",
+                "confidence": "medium",
+                "engagementMode": "practical",
+                "evidence": "User asked directly for a concise checklist for Next.js on Vercel."
+              }
+            ]
+          },
+          "director_validation": {
+            "status": "accepted",
+            "revised": false
+          },
+          "selected_prompt_modules": {
+            "intentModule": "task",
+            "contextModules": [],
+            "mediumModule": "desktop",
+            "omittedContextModules": [
+              "scene",
+              "cortex",
+              "memory",
+              "entry",
+              "provenance",
+              "ambient"
+            ],
+            "socialAuthority": "director_governed",
+            "trajectoryIntervention": false
+          },
+          "executed_outcome": {
+            "plannedAct": "tell",
+            "executedAct": "tell",
+            "plannedStrategyExecuted": true,
+            "contributionExecuted": true,
+            "novelty": 0.96,
+            "questionUsed": false,
+            "beatCount": 1,
+            "objectActionExecuted": "none",
+            "ownedObject": null
+          },
+          "owned_objects": [],
+          "normal_model_id": "chat-model",
+          "steered_model_configured": null,
+          "model_escalated": false,
+          "context_ms": 5082,
+          "time_to_first_token_ms": null,
+          "generation_ms": 8716,
+          "total_ms": 13799,
+          "selected_foreground_model": "chat-model",
+          "routing_provenance": {
+            "peripheral_decision": "HOLD",
+            "impulse": "",
+            "generation_gear": "default",
+            "model": "deepseek/deepseek-v4-flash",
+            "elevated_already_active": false,
+            "tenure": 0,
+            "continuation_signal": "DOWNGRADE_OK",
+            "transition": "hold",
+            "active_conversational_objective": null,
+            "objective_transition": "hold",
+            "peripheral_suppressed": false,
+            "enrich_passed_to_normal_sophie": false
+          },
+          "reentry_class": null,
+          "reentry_turn_index": null,
+          "manual_model_override": false,
+          "current_objective": "Provide a clear, concise checklist for deploying a Next.js application to Vercel.",
+          "high_consequence": {
+            "active": false,
+            "reason": null
+          },
+          "relationship": {
+            "relationalFamiliarity": "sparse",
+            "initiativeConfidence": "low",
+            "evidenceRichness": 0,
+            "evidence": [
+              {
+                "kind": "engagement_preference",
+                "label": "technical_conciseness",
+                "strength": 0,
+                "confidence": "medium",
+                "engagementMode": "practical",
+                "evidence": "User asked directly for a concise checklist for Next.js on Vercel.",
+                "updatedTurn": 1
+              }
+            ],
+            "topInterestHypotheses": []
+          },
+          "route_reason": "Intent-aware foreground speaker.",
+          "worker_model": "google/gemini-3.7-flash",
+          "speaker_model": "deepseek/deepseek-v4-flash",
+          "beat_count": 1,
+          "beats": null,
+          "beat_delivery": [
+            {
+              "kind": "immediate",
+              "available_after_ms": 0
+            }
+          ],
+          "medium": "desktop",
+          "next_session_state": {
+            "ownedObjects": [],
+            "version": "social-agency-v3",
+            "turnNumber": 1,
+            "currentIntent": "task",
+            "currentObjective": "Provide a clear, concise checklist for deploying a Next.js application to Vercel.",
+            "directorPlan": {
+              "intent": "task",
+              "objective": "Provide a clear, concise checklist for deploying a Next.js application to Vercel.",
+              "primaryAct": "tell",
+              "secondaryAct": null,
+              "secondaryDelivery": null,
+              "contribution": "A practical step-by-step checklist covering git push, importing into Vercel, environment variables configuration, build settings verification, and deployment/domain verification.",
+              "question": null,
+              "contributionSource": "task",
+              "selectedBridgeId": null,
+              "posture": "focus",
+              "objectAction": "none",
+              "ownedObject": null,
+              "initiativeEligible": false,
+              "highConsequence": false,
+              "highConsequenceReason": null,
+              "explicitBoundary": false,
+              "reason": "Direct technical checklist request; deliver focused, clean steps without unnecessary filler.",
+              "evidenceUpdates": [
+                {
+                  "kind": "engagement_preference",
+                  "label": "technical_conciseness",
+                  "sentiment": "neutral",
+                  "confidence": "medium",
+                  "engagementMode": "practical",
+                  "evidence": "User asked directly for a concise checklist for Next.js on Vercel."
+                }
+              ]
+            },
+            "directorValidation": {
+              "status": "accepted",
+              "revised": false
+            },
+            "reciprocity": {
+              "windowPairs": 0,
+              "userContribution": "low",
+              "sophieContribution": "low",
+              "assistantNovelty": 0.5,
+              "reflectivePassiveCount": 0,
+              "strategyRepetition": 0,
+              "topicOwnership": "user",
+              "openSophieObjects": [],
+              "lastPlannedAct": null,
+              "lastExecutedAct": null,
+              "participationDebt": 0,
+              "rawReciprocityImbalance": 0,
+              "conditionedOnIntent": "task"
+            },
+            "lastPlannedAct": "tell",
+            "relationship": {
+              "relationalFamiliarity": "sparse",
+              "initiativeConfidence": "low",
+              "evidenceRichness": 0,
+              "evidence": [
+                {
+                  "kind": "engagement_preference",
+                  "label": "technical_conciseness",
+                  "strength": 0,
+                  "confidence": "medium",
+                  "engagementMode": "practical",
+                  "evidence": "User asked directly for a concise checklist for Next.js on Vercel.",
+                  "updatedTurn": 1
+                }
+              ],
+              "topInterestHypotheses": []
+            },
+            "highConsequence": {
+              "active": false,
+              "reason": null
+            },
+            "reentryClass": null,
+            "reentryTurnIndex": null,
+            "developerOverride": false,
+            "generationGear": {
+              "active": "default",
+              "tenure": 0,
+              "continuationSignal": "DOWNGRADE_OK",
+              "transition": "hold",
+              "trigger": "HOLD",
+              "activeObjective": null,
+              "objectiveTransition": "hold",
+              "releasedObjective": null,
+              "rejectionGuardTurns": 0,
+              "peripheralSuppressed": false,
+              "continuationReason": "Default gear has no elevated tenure."
+            },
+            "modelBefore": "chat-model",
+            "modelAfter": "chat-model",
+            "routeReason": "Intent-aware foreground speaker.",
+            "workerModel": "google/gemini-3.7-flash",
+            "lastExecutedAct": "tell",
+            "executedOutcome": {
+              "plannedAct": "tell",
+              "executedAct": "tell",
+              "plannedStrategyExecuted": true,
+              "contributionExecuted": true,
+              "novelty": 0.96,
+              "questionUsed": false,
+              "beatCount": 1,
+              "objectActionExecuted": "none",
+              "ownedObject": null
+            },
+            "recentOutcomes": [
+              {
+                "plannedAct": "tell",
+                "executedAct": "tell",
+                "plannedStrategyExecuted": true,
+                "contributionExecuted": true,
+                "novelty": 0.96,
+                "questionUsed": false,
+                "beatCount": 1,
+                "objectActionExecuted": "none",
+                "ownedObject": null
+              }
+            ],
+            "actualSpeakerModel": "deepseek/deepseek-v4-flash"
+          }
+        },
+        "latencyMs": 13808
+      }
+    }
+  ]
+}

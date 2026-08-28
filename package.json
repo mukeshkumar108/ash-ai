@@ -29,6 +29,7 @@
     "continuity:harness": "pnpm exec tsx scripts/continuity-scenario-harness.ts",
     "smoke:weather": "pnpm exec tsx scripts/weather-smoke.ts",
     "smoke:weather-agent": "pnpm exec tsx scripts/weather-agent-smoke.ts",
+    "eval:behavioral-harness": "tsx evals/sophie/behavioral-harness/runner.ts",
     "test": "export PLAYWRIGHT=True && pnpm exec playwright test"
   },
   "dependencies": {

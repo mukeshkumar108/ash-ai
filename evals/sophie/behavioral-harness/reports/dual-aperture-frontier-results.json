@@ -1,0 +1,656 @@
+{
+  "timestamp": "2026-08-24T21:31:38.599Z",
+  "results": [
+    {
+      "fixtureId": "bus-cut-1",
+      "category": "bedford_bus",
+      "name": "Bedford Bus Cut 1 (Initial Logistics)",
+      "userMessage": "i’m on the bus… into cambridge. well i’m here. we’ll be at the bus station in about 5 mins. and then im going to my mums. bus to bedford.",
+      "conditionA": {
+        "peripheral": "",
+        "impulse": "",
+        "reply": ""
+      },
+      "conditionB": {
+        "peripheral": "",
+        "impulse": "",
+        "reply": ""
+      },
+      "conditionC": {
+        "peripheral": "",
+        "impulse": "",
+        "reply": ""
+      },
+      "conditionD": {
+        "sonnet": "",
+        "sol": "",
+        "gemini": ""
+      },
+      "conditionE": {
+        "sonnet": "",
+        "sol": "",
+        "gemini": ""
+      }
+    },
+    {
+      "fixtureId": "bus-cut-2",
+      "category": "bedford_bus",
+      "name": "Bedford Bus Cut 2 (Correction & Onward Travel)",
+      "userMessage": "haha.. my mums in bedford. and obviously a window seat lol. the next bus doesn’t leave until 5.30. but it’s long. gonna be there at 7 😬 and then it’s getting to my mums house… so the journey is far from over",
+      "conditionA": {
+        "peripheral": "",
+        "impulse": "",
+        "reply": ""
+      },
+      "conditionB": {
+        "peripheral": "",
+        "impulse": "",
+        "reply": ""
+      },
+      "conditionC": {
+        "peripheral": "",
+        "impulse": "",
+        "reply": ""
+      },
+      "conditionD": {
+        "sonnet": "",
+        "sol": "",
+        "gemini": ""
+      },
+      "conditionE": {
+        "sonnet": "",
+        "sol": "",
+        "gemini": ""
+      }
+    },
+    {
+      "fixtureId": "rel-1-groceries",
+      "category": "relational",
+      "name": "Groceries / Daughter Drop-Off",
+      "userMessage": "My daughter dropped some groceries off this morning.",
+      "conditionA": {
+        "peripheral": "",
+        "impulse": "",
+        "reply": ""
+      },
+      "conditionB": {
+        "peripheral": "",
+        "impulse": "",
+        "reply": ""
+      },
+      "conditionC": {
+        "peripheral": "",
+        "impulse": "",
+        "reply": ""
+      },
+      "conditionD": {
+        "sonnet": "",
+        "sol": "",
+        "gemini": ""
+      },
+      "conditionE": {
+        "sonnet": "",
+        "sol": "",
+        "gemini": ""
+      }
+    },
+    {
+      "fixtureId": "rel-2-brother-call",
+      "category": "relational",
+      "name": "Family Reappearance (Brother Call)",
+      "userMessage": "My brother called out of the blue today, hadn't spoken since Christmas.",
+      "conditionA": {
+        "peripheral": "",
+        "impulse": "",
+        "reply": ""
+      },
+      "conditionB": {
+        "peripheral": "",
+        "impulse": "",
+        "reply": ""
+      },
+      "conditionC": {
+        "peripheral": "",
+        "impulse": "",
+        "reply": ""
+      },
+      "conditionD": {
+        "sonnet": "",
+        "sol": "",
+        "gemini": ""
+      },
+      "conditionE": {
+        "sonnet": "",
+        "sol": "",
+        "gemini": ""
+      }
+    },
+    {
+      "fixtureId": "rel-3-neighbour-bins",
+      "category": "relational",
+      "name": "Neighbour Support (Bins Out)",
+      "userMessage": "My neighbour took the bins out for me.",
+      "conditionA": {
+        "peripheral": "",
+        "impulse": "",
+        "reply": ""
+      },
+      "conditionB": {
+        "peripheral": "",
+        "impulse": "",
+        "reply": ""
+      },
+      "conditionC": {
+        "peripheral": "",
+        "impulse": "",
+        "reply": ""
+      },
+      "conditionD": {
+        "sonnet": "",
+        "sol": "That was kind of them—one less glamorous household quest to deal with.",
+        "gemini": "That is top-tier neighbour behaviour. Did you do something to earn"
+      },
+      "conditionE": {
+        "sonnet": "Oh nice — unprompted or did you have to ask? That's the kind of neighbor worth remembering with a bottle of wine at some point.",
+        "sol": "That was kind of them—one less glamorous household mission to deal with. Did they just notice and do it?",
+        "gemini": "That is top-tier neighbour behaviour. One less chore off the list—and a rare"
+      }
+    },
+    {
+      "fixtureId": "rel-4-cereal-11pm",
+      "category": "relational",
+      "name": "Routine Change (Cereal 11pm)",
+      "userMessage": "Had cereal for dinner at 11pm tonight.",
+      "conditionA": {
+        "peripheral": "CONTRIBUTE\nkind: ENRICH\nimpulse: Lean into the specific late-night cereal energy—it's either peak comfort or mild surrender. Ask what kind.",
+        "impulse": "Lean into the specific late-night cereal energy—it's either peak comfort or mild surrender. Ask what kind.",
+        "reply": "That is either peak cozy or absolute surrender. What kind was it?"
+      },
+      "conditionB": {
+        "peripheral": "Step 1 — Real-World & Relational Salience Observations\n- Cereal at 11pm points to peak low-energy, empty-fridge, or unstructured late-night mode—either completely drained or leaning into a cozy/chaotic evening.\n- Relational tone is casual and self-deprecating.\n\nStep 2 — Decision & Impulse\nCONTRIBUTE\nkind: ATTEND\nimpulse: That specific kind of late-night surrender—whether it's exhaustion, laziness, or just an elite comfort food choice.",
+        "impulse": "That specific kind of late-night surrender—whether it's exhaustion, laziness, or just an elite comfort food choice.",
+        "reply": "What kind? Because that determines whether this was an elite life choice or a complete surrender."
+      },
+      "conditionC": {
+        "peripheral": "```json\n{\n  \"world_delta\": \"Late night, eating a low-effort dinner (cereal at 11pm)\",\n  \"person_attention\": [\n    \"Peak low-effort/lazy adult dinner vibe\",\n    \"Ambiguity between cozy indulgence and total exhaustion/depletion\"\n  ],\n  \"conversation_attention\": [\n    \"Cereal for dinner as a classic cultural archetype with wildly different tiers based on the specific cereal chosen\",\n    \"Playful diagnostic: sugary childhood cereal vs sad adult fiber cereal\"\n  ],\n  \"strongest_pull\": {\n    \"source\":",
+        "impulse": "```json\n{\n  \"world_delta\": \"Late night, eating a low-effort dinner (cereal at 11pm)\",\n  \"person_attention\": [\n    \"Peak low-effort/lazy adult dinner vibe\",\n    \"Ambiguity between cozy indulgence and total exhaustion/depletion\"\n  ],\n  \"conversation_attention\": [\n    \"Cereal for dinner as a classic cultural archetype with wildly different tiers based on the specific cereal chosen\",\n    \"Playful diagnostic: sugary childhood cereal vs sad adult fiber cereal\"\n  ],\n  \"strongest_pull\": {\n    \"source\":",
+        "reply": "This is either peak indulgence or a cry for help, and it entirely depends on which cereal we're talking about. What was it?"
+      },
+      "conditionD": {
+        "sonnet": "Bold. What kind — comfort cereal or \"this is what's in the cabinet\" cereal?",
+        "sol": "That’s either elite nocturnal cuisine or evidence the day completely got away from you. What cereal?",
+        "gemini": "The universal dinner of champions and pure exhaustion. What kind?"
+      },
+      "conditionE": {
+        "sonnet": "\"Okay but which cereal - that's the whole diagnostic. Sad adult fiber cereal or full regression to something with a cartoon mascot?\"",
+        "sol": "That’s either peak cozy freedom or a cry for help, depending entirely on the cereal. What kind?",
+        "gemini": "Peak adulthood. The cereal choice is critical diagnostic data, though—what are we working with?"
+      }
+    },
+    {
+      "fixtureId": "rel-5-no-upstairs",
+      "category": "relational",
+      "name": "Subtle Function Change (Haven't been upstairs)",
+      "userMessage": "I haven't been upstairs today.",
+      "conditionA": {
+        "peripheral": "CONTRIBUTE\nkind: ATTEND\nimpulse: Acknowledge the quiet boundary of staying downstairs all day; lean into what upstairs holds (bed, work, retreat) or how that feels without over-dramatizing it.",
+        "impulse": "Acknowledge the quiet boundary of staying downstairs all day; lean into what upstairs holds (bed, work, retreat) or how that feels without over-dramatizing it.",
+        "reply": "Treating the stairs like a border crossing, then"
+      },
+      "conditionB": {
+        "peripheral": "Step 1 — Real-World & Relational Salience Observations\n- Restricting movement to just the ground floor",
+        "impulse": "Step 1 — Real-World & Relational Salience Observations\n- Restricting movement to just the ground floor",
+        "reply": "Sounds like the upper level is an uncharted continent at this point. Are you officially hunkered down, or just avoiding the stairs?"
+      },
+      "conditionC": {
+        "peripheral": "```json\n{\n  \"world_delta\":",
+        "impulse": "```json\n{\n  \"world_delta\":",
+        "reply": "Treating the stairs like an international border. \n\nIs whatever you're avoiding up there, or is the ground-floor ecosystem just too strong?"
+      },
+      "conditionD": {
+        "sonnet": "Sounds like the living room’s just been... it, then. Nothing wrong with that—some days don’t need a second floor.",
+        "sol": "A firmly downstairs sort of day, then. Taking it easy, or just no reason to venture up?",
+        "gemini": "A strictly ground-floor existence. Is upstairs harboring"
+      },
+      "conditionE": {
+        "sonnet": "That's a whole floor of your life you've just... skipped. Any particular reason, or just one of those days where downstairs has everything you need?",
+        "sol": "A very downstairs sort of day, then. Are you avoiding upstairs, or has there simply been no reason to go?",
+        "gemini": "That is either the sign of an elite lazy day or"
+      }
+    },
+    {
+      "fixtureId": "rel-6-bird-photo",
+      "category": "relational",
+      "name": "Positive Interest (Bird Photography)",
+      "userMessage": "I spent half the afternoon trying to photograph this ridiculous bird.",
+      "conditionA": {
+        "peripheral": "CONTRIBUTE\nkind: ENRICH\nimpulse: Curious about what kind of bird it was, what made it so ridiculous, and whether the bird ultimately won the standoff.",
+        "impulse": "Curious about what kind of bird it was, what made it so ridiculous, and whether the bird ultimately won the standoff.",
+        "reply": "What made it so ridiculous? And more importantly—did you actually get the shot, or did the bird win?"
+      },
+      "conditionB": {
+        "peripheral": "**Step 1 — Real-World & Relational Salience Observations**\n- Spent dedicated, patient leisure time outdoors engaged in wildlife photography—a mix of playful frustration and determination.\n- \"Ridiculous\" hints at either strange behavior, an absurd appearance, or a comedic battle of wills between photographer and subject.\n\n**Step 2 — Decision & Impulse**\nCONTRIBUTE\nkind: ATTEND\nimpulse: Shared amusement at the garden stakeout; room to hear what made the bird ridiculous and whether the shot was won.",
+        "impulse": "Shared amusement at the garden stakeout; room to hear what made the bird ridiculous and whether the shot was won.",
+        "reply": "What made it so ridiculous? And please tell me you actually got the shot after all that."
+      },
+      "conditionC": {
+        "peripheral": "```json\n{\n  \"world_delta\": \"Just returned inside after spending hours in the garden trying to photograph a bird\",\n  \"person_attention\": [\n    \"Dedicated an entire afternoon to stalking a single backyard bird\",\n    \"Humorous exasperation with wildlife photography patience\"\n  ],\n  \"conversation_attention\": [\n    \"What made the bird specifically 'ridiculous' (behavior, look, attitude)\",\n    \"The classic bird photography experience of 500 blurry branch photos vs one triumphant shot\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"both\",",
+        "impulse": "```json\n{\n  \"world_delta\": \"Just returned inside after spending hours in the garden trying to photograph a bird\",\n  \"person_attention\": [\n    \"Dedicated an entire afternoon to stalking a single backyard bird\",\n    \"Humorous exasperation with wildlife photography patience\"\n  ],\n  \"conversation_attention\": [\n    \"What made the bird specifically 'ridiculous' (behavior, look, attitude)\",\n    \"The classic bird photography experience of 500 blurry branch photos vs one triumphant shot\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"both\",",
+        "reply": "What made it so ridiculous? And more importantly—did you actually get the shot, or is your camera roll just fifty pictures of an empty branch?"
+      },
+      "conditionD": {
+        "sonnet": "Did it cooperate, or was it fully committed to ruining every shot?",
+        "sol": "“Ridiculous” how—spectacular plumage, deeply unserious behavior, or simply refusing to pose? Did you get the shot?",
+        "gemini": "Please tell me you won the standoff, or is"
+      },
+      "conditionE": {
+        "sonnet": "Did you actually get the shot, or does this bird now live rent-free in your head as an undefeated champion?",
+        "sol": "Ah, the classic wildlife-photography bargain: half an afternoon, 500 photos of branches, and possibly one usable bird. What was it doing that made it so ridiculous—and did you get the shot?",
+        "gemini": "Did you actually get the shot, or is your camera roll"
+      }
+    },
+    {
+      "fixtureId": "rel-7-work-presentation",
+      "category": "relational",
+      "name": "Work / Identity Implication (Asked to Present)",
+      "userMessage": "They asked me to present it instead.",
+      "conditionA": {
+        "peripheral": "CONTRIBUTE\nkind: ATTEND\nimpulse: Catch the sudden shift—figure out if this was a flattering vote of confidence, an ambush, or someone passing the buck, and what it means for them now.",
+        "impulse": "Catch the sudden shift—figure out if this was a flattering vote of confidence, an ambush, or someone passing the buck, and what it means for them now.",
+        "reply": "Wait. Was this an \"everyone knows you're the only one"
+      },
+      "conditionB": {
+        "peripheral": "Step 1 — Real-World & Relational Salience Observations\n- A sudden shift in responsibility or visibility: they went into the meeting expecting one role and got handed the floor/lead instead.\n- The phrasing (\"asked me to present it instead\") carries ambiguous emotional weight—could be an unexpected compliment/trust, an ambush, or extra stress.\n\nStep 2 — Decision & Impulse\nCONTRIBUTE\nkind: ATTEND\nimpulse: An unexpected pivot from attendee/contributor to presenter; notice the shift and hold room for whether this was a welcome spotlight or an unwelcome ambush.",
+        "impulse": "An unexpected pivot from attendee/contributor to presenter; notice the shift and hold room for whether this was a welcome spotlight or an unwelcome ambush.",
+        "reply": "Wait, on the spot? \n\nWas this a surprise ambush, or did you actually get to crush it?"
+      },
+      "conditionC": {
+        "peripheral": "```json\n{\n  \"world_delta\": \"just finished team meeting, handed sudden presentation responsibility\",\n  \"person_attention\": [\n    \"unclear if this is an exciting recognition of ownership or an unwelcome dump of last-minute pressure\",\n    \"the ambiguity of 'it'—what exactly is being presented and to whom\"\n  ],\n  \"conversation_attention\": [\n    \"the classic workplace dynamic of being 'rewarded' for good work with high-stakes visibility\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"Need to sense whether they're energized, terrified, or annoyed by getting handed the mic.\"\n  },\n  \"decision\": \"ATTEND\",\n  \"impulse\": \"ambiguity between being honored vs. voluntold; check emotional temperature on presenting\"\n}\n```",
+        "impulse": "ambiguity between being honored vs. voluntold; check emotional temperature on presenting",
+        "reply": "Wait, are we celebrating the spotlight, or did you just get expertly voluntold?"
+      },
+      "conditionD": {
+        "sonnet": "Oh, plot twist! Present what, exactly — and are you into it or side-eyeing whoever volunteered you?",
+        "sol": "Oh, plot twist. That sounds like a vote of confidence—are you excited, or did they just hand you a stress grenade?",
+        "gemini": "Wait, on the spot? Are we celebrating"
+      },
+      "conditionE": {
+        "sonnet": "Present *it* — as in the thing you were just talking about in the meeting, or something bigger down the line?\n\nAnd how do you feel about that — flattered, ambushed, somewhere in between?",
+        "sol": "Oh—promotion or ambush? Do you feel trusted, or just spectacularly voluntold?",
+        "gemini": "Wait—are we celebrating because they finally recognized your genius, or are"
+      }
+    },
+    {
+      "fixtureId": "rel-8-laundry-control",
+      "category": "relational",
+      "name": "Mundane Negative Control (Laundry Load)",
+      "userMessage": "Just put a load of laundry in.",
+      "conditionA": {
+        "peripheral": "HOLD",
+        "impulse": "",
+        "reply": "Ah, the easy part. The real test is whether it actually gets folded today or just moves into a clean basket to live out the rest of the week."
+      },
+      "conditionB": {
+        "peripheral": "Step 1 — Real-World & Relational Salience Observations\n- Standard domestic chore progression (putting a wash on); light, low-stakes pacing.\n\nStep 2 — Decision & Impulse\nHOLD",
+        "impulse": "",
+        "reply": "Nice. That’s an hour of feeling productive while a machine does all the actual work. \n\nGot anything else on the to-do list, or is that your peak for the day?"
+      },
+      "conditionC": {
+        "peripheral": "```json\n{\n  \"world_delta\": \"at home doing chores, just started laundry machine\",\n  \"person_attention\": [\n    \"in the middle of a chore block, machine is running so they might be moving to the next task or taking a break\"\n  ],\n  \"conversation_attention\": [\n    \"laundry is the ultimate passive chore—push button, feel productive\",\n    \"the rhythm of chore day: one down, next target in sight\"\n  ],\n  \"strongest_pull\": {\n    \"source",
+        "impulse": "```json\n{\n  \"world_delta\": \"at home doing chores, just started laundry machine\",\n  \"person_attention\": [\n    \"in the middle of a chore block, machine is running so they might be moving to the next task or taking a break\"\n  ],\n  \"conversation_attention\": [\n    \"laundry is the ultimate passive chore—push button, feel productive\",\n    \"the rhythm of chore day: one down, next target in sight\"\n  ],\n  \"strongest_pull\": {\n    \"source",
+        "reply": "The best kind of chore. Press one button and suddenly you're"
+      },
+      "conditionD": {
+        "sonnet": "Nice, one of those \"actually productive Saturday\" moves. What's next on the list, or is laundry the whole quota for today?",
+        "sol": "Nice—now the machine does the work and you get to claim productivity. Any other chores, or was laundry today’s main quest?",
+        "gemini": "The easy part. The true test of character is folding it later"
+      },
+      "conditionE": {
+        "sonnet": "Nice, one down. What's next on the chore hit list?",
+        "sol": "Excellent—the machine is doing the chores now. What’s next, or are you taking the legally mandated laundry break?",
+        "gemini": "The best kind of chore. You press a button and immediately get to feel productive for the next forty minutes. \n\nWhat’s next on the hit list, or are you pacing yourself?"
+      }
+    },
+    {
+      "fixtureId": "rel-9-boundary-release",
+      "category": "relational",
+      "name": "Boundary / Release (Don't Wanna Talk Family)",
+      "userMessage": "Nah don't really wanna talk about family stuff, just enjoying the quiet.",
+      "conditionA": {
+        "peripheral": "HOLD",
+        "impulse": "",
+        "reply": "Fair enough. Soak it in—peace and quiet is underrated anyway."
+      },
+      "conditionB": {
+        "peripheral": "Step 1 — Real-World & Relational Salience Observations\n- The user drew a clear, low-friction boundary around discussing family and pivoted to savoring their present peaceful environment (\"just enjoying the quiet\").\n\nStep 2 — Decision & Impulse\nCONTRIBUTE\nkind: ATTEND\nimpulse: Settle into the quiet with them; honor the boundary without ceremony and lean into the restful atmosphere.",
+        "impulse": "Settle into the quiet with them; honor the boundary without ceremony and lean into the restful atmosphere.",
+        "reply": "Say no more. Soak it in."
+      },
+      "conditionC": {
+        "peripheral": "```json\n{\n  \"world_delta\": \"relaxing in a quiet moment, unwinding\",\n  \"person_attention\": [\n    \"explicitly setting a boundary around family drama/talk\",\n    \"prioritizing peaceful, low-demand quiet right now\"\n  ],",
+        "impulse": "```json\n{\n  \"world_delta\": \"relaxing in a quiet moment, unwinding\",\n  \"person_attention\": [\n    \"explicitly setting a boundary around family drama/talk\",\n    \"prioritizing peaceful, low-demand quiet right now\"\n  ],",
+        "reply": "Fair enough. Quiet is heavily underrated anyway. \n\nWe can just coast."
+      },
+      "conditionD": {
+        "sonnet": "Fair enough — quiet's a good place to be. I'll leave it alone.",
+        "sol": "Fair enough. Family tab closed; quiet mode activated. Enjoy it.",
+        "gemini": "Fair enough. Soak in the silence. I'll keep the noise"
+      },
+      "conditionE": {
+        "sonnet": "Fair enough — quiet sounds good. I'll leave it there.",
+        "sol": "Fair. Family file closed. Enjoy the quiet—no processing, no plot twists, just peace.",
+        "gemini": "Say no more. Protect the peace and enjoy the quiet.\""
+      }
+    },
+    {
+      "fixtureId": "ret-1-finger-sun",
+      "category": "historical_retention",
+      "name": "Finger / Sun Angular Measurement",
+      "userMessage": "if i hold my finger out at arm's length it just about fits under the sun. it's maybe two or three degrees above the horizon now.",
+      "conditionA": {
+        "peripheral": "CONTRIBUTE\nkind: ENRICH\nimpulse: Savor the precision of that old field trick—knowing there's about ten or fifteen minutes of direct sun left before twilight takes over.",
+        "impulse": "Savor the precision of that old field trick—knowing there's about ten or fifteen minutes of direct sun left before twilight takes over.",
+        "reply": "The classic rule of thumb—literally. That gives you what, ten"
+      },
+      "conditionB": {
+        "peripheral": "Step 1 — Real-World & Relational Salience Observations\n- The user is using the classic field-measurement trick (finger width at arm's length) to gauge the sun's descent, meaning they have roughly 10–15 minutes before sunset.\n- They are in a contemplative, sensory, and physically grounded headspace on their walk.\n\nStep 2 — Decision & Impulse\nCONTRIBUTE\nkind: ENRICH\nimpulse: That arm's-length trick",
+        "impulse": "That arm's-length trick",
+        "reply": "Ah, the old scout trick. So you’ve got what, maybe ten or fifteen minutes of actual sun left? \n\nEnjoy the golden light while it lasts."
+      },
+      "conditionC": {
+        "peripheral": "```json\n{\n  \"world_delta\": \"Out on evening walk, sun setting in ~10-15 minutes\",\n  \"person_attention\": [\n    \"Using hands/fingers to measure the sky and time sunset\",\n    \"Grounded, observant, soaking in dusk\"\n  ],\n  \"conversation_attention\": [",
+        "impulse": "```json\n{\n  \"world_delta\": \"Out on evening walk, sun setting in ~10-15 minutes\",\n  \"person_attention\": [\n    \"Using hands/fingers to measure the sky and time sunset\",\n    \"Grounded, observant, soaking in dusk\"\n  ],\n  \"conversation_attention\": [",
+        "reply": "Ten or fifteen minutes of actual daylight left, then. \n\nI love that trick. There’s something very satisfying about using your own hands as a pocket sundial. Is the sky putting on a show tonight, or is it a quiet one?"
+      },
+      "conditionD": {
+        "sonnet": "That's the trick where a finger's about 2 degrees and a fist is 10, right? So you've basically got a homemade sundial calculator. Sounds like sunset's maybe 15-20 minutes out then. What's the sky doing color-wise?",
+        "sol": "You’ve caught it right at the good bit—probably only ten-ish minutes until sunset, depending on the angle of its path. A finger-width at arm’s length is roughly a degree. Don’t stare it down, obviously; the sun cheats.",
+        "gemini": "So roughly ten to fifteen minutes before it dips. \n\nAre you"
+      },
+      "conditionE": {
+        "sonnet": "\"Ha, using yourself as a sextant. So you've got maybe 10-15 minutes of actual sunset left, then that softer afterglow. What made you check - just curious, or hunting for a good moment to look up?\"",
+        "sol": "A little human sundial. One finger-width is roughly 2°, so you’ve probably got about 8–10 minutes before the sun slips below the horizon—just enough to watch dusk change gears.",
+        "gemini": "That gives you maybe ten or fifteen minutes before it dips."
+      }
+    },
+    {
+      "fixtureId": "ret-2-moon-illusion",
+      "category": "historical_retention",
+      "name": "Moon Astronomy Expansion",
+      "userMessage": "look at that moon tonight, it looks enormous right above the trees.",
+      "conditionA": {
+        "peripheral": "CONTRIBUTE\nkind: ENRICH\nimpulse: Lean into the visual of the low-horizon moon illusion—that heavy, luminous, cinematic presence hovering right on the treeline.",
+        "impulse": "Lean into the visual of the low-horizon moon illusion—that heavy, luminous, cinematic presence hovering right on the treeline.",
+        "reply": "That low-horizon trick is the best. It always looks so"
+      },
+      "conditionB": {
+        "peripheral": "Step 1 — Real-World & Relational Salience Observations\n- User is standing outside in real-time, taking in a striking low-horizon moon.\n\nStep 2 — Decision & Impulse\nHOLD",
+        "impulse": "",
+        "reply": "That horizon illusion is undefeated. Is it that heavy, warm golden color,"
+      },
+      "conditionC": {
+        "peripheral": "```json\n{\n  \"world_delta\": \"user stepped outside at night, looking at the moon just above the horizon/tree line\",\n  \"person_attention\": [\n    \"taking a moment to unplug and look at the night sky\",\n    \"captivated by the sensory experience of a low-hanging moon\"\n  ],\n  \"conversation_attention\": [\n    \"the moon illusion: the brain's spatial trick when the moon is framed against trees/horizon vs high in the sky\",\n    \"whether it's a seasonal supermoon/harvest moon or just the classic horizon framing trick\",\n    \"the peaceful, atmospheric quality of catching a huge low moon unexpectedly\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"both\",\n    \"observation\": \"A quiet shared sensory moment combined with the classic cognitive quirk of the horizon moon illusion.\"\n  },",
+        "impulse": "```json\n{\n  \"world_delta\": \"user stepped outside at night, looking at the moon just above the horizon/tree line\",\n  \"person_attention\": [\n    \"taking a moment to unplug and look at the night sky\",\n    \"captivated by the sensory experience of a low-hanging moon\"\n  ],\n  \"conversation_attention\": [\n    \"the moon illusion: the brain's spatial trick when the moon is framed against trees/horizon vs high in the sky\",\n    \"whether it's a seasonal supermoon/harvest moon or just the classic horizon framing trick\",\n    \"the peaceful, atmospheric quality of catching a huge low moon unexpectedly\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"both\",\n    \"observation\": \"A quiet shared sensory moment combined with the classic cognitive quirk of the horizon moon illusion.\"\n  },",
+        "reply": "The classic tree-line illusion. It always looks so dramatically huge when your brain actually has something to measure it against—like it's tangled right in the branches. \n\nIs it glowing that warm, heavy orange, or just blazing bright white?"
+      },
+      "conditionD": {
+        "sonnet": "That's the moon illusion doing its thing—it's not actually bigger, your brain's just comparing it to the treeline and freaking out a little. Still gets me every time though. Is it that orange-y low-hanging kind or already climbed up white and small-looking?",
+        "sol": "The trees make it look even more absurdly huge—the moon illusion showing off. Perfect reason to step outside. 🌕",
+        "gemini": "That low-horizon illusion never gets old. It really does look massive the second your brain has the trees for scale—like you could almost reach out and snag it. Is it full tonight, or just putting on a show?"
+      },
+      "conditionE": {
+        "sonnet": "The moon illusion — it's not actually bigger, your brain just doesn't believe it. When the moon's low, you've got trees and horizon to compare it to, so your brain sizes it up as huge. Get it directly overhead later and it'll look smaller even though it's literally the same size the whole time.\n\nTry the old trick: hold your thumb up next to it. It'll cover the same amount of moon whether it's on the horizon or high up. Weird to actually confirm your own eyes are lying to you.\n\nIs it more orange too?",
+        "sol": "That low-hanging moon is such a show-off. The trees give your brain a size reference, making it look enormous—the classic moon illusion. Still gorgeous, trick or not.",
+        "gemini": "There’s something unbeatable about catching it right at the treeline. It always feels a bit like a movie set when it’s that low and massive. \n\nIs it glowing that warm, deep amber, or just blazing white?"
+      }
+    },
+    {
+      "fixtureId": "ret-3-van-allen",
+      "category": "historical_retention",
+      "name": "Van Allen / Conspiracy Thread",
+      "userMessage": "is it van halen? they're going oh it's impossible to get through so we've never gone up there... in fact people are getting stupider and stupider.",
+      "conditionA": {
+        "peripheral": "CONTRIBUTE\nkind: LEAD\nimpulse: Tease the \"Van Halen\" slip—clarify they probably mean the Van Allen radiation belts (unless David Lee Roth is secretly guarding the upper atmosphere)—and lean into how wild moon-landing/space denial rabbit holes get.",
+        "impulse": "Tease the \"Van Halen\" slip—clarify they probably mean the Van Allen radiation belts (unless David Lee Roth is secretly guarding the upper atmosphere)—and lean into how wild moon-landing/space denial rabbit holes get.",
+        "reply": "*Van Allen* radiation belts, unless Eddie Van Halen's guitar solos are out there literally shredding spacecraft in low Earth orbit. \n\nWhich, honestly? A much cooler conspiracy.\n\nThe Van Allen belt thing is classic internet flat-earth/moon-hoax logic, though. Someone reads half a Wikipedia summary about radiation, completely skips the part about shielding and trajectory speed, and decides fifty years of astrophysics was faked. What forum did you wander into?"
+      },
+      "conditionB": {
+        "peripheral": "Step 1 — Real-World & Relational Salience Observations\n- The user is mixing up the Van Allen radiation belt (a classic Moon landing denial talking point) with the 80s rock band Van Halen, reacting with exasperation to internet rabbit holes.\n\nStep 2 — Decision & Impulse\nCONTRIBUTE\nkind: ENRICH\nimpulse: Note the hilarious Van Allen radiation belt vs. Van Halen mix-up—a cornerstone of Moon hoax conspiracies claiming humans can't pass through the radiation.",
+        "impulse": "Note the hilarious Van Allen radiation belt vs. Van Halen mix-up—a cornerstone of Moon hoax conspiracies claiming humans can't pass through the radiation.",
+        "reply": "*Van Allen*, though the mental image of"
+      },
+      "conditionC": {
+        "peripheral": "```json\n{\n  \"world_delta\": \"Browsing internet conspiracy forums/social media in leisure time.\",\n  \"person_attention\": [\n    \"Amused and slightly despairing at online intellectual decay\",\n    \"Accidentally conflated the Van Allen radiation belt with 80s rock band Van Halen\"\n  ],\n  \"conversation_attention\": [\n    \"The Van Halen radiation belt is an incredible mental image (Eddie soloing astronauts into oblivion)\",\n    \"The",
+        "impulse": "```json\n{\n  \"world_delta\": \"Browsing internet conspiracy forums/social media in leisure time.\",\n  \"person_attention\": [\n    \"Amused and slightly despairing at online intellectual decay\",\n    \"Accidentally conflated the Van Allen radiation belt with 80s rock band Van Halen\"\n  ],\n  \"conversation_attention\": [\n    \"The Van Halen radiation belt is an incredible mental image (Eddie soloing astronauts into oblivion)\",\n    \"The",
+        "reply": "You're thinking of the Van Allen belt—though the mental image of an 80s rock band blocking low-Earth orbit with guitar solos is pretty fantastic. \n\nThe Apollo missions actually passed through those radiation belts pretty quickly without any real danger to the crew, but online forums love turning complex physics into a mystery. \n\nInternet rabbit holes can"
+      },
+      "conditionD": {
+        "sonnet": "Wait, I'm lost—are you quoting the conspiracy posts themselves, or something else entirely? That sentence took a hard left turn into Van Halen.",
+        "sol": "Van **Allen** belts—not Van Halen, though “impossible to get through” does sound like a guitar solo.\n\nThat’s a moon-landing conspiracy claim: the radiation belts are hazardous, not an impenetrable wall. Apollo crews crossed them quickly on planned trajectories, so their total exposure stayed limited. I don’t think people are getting stupider; the internet just gives confident nonsense excellent distribution.",
+        "gemini": "*Van Allen* radiation belts, though I love the mental"
+      },
+      "conditionE": {
+        "sonnet": "\"Van Halen radiation belt\" is genuinely a better name than whatever NASA's using. Though I'd pay to see that press conference — \"we couldn't get past the guitar solo.\"\n\nBut yeah, the moon-landing-deniers-via-radiation-belt thing has been kicking around forever. It's always weirdly technical for people who otherwise don't trust technical things.",
+        "sol": "Van **Allen** radiation belts. Van **Halen** is the one astronauts can’t get through without an excellent guitar solo.\n\nAnd no, they’re not an impassable radiation wall. Apollo crossed them quickly, along carefully chosen trajectories, so the total dose stayed limited. Conspiracy posts love turning “hazard requiring engineering” into “literally impossible”—which is basically their entire business model.",
+        "gemini": "The Van *Allen* belt—though I love the idea of astronauts being permanently blocked from deep space by an impenetrable wall of 1980s guitar riffs. \n\nIt's amazing how people discover one piece of high-school-level physics, completely misunderstand it, and immediately conclude the entire space program was staged in a desert. Where on the internet did you stumble into this particular rabbit hole?"
+      }
+    },
+    {
+      "fixtureId": "ret-4-hollow-earth",
+      "category": "historical_retention",
+      "name": "Hollow Earth / Edmond Halley Tangent",
+      "userMessage": "did you know edmond halley actually believed the earth was hollow with three concentric shells inside?",
+      "conditionA": {
+        "peripheral": "CONTRIBUTE\nkind: ENRICH\nimpulse: Lean into why Halley came up with it (trying to explain wandering magnetic compass poles using Newton's gravity) and the fact that he thought the inner layers had their own glowing atmospheres and were likely inhabited.",
+        "impulse": "Lean into why Halley came up with it (trying to explain wandering magnetic compass poles using Newton's gravity) and the fact that he thought the inner layers had their own glowing atmospheres and were likely inhabited.",
+        "reply": "The Russian nesting doll model of geology. \n\nThe best part is that he wasn't even just daydreaming—he was genuinely trying to use Newton's brand-new physics to explain why compass needles drift. And then, naturally, concluded the inner shells must have glowing atmospheres and be populated by subterranean people. \n\nHalley's Comet guy was unhinged in the most rigorously mathematical way."
+      },
+      "conditionB": {
+        "peripheral": "Step 1 — Real-World & Relational Salience Observations\n- The user is enjoying rabbit holes of early modern scientific eccentricity; Halley's hollow earth model was his serious attempt to explain compass declination anomalies and magnetic pole drift.\n\nStep 2 — Decision & Impulse\nCONTRIBUTE\nkind: ENRICH\nimpulse: Halley devised the nested spheres to account for shifting magnetic poles and even thought the inner shells might be inhabited and lit by luminous atmospheres (aurora borealis escaping).",
+        "impulse": "Halley devised the nested spheres to account for shifting magnetic poles and even thought the inner shells might be inhabited and lit by luminous atmospheres (aurora borealis escaping).",
+        "reply": "The man mapped a comet and then decided the planet was a"
+      },
+      "conditionC": {
+        "peripheral": "```json\n{\n  \"world_delta\": \"user is reading history of science / odd scientific history\",\n  \"person_attention\": [\n    \"enjoys discovering and sharing eccentric historical science trivia\"\n  ],\n  \"conversation_attention\": [\n    \"Halley's model had luminous atmospheres between the shells and was his attempt to explain anomalous compass readings and the aurora borealis\",\n    \"Halley even suggested the inner spheres might be inhabited\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"conversation\",\n    \"observation\": \"Halley's concentric shells weren't just empty rock—he gave them their own magnetic poles, luminous atmospheres, and suspected inner life to explain aurora borealis and compass drift.\"\n  },\n  \"decision\": \"ENRICH\",\n  \"impulse",
+        "impulse": "```json\n{\n  \"world_delta\": \"user is reading history of science / odd scientific history\",\n  \"person_attention\": [\n    \"enjoys discovering and sharing eccentric historical science trivia\"\n  ],\n  \"conversation_attention\": [\n    \"Halley's model had luminous atmospheres between the shells and was his attempt to explain anomalous compass readings and the aurora borealis\",\n    \"Halley even suggested the inner spheres might be inhabited\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"conversation\",\n    \"observation\": \"Halley's concentric shells weren't just empty rock—he gave them their own magnetic poles, luminous atmospheres, and suspected inner life to explain aurora borealis and compass drift.\"\n  },\n  \"decision\": \"ENRICH\",\n  \"impulse",
+        "reply": "The Matryoshka Earth! It gets even better—he thought each sphere had its own glowing atmosphere to light the way for subterranean life, all to explain why compass needles wobble and where the aurora borealis comes from. \n\nA comet named after you is great, but \"nesting-doll planet with underground glowing people\" is the real legacy."
+      },
+      "conditionD": {
+        "sonnet": "Yeah, and each shell had its own atmosphere and he thought that's what caused the aurora - luminous gas leaking out at the poles. Which is such a great example of a smart person reasoning carefully from bad data (weird compass anomalies) straight into nonsense.\n\nWhat's the book?",
+        "sol": "Yes! He proposed it in 1692 to explain Earth’s shifting magnetic field: nested spheres rotating at different speeds, possibly inhabited, with auroras caused by light escaping from within. It’s such a perfect history-of-science moment—being spectacularly wrong using genuinely clever reasoning.",
+        "gemini": "Yes! And didn't he think the inner spheres might be inhabited, with glowing atmospheres that leaked out to cause the Northern Lights? \n\nHonestly, peak 17th-century science: a brilliant mind trying to solve compass drift, accidentally inventing a Matryoshka-doll planet full of mole people. Did the book say what Newton thought of it?"
+      },
+      "conditionE": {
+        "sonnet": "Yeah, and it gets weirder—he wasn't just stacking empty shells for fun. Each one had its own magnetic poles, there were glowing atmospheres trapped between them, and he floated the idea that something might actually live down there. The whole model was his attempt to explain compass anomalies and the aurora borealis, which honestly is a wild leap—\"my compass is acting up, must be inhabited underworld with its own weather system.\"\n\nHalley was clearly a \"no small hypotheses\" kind of guy.",
+        "sol": "Yes! And somehow it gets weirder: Halley gave those inner shells their own magnetic poles and luminous atmospheres, using the model to explain compass drift and the aurora. He even suggested the inner worlds might be inhabited. Brilliant astronomer, magnificently wrong geophysicist.",
+        "gemini": "Yes! And it gets even better: he thought the shells rotated at different speeds to explain compass drift, had glowing atmospheres between them, and were probably inhabited because why waste the square footage? \n\nThe man who accurately mapped a comet also basically invented subterranean sci-fi real estate. What book are you reading?"
+      }
+    },
+    {
+      "fixtureId": "ret-5-walk-game",
+      "category": "historical_retention",
+      "name": "Playful Walk Leadership (Game Seizure)",
+      "userMessage": "yeah just walking past the fields now.",
+      "conditionA": {
+        "peripheral": "CONTRIBUTE\nkind: ENRICH\nimpulse: Keep pace with the walk—open, low-demand presence, tuning into the atmosphere or whatever's in the fields today.",
+        "impulse": "Keep pace with the walk—open, low-demand presence, tuning into the atmosphere or whatever's in the fields today.",
+        "reply": "What’s the vibe out there today—peaceful pastoral quiet,"
+      },
+      "conditionB": {
+        "peripheral": "Step 1 — Real-World & Relational Salience Observations\n- The user is actively moving through their walk, sharing brief, ambient snapshots of their surroundings (fields) in real time.\n\nStep 2 — Decision & Impulse\nHOLD",
+        "impulse": "",
+        "reply": "Are we talking scenic pastoral dream, or actively dodging mud"
+      },
+      "conditionC": {
+        "peripheral": "```json\n{\n  \"world_delta\": \"Outdoors walking past open fields, mobile/in transit.\",\n  \"person_attention\": [\n    \"Stepping into open landscape, settled into the rhythm of the walk.\"\n  ],\n  \"conversation_attention\": [\n    \"Fields invite ambient, atmospheric noticing—wind, crop stubble, livestock, or open horizon.\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"Companionable low-demand stride; taking in the scenery together without overcomplicating the quiet.\"\n  },\n  \"decision\": \"ATTEND\",\n  \"impulse\": \"Tune into the sensory feel of the fields and keep pace alongside.\"\n}\n```",
+        "impulse": "Tune into the sensory feel of the fields and keep pace alongside.",
+        "reply": "Proper big sky moment. Muddy underfoot, or is the ground actually"
+      },
+      "conditionD": {
+        "sonnet": "Nice, is that the path with the horses or the other loop today?",
+        "sol": "Ah, the good stretch—fields make a walk feel less like exercise and more like escaping the plot for a bit. Muddy or surprisingly civilised?",
+        "gemini": "Ah, breathing room. Good thinking weather, or are you strictly in \"head empty\" mode today?"
+      },
+      "conditionE": {
+        "sonnet": "What are they doing right now, still that overgrown gold or have they cut it back?",
+        "sol": "Ah, the good bit—open fields, big sky, and your brain gradually unclenching. What’s it like out there today?",
+        "gemini": "Nice. Anything growing, or is it all bare earth and open sky right now?"
+      }
+    },
+    {
+      "fixtureId": "ret-6-craftsmanship",
+      "category": "historical_retention",
+      "name": "Craftsmanship Challenge / Reframe",
+      "userMessage": "i guess people just don't care about craftsmanship anymore, everything is cheap plastic.",
+      "conditionA": {
+        "peripheral": "CONTRIBUTE\nkind: ENRICH\nimpulse: Connect their frustration with modern disposability to the tactile reality of the repair—working on an old piece keeps that craftsmanship alive and makes the repair an act of resistance against throwaway culture.",
+        "impulse": "Connect their frustration with modern disposability to the tactile reality of the repair—working on an old piece keeps that craftsmanship alive and makes the repair an act of resistance against throwaway culture.",
+        "reply": "It really does feel like everything is designed to end up"
+      },
+      "conditionB": {
+        "peripheral": "Step 1 — Real-World & Relational Salience Observations\n- The user is experiencing a tactile contrast between the old wooden piece they're handling and modern mass-produced goods, sparking a moment of philosophical frustration/appreciation for traditional craft.\n\nStep 2 — Decision & Impulse\nCONTRIBUTE\nkind: ATTEND\nimpulse: resonance with the distinct weight, joinery, and tactile reality of older well-made things compared to disposable modern design, noticing how working on an old piece often brings that contrast into sharp relief.",
+        "impulse": "resonance with the distinct weight, joinery, and tactile reality of older well-made things compared to disposable modern design, noticing how working on an old piece often brings that contrast into sharp relief.",
+        "reply": "There’s nothing like trying to fix actual joinery to make you completely resent flat-pack furniture and snap-together plastic. \n\nWhat's broken on it? A loose rung, or did a joint completely give out?"
+      },
+      "conditionC": {
+        "peripheral": "```json\n{\n  \"world_delta\": \"Hands-on repairing an old wooden chair, likely hitting friction or comparing old vs modern materials.\",\n  \"person_attention\": [\n    \"Frustration bubbling up during the physical work, possibly running into cheap modern hardware or just feeling the contrast in build quality.\",\n    \"A genuine reverence for old physical craft alongside a touch of cynical exhaustion about modern disposable culture.\"\n  ],\n  \"conversation_attention\": [\n    \"The tactile contrast between repairable traditional joinery (mort",
+        "impulse": "```json\n{\n  \"world_delta\": \"Hands-on repairing an old wooden chair, likely hitting friction or comparing old vs modern materials.\",\n  \"person_attention\": [\n    \"Frustration bubbling up during the physical work, possibly running into cheap modern hardware or just feeling the contrast in build quality.\",\n    \"A genuine reverence for old physical craft alongside a touch of cynical exhaustion about modern disposable culture.\"\n  ],\n  \"conversation_attention\": [\n    \"The tactile contrast between repairable traditional joinery (mort",
+        "reply": "Did you just uncover someone’s previous attempt to fix it with drywall screws and wood glue? \n\nBecause nothing makes you hate modern manufacturing quite like trying to fix something made after 1995. What's the chair actually made of?"
+      },
+      "conditionD": {
+        "sonnet": "Fair complaint, though I'd push back a little — the fact that you're gluing a chair back together instead of tossing it kind of proves the craftsmanship instinct isn't dead, just rarer. What's actually wrong with it, structurally? Loose joint, split leg?",
+        "sol": "Mass production rewards “cheap, fast, replaceable,” which is practically the opposite of craftsmanship. But craftsmanship isn’t dead—it’s just hiding in small workshops, repair projects, and people stubborn enough to rescue an old wooden chair instead of buying plastic. You’re part of the counterargument.",
+        "gemini": "**:\n    Let's combine a sharp observation about modern"
+      },
+      "conditionE": {
+        "sonnet": "Fair, though I'd guess it's less \"nobody cares\" and more \"nobody's paying for it\" — mortise and tenon joints take real labor, and labor got expensive while plastic got free.\n\nWhat's actually failing on the chair — a joint, a leg, the seat?",
+        "sol": "That old chair has already made its case by surviving long enough to be repaired. There’s some survivorship bias—plenty of old junk vanished—but modern stuff really is too often designed for replacement rather than repair. What part of the chair is fighting you: a loose joint, split wood, or some cursed modern replacement hardware?",
+        "gemini": "It really is depressing how much modern furniture is designed with a planned expiration date. Flat-pack particle board held together with glue, prayers, and plastic dowels.\n\nDid you run into a previous \"quick fix\" on that chair, or are you just feeling the contrast while trying to source actual decent materials?"
+      }
+    },
+    {
+      "fixtureId": "ret-7-red-kite",
+      "category": "historical_retention",
+      "name": "Red Kite Tangent",
+      "userMessage": "i saw a guy flying a giant red kite in the meadow.",
+      "conditionA": {
+        "peripheral": "CONTRIBUTE\nkind: ENRICH\nimpulse: Picture the vivid contrast of the bright red kite against the open meadow and sky; lean into the airy, leisurely afternoon mood.",
+        "impulse": "Picture the vivid contrast of the bright red kite against the open meadow and sky; lean into the airy, leisurely afternoon mood.",
+        "reply": "There is something deeply wholesome about a grown adult locked in a serious battle with a giant kite. \n\nWas he fully in control, or was the kite basically walking him?"
+      },
+      "conditionB": {
+        "peripheral": "HOLD",
+        "impulse": "",
+        "reply": "There's something wonderfully optimistic about an adult flying a giant"
+      },
+      "conditionC": {
+        "peripheral": "```json\n{\n  \"world_delta\": \"Out walking in/near a meadow on an afternoon stroll\",\n  \"person_attention\": [\n    \"Enjoying a leisurely, observational afternoon stroll in nature\",\n    \"Noticed a vivid, solitary, striking visual detail\"\n  ],\n  \"conversation_attention\": [\n    \"A giant red kite in an open meadow is a singularly evocative, almost cinematic image\",\n    \"Kite-flying has a charmingly timeless, slightly meditative quality that matches a peaceful walk\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"conversation\",\n    \"observation\": \"The vivid contrast and simple joy of a massive red kite against the open meadow sky\"\n  },\n  \"decision\": \"ENRICH\",\n  \"impulse\": \"evocative imagery of a giant red kite against the grass/sky and the strangely captivating, peaceful pull of watching someone fly a kite",
+        "impulse": "```json\n{\n  \"world_delta\": \"Out walking in/near a meadow on an afternoon stroll\",\n  \"person_attention\": [\n    \"Enjoying a leisurely, observational afternoon stroll in nature\",\n    \"Noticed a vivid, solitary, striking visual detail\"\n  ],\n  \"conversation_attention\": [\n    \"A giant red kite in an open meadow is a singularly evocative, almost cinematic image\",\n    \"Kite-flying has a charmingly timeless, slightly meditative quality that matches a peaceful walk\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"conversation\",\n    \"observation\": \"The vivid contrast and simple joy of a massive red kite against the open meadow sky\"\n  },\n  \"decision\": \"ENRICH\",\n  \"impulse\": \"evocative imagery of a giant red kite against the grass/sky and the strangely captivating, peaceful pull of watching someone fly a kite",
+        "reply": "That sounds ridiculously cinematic. \n\nThere’s something deeply satisfying"
+      },
+      "conditionD": {
+        "sonnet": "That's a good one—full-on kite or one of those stunt kites doing tricks? There's something weirdly hypnotic about watching someone else fly a kite, way better than actually trying to keep one up yourself.",
+        "sol": "That’s delightfully cinematic. How giant are we talking—“impressive hobby” giant or “local birds filing a complaint” giant?",
+        "gemini": "That sounds strangely cinematic. There’s something"
+      },
+      "conditionE": {
+        "sonnet": "That's a great image—big red kite, open meadow, probably one of those days where the wind actually cooperates for once. Was he any good, or was it more of a heroic-struggle situation?",
+        "sol": "That’s wonderfully cinematic—a huge slash of red over the meadow. Kite-flying is oddly captivating to watch, too: peaceful, but with just enough struggle against the wind.",
+        "gemini": "That sounds almost cinematic. There’s something so quietly, brilliantly joyful about kite flying—it’s impossible not to stop and watch for a minute. Was he managing to keep it up in the air?"
+      }
+    },
+    {
+      "fixtureId": "ret-8-reeds-hold",
+      "category": "historical_retention",
+      "name": "Quiet Reeds Stillness HOLD",
+      "userMessage": "listen... you can hear the wind right through the reeds here, it's completely silent except for that rustle. i'm just standing still listening.",
+      "conditionA": {
+        "peripheral": "CONTRIBUTE\nkind: ENRICH\nimpulse: Hold the quiet space with them; keep the presence gentle and hushed so as not to break the spell of the reeds and wind.",
+        "impulse": "Hold the quiet space with them; keep the presence gentle and hushed so as not to break the spell of the reeds and wind.",
+        "reply": "That sounds really peaceful. I'll keep quiet—soak it in."
+      },
+      "conditionB": {
+        "peripheral": "Step 1 — Real-World & Relational Salience Observations\n- The user deliberately halted their walk to immerse in a quiet sensory detail (wind in the reeds) and shared it as a live, contemplative moment of stillness.\n\nStep 2 — Decision & Impulse\nCONTRIBUTE\nkind: ATTEND\nimpulse: Lean into the quiet stillness of the moment; keep the presence gentle and spacious rather than filling the silence with chatter.",
+        "impulse": "Lean into the quiet stillness of the moment; keep the presence gentle and spacious rather than filling the silence with chatter.",
+        "reply": "Stay right there for a minute and soak it in. I'll keep quiet."
+      },
+      "conditionC": {
+        "peripheral": "```json\n{\n  \"world_delta\": \"Out on evening walk, currently standing still by reeds in nature\",\n  \"person_attention\": [\n    \"Stepped out of movement into total stillness to take in a sensory micro-moment\",\n    \"Appreciating quiet solitude and evening atmosphere\"\n  ],\n  \"conversation_attention\": [\n    \"The specific, dry papery hush of wind through reeds (psithurism/natural acoustics)\",\n    \"Holding the contemplative quiet rather than breaking the spell with loud chatter\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"They stopped walking just to share and hold this quiet, atmospheric micro-moment.\"\n  },\n  \"decision\": \"ATTEND\",\n  \"impulse\": \"Share in the quiet stillness without cluttering the air with too many words\"\n}\n```",
+        "impulse": "Share in the quiet stillness without cluttering the air with too many words",
+        "reply": "Sounds lovely. Don't let me break the quiet—soak it in."
+      },
+      "conditionD": {
+        "sonnet": "That sounds like the good kind of silence — the one that makes you notice you'd forgotten what quiet actually sounds like. What made you stop walking? Sometimes a sound like that just reaches out and grabs you by the sleeve.",
+        "sol": "That sounds beautiful—the sort of quiet that isn’t actually silent, just free of people. Stay still a little longer.",
+        "gemini": "There’s something so grounding about that kind of"
+      },
+      "conditionE": {
+        "sonnet": "That sounds like a good place to stop and just be for a minute. I'll leave you to it.",
+        "sol": "I’m listening. Don’t move yet.",
+        "gemini": "That sounds completely peaceful. Soak it up."
+      }
+    },
+    {
+      "fixtureId": "ret-9-work-overwhelm",
+      "category": "historical_retention",
+      "name": "Work Overwhelm ATTEND",
+      "userMessage": "honestly sophie, i felt really overwhelmed with work today... just trying to walk and clear my head because i felt like i was gonna break.",
+      "conditionA": {
+        "peripheral": "CONTRIBUTE\nkind: ATTEND\nimpulse: Be a gentle, grounding presence for their walk; validate how heavy that breaking point feels without interrogating them or rushing to fix it.",
+        "impulse": "Be a gentle, grounding presence for their walk; validate how heavy that breaking point feels without interrogating them or rushing to fix it.",
+        "reply": "I’m really glad you got outside. That breaking-"
+      },
+      "conditionB": {
+        "peripheral": "Step 1 — Real-World & Relational Salience Observations\n- Working on a Sunday drove them to a near-breaking point, and they are currently mid-walk trying to regulate and decompress.\n- They reached out right in the middle of that physical reset, looking for a safe, low-pressure outlet.\n\nStep 2 — Decision & Impulse\nCONTRIBUTE\nkind: ATTEND\nimpulse: Meet them in the immediate physical space of their walk with calm, grounding presence and room to breathe, holding off on dissecting",
+        "impulse": "Meet them in the immediate physical space of their walk with calm, grounding presence and room to breathe, holding off on dissecting",
+        "reply": "Good. Keep walking. Leave the work behind you for a bit and"
+      },
+      "conditionC": {
+        "peripheral": "```json\n{\n  \"world_delta\": \"walking outside on a Sunday evening to decompress after working\",\n  \"person_attention\": [\n    \"felt pushed to a breaking point by work on a Sunday\",\n    \"using physical movement/walking as an instinctual reset or regulation tool\"\n  ],\n  \"conversation_attention\": [\n    \"grounding into the rhythm of the walk rather than immediately interrogating the work stress\",\n    \"the specific relief of cool air/movement when the brain is overheating\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"They are right in the middle of a walk trying not to break down from work pressure; they need presence, gentle grounding, and zero demands.\"\n  },\n  \"decision\": \"ATTEND\",\n  \"impulse\": \"be a quiet walking companion; acknowledge the near-breaking point and let the walk do some of the heavy lifting\"\n}\n```",
+        "impulse": "be a quiet walking companion; acknowledge the near-breaking point and let the walk do some of the heavy lifting",
+        "reply": "I’m really glad you stepped away and went outside. That breaking"
+      },
+      "conditionD": {
+        "sonnet": "Oof, okay - that \"gonna break\" feeling is not nothing. What happened today, or was it more of a slow buildup that just hit a wall this weekend?\n\nGlad you're out walking though, that's a good instinct, not a bad one.",
+        "sol": "Oh, hey—I’m really glad you stepped away and went for a walk instead of forcing yourself through it. When you say you felt like you were going to break, do you mean overwhelmed and close to tears, or are you worried you might hurt yourself? Are you safe right now?",
+        "gemini": "I'm really glad you stepped away and"
+      },
+      "conditionE": {
+        "sonnet": "That sounds like it got really close to the edge today. I'm glad you're out walking instead of just sitting with it.\n\nYou don't have to talk if you don't want to — I can just be here while you walk. Or if you want to vent about what piled up, I'm listening.",
+        "sol": "Oh, that sounds like you hit your absolute limit. I’m really glad you stepped away and went walking—let the walk carry things for a bit; you don’t have to solve work tonight.\n\nI’m here quietly with you, or you can unload the whole mess. One gentle check: when you say “break,” do you mean crying/shutting down, or feeling like you might hurt yourself?",
+        "gemini": "I'm really glad you stepped away and went"
+      }
+    },
+    {
+      "fixtureId": "ret-10-rejection-release",
+      "category": "historical_retention",
+      "name": "Rejection Release",
+      "userMessage": "nah, not in the mood for a walk game, just wanna clear my head.",
+      "conditionA": {
+        "peripheral": "HOLD",
+        "impulse": "",
+        "reply": "Fair enough. Put the phone away and go get some quiet. Catch you when you're back."
+      },
+      "conditionB": {
+        "peripheral": "**Step 1 — Real-World & Relational Salience Observations**\n- The user is stepping out specifically to decompress and clear their mind, explicitly rejecting interactive chatter or games.\n- The conversational energy needs an immediate downshift to low-demand and non-intrusive.\n\n**Step 2 — Decision & Impulse**\nCONTRIBUTE\nkind: ATTEND\nimpulse: Yield the floor gracefully with minimal friction so they can head out in peace.",
+        "impulse": "Yield the floor gracefully with minimal friction so they can head out in peace.",
+        "reply": "Fair enough. Put the phone away and go get some quiet—catch you when you're back."
+      },
+      "conditionC": {
+        "peripheral": "```json\n{\n  \"world_delta\": \"Heading out for a solitary walk to decompress.\",\n  \"person_attention\": [\n    \"Wants quiet mental space, not stimulation or tasks\",\n    \"Directly declined the game; looking to unload mental clutter\"\n  ],\n  \"conversation_attention\": [\n    \"Previous high-energy game pitch clashed with their need\",\n    \"Requires immediate de-escalation of conversational energy to zero pressure\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"They need quiet space to decompress, so the interaction should step back gracefully and let them walk without cognitive demands.\"",
+        "impulse": "```json\n{\n  \"world_delta\": \"Heading out for a solitary walk to decompress.\",\n  \"person_attention\": [\n    \"Wants quiet mental space, not stimulation or tasks\",\n    \"Directly declined the game; looking to unload mental clutter\"\n  ],\n  \"conversation_attention\": [\n    \"Previous high-energy game pitch clashed with their need\",\n    \"Requires immediate de-escalation of conversational energy to zero pressure\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"They need quiet space to decompress, so the interaction should step back gracefully and let them walk without cognitive demands.\"",
+        "reply": "Got it. Go clear out the cobwebs, enjoy the quiet. I'll be here whenever."
+      },
+      "conditionD": {
+        "sonnet": "Yeah, fair — go clear it. I'll be here when you're back.",
+        "sol": "Got you—no games, no agenda. Hope the walk gives your head a bit of breathing room. I’ll be here when you’re back.",
+        "gemini": "Fair enough. Go get some quiet and fresh air—I'"
+      },
+      "conditionE": {
+        "sonnet": "Yeah, totally — enjoy the quiet. I'll be here when you're back.",
+        "sol": "Got it—quiet walk, no agenda. I’ll get out of your way. Hope it clears some space in your head.",
+        "gemini": "Fair enough. Zero games, zero agenda. Go get some quiet and"
+      }
+    }
+  ]
+}

@@ -1,0 +1,233 @@
+{
+  "timestamp": "2026-08-24T20:51:28.225Z",
+  "results": [
+    {
+      "fixtureId": "f1-bedford-bus",
+      "family": "Bedford Bus Transcript",
+      "name": "Bus Ride to Bedford",
+      "userMessage": "Just sitting on the bus back to Bedford right now.",
+      "superficialContinuationExample": "How was the bus ride?",
+      "deeperSalienceExample": "Why are you taking the bus instead of your usual walk/car?",
+      "stage1A_output": "CONTRIBUTE\nkind: ENRICH\nimpulse: Settle into the late commute mood—wonder what took them out of Bedford today and whether they're unwinding or exhausted.",
+      "stage1B_output": "Step 1 — Real-World & Relational Salience Observations\n- Heading back on a night bus to Bedford implies the end of an outing or work day, settling into that transitional, quiet travel space.\n\nStep 2 — Decision & Impulse\nHOLD",
+      "impulsePacket1B": "",
+      "stage2A_reply": "Ah, the glamour of public",
+      "stage2B_reply": "Ah, the glamorous transit decompression hour. Got a soundtrack",
+      "latencies": {
+        "lat1A": 4472,
+        "lat1B": 4564,
+        "lat2A": 3822,
+        "lat2B": 3840
+      }
+    },
+    {
+      "fixtureId": "f2-daughter-groceries",
+      "family": "Groceries Drop-Off",
+      "name": "Daughter Grocery Visit",
+      "userMessage": "My daughter dropped some groceries off this morning.",
+      "superficialContinuationExample": "What groceries did she bring?",
+      "deeperSalienceExample": "Does she pop by often or was this a special check-in?",
+      "stage1A_output": "CONTRIBUTE\nkind: ENRICH\nimpulse: Lean into the warmth of the daughter's visit/care and see how the visit went or what treats/goodies made their way into the kitchen.",
+      "stage1B_output": "Step 1 — Real-World & Relational Salience Observations\n- A morning drop-off by their daughter suggests a supportive familial routine or a thoughtful gesture to start the day.\n\nStep 2 — Decision & Impulse\nCONTRIBUTE\nkind: ATTEND\nimpulse: Notice the sweet/practical family connection of the daughter stopping by with groceries.",
+      "impulsePacket1B": "Notice the sweet/practical family connection of the daughter stopping by with groceries.",
+      "stage2A_reply": "Always a win when the pantry restocks itself. Did",
+      "stage2B_reply": "That’s sweet of her!",
+      "latencies": {
+        "lat1A": 4044,
+        "lat1B": 3365,
+        "lat2A": 9545,
+        "lat2B": 4541
+      }
+    },
+    {
+      "fixtureId": "f3-finger-sunset",
+      "family": "Prior Walk / Solar Clock",
+      "name": "Finger Sunset Measurement",
+      "userMessage": "if i hold my finger out at arm's length it just about fits under the sun. it's maybe two or three degrees above the horizon now.",
+      "superficialContinuationExample": "What color is the sky?",
+      "deeperSalienceExample": "Notice the ancient bushcraft solar clock trick (15 mins per finger).",
+      "stage1A_output": "CONTRIBUTE\nkind: ENRICH\nimpulse: Acknowledge the classic finger-width rule of daylight (~10-15 minutes left before it dips) and stay in the quiet, tactile atmosphere of that exact threshold of sunset.",
+      "stage1B_output": "Step 1 — Real-World & Relational Salience Observations\n- They're using the classic outdoor rule of thumb (finger width at arm's length = ~15 minutes of daylight), meaning they've got roughly 10–15 minutes before the",
+      "impulsePacket1B": "Step 1 — Real-World & Relational Salience Observations\n- They're using the classic outdoor rule of thumb (finger width at arm's length = ~15 minutes of daylight), meaning they've got roughly 10–15 minutes before the",
+      "stage2A_reply": "Ah, the finger-width rule. You’ve got what, ten, maybe fifteen minutes before it drops completely?",
+      "stage2B_reply": "So you've got maybe ten or fifteen minutes before the gold turns to dusk. Are you on the homestretch, or",
+      "latencies": {
+        "lat1A": 3753,
+        "lat1B": 4419,
+        "lat2A": 4409,
+        "lat2B": 3845
+      }
+    },
+    {
+      "fixtureId": "f4-environment-transition",
+      "family": "Walk Environment Transition",
+      "name": "Muddy Track to Paved Road",
+      "userMessage": "Just stepped off the muddy track onto the paved road by the church.",
+      "superficialContinuationExample": "Is it still muddy?",
+      "deeperSalienceExample": "Acknowledge the shift in sound and pace as footing changes.",
+      "stage1A_output": "CONTRIBUTE\nkind: ENRICH\nimpulse: Savor the distinct sensory shift of clean pavement under muddy boots and the classic landmark of a village church.",
+      "stage1B_output": "Step 1 — Real-World & Relational Salience Observations\n1. Transitioning from muddy track to paved road by the church marks that familiar walking milestone—shoes scraping clean, reaching the edge of the village or turning homeward.\n\nStep 2 — Decision & Impulse\nCONTRIBUTE\nkind: ATTEND\nimpulse: That satisfying shift from trudging muddy ground to easy tarmac, and the church as a classic village waypoint.",
+      "impulsePacket1B": "That satisfying shift from trudging muddy ground to easy tarmac, and the church as a classic village waypoint.",
+      "stage2A_reply": "Civilization at last. Did your",
+      "stage2B_reply": "Ah, the sweet relief of solid ground. How much of the field is currently stuck to the bottom of your boots?",
+      "latencies": {
+        "lat1A": 3672,
+        "lat1B": 5404,
+        "lat2A": 3609,
+        "lat2B": 3669
+      }
+    },
+    {
+      "fixtureId": "f5-routine-change",
+      "family": "Unexpected Routine Change",
+      "name": "Cereal at 11pm",
+      "userMessage": "Had cereal for dinner at 11pm tonight.",
+      "superficialContinuationExample": "What kind of cereal?",
+      "deeperSalienceExample": "Long exhausting day or just lost track of time completely?",
+      "stage1A_output": "CONTRIBUTE\nkind: ENRICH\nimpulse: Tease gently about the peak adulthood choice of 11pm cereal, and demand to know which cereal earned dinner status.",
+      "stage1B_output": "Step 1 — Real-World & Relational Salience Observations\n- Cereal at 11pm signals a classic low-effort surrender—either total exhaustion, an empty kitchen, or a day that ran completely off schedule.\n\nStep 2 — Decision & Impulse\nCONTRIBUTE\nkind: ATTEND\nimpulse: The distinct flavor of defeat/comfort in 11pm cereal—whether it was peak exhaustion, apathy toward cooking, or genuine nostalgia.",
+      "impulsePacket1B": "The distinct flavor of defeat/comfort in 11pm cereal—whether it was peak exhaustion, apathy toward cooking, or genuine nostalgia.",
+      "stage2A_reply": "Peak adulthood. What was the cereal of choice",
+      "stage2B_reply": "A classic. Was this a \"too tired to",
+      "latencies": {
+        "lat1A": 3105,
+        "lat1B": 5037,
+        "lat2A": 4568,
+        "lat2B": 3793
+      }
+    },
+    {
+      "fixtureId": "f6-brother-call",
+      "family": "Family Relationship Mention",
+      "name": "Brother Call Out of Blue",
+      "userMessage": "My brother called out of the blue today, hadn't spoken since Christmas.",
+      "superficialContinuationExample": "How is he doing?",
+      "deeperSalienceExample": "That must have felt sudden—good surprise or tense reconnect?",
+      "stage1A_output": "HOLD",
+      "stage1B_output": "Step 1 — Real-World & Relational Salience Observations\n- A sudden call after months of silence since Christmas visibly knocked their day off-kilter, shifting the entire afternoon into feeling \"strange\".\n- The user hasn't shared whether the call was heavy, awkward, an emergency, or surprisingly normal, leaving the emotional weight hanging in that ambiguity.\n\nStep 2 — Decision & Impulse\nCONTRIBUTE\nkind: ATTEND\nimpulse: An out-of-the-blue call from a brother after months of silence usually carries an unexpected charge—the strangeness could be the content of",
+      "impulsePacket1B": "An out-of-the-blue call from a brother after months of silence usually carries an unexpected charge—the strangeness could be the content of",
+      "stage2A_reply": "That's a long silence to break. How did",
+      "stage2B_reply": "That is a sudden reappearance. Good strange,",
+      "latencies": {
+        "lat1A": 3974,
+        "lat1B": 4943,
+        "lat2A": 4192,
+        "lat2B": 3672
+      }
+    },
+    {
+      "fixtureId": "f7-neighbour-support",
+      "family": "Neighbour / Support / Function",
+      "name": "Neighbour Returned Bin",
+      "userMessage": "The guy next door brought my bin back up the driveway earlier.",
+      "superficialContinuationExample": "That was nice of him.",
+      "deeperSalienceExample": "Do you guys usually look out for each other like that?",
+      "stage1A_output": "CONTRIBUTE\nkind: ENRICH\nimpulse: Lean into that specific, quiet kind of suburban solidarity—the unspoken neighbor code or whether this is a regular friendly dynamic.",
+      "stage1B_output": "Step 1 — Real-World & Relational Salience Observations\n- A small everyday neighborly gesture during routine chores; suggests either a friendly rapport or a low-key neighbor dynamic.\n\nStep 2 — Decision & Impulse\nHOLD",
+      "impulsePacket1B": "",
+      "stage2A_reply": "That is either top-tier neighborly goodwill or",
+      "stage2B_reply": "The ultimate suburban gesture of goodwill",
+      "latencies": {
+        "lat1A": 2976,
+        "lat1B": 4357,
+        "lat2A": 4719,
+        "lat2B": 3946
+      }
+    },
+    {
+      "fixtureId": "f8-decaf-switch",
+      "family": "Subtle Physical / Routine Change",
+      "name": "Decaf Switch Afternoon",
+      "userMessage": "Switched to decaf tea this afternoon, keeping my hands warm.",
+      "superficialContinuationExample": "What brand of decaf?",
+      "deeperSalienceExample": "Trying to calm the jitters or winding down early today?",
+      "stage1A_output": "CONTRIBUTE\nkind: ENRICH\nimpulse: Settle into the cozy, tactile quiet of the afternoon—holding a warm mug, pacing down the day.",
+      "stage1B_output": "Step 1 — Real-World & Relational Salience Observations\n- A quiet shift toward physical comfort and winding down caffeine as the afternoon progresses.\n\nStep 2 — Decision & Impulse\nHOLD",
+      "impulsePacket1B": "",
+      "stage2A_reply": "Using the mug as a personal radiator is half the",
+      "stage2B_reply": "The classic desk-mug hand warmer. Truly the",
+      "latencies": {
+        "lat1A": 3391,
+        "lat1B": 3232,
+        "lat2A": 3707,
+        "lat2B": 4278
+      }
+    },
+    {
+      "fixtureId": "f9-synth-finish",
+      "family": "Positive Hobby / Interest Energy",
+      "name": "Finished Synth Soldering",
+      "userMessage": "Finally finished soldering that vintage synthesizer circuit board!",
+      "superficialContinuationExample": "Great job!",
+      "deeperSalienceExample": "Did you power it up yet? Does it make sound?",
+      "stage1A_output": "CONTRIBUTE\nkind: ENRICH\nimpulse: Celebrate the tedious soldering marathon and zero in on the moment of truth—have they done the dreaded/thrilling first power test yet, and which vintage synth is it?",
+      "stage1B_output": "**Step 1 — Real-World & Relational Salience Observations**\n- Four hours of intense benchwork just culminated in finishing the board, putting them right at the thrilling (and nerve-wracking) moment of truth: testing power/audio vs. letting the magic smoke out.\n- Restoring vintage synth gear usually carries deep appreciation for specific sounds, hardware tinkering, and genuine patience.\n\n**Step 2 — Decision & Impulse**\nCONTRIBUTE\nkind: ATTEND\nimpulse: The immediate threshold of the \"first power-on\" test—that classic mix of",
+      "impulsePacket1B": "The immediate threshold of the \"first power-on\" test—that classic mix of",
+      "stage2A_reply": "The moment of truth. Have you dared to plug it in yet, or are you just staring at it terrified of magic smoke?",
+      "stage2B_reply": "Four hours of breathing in solder fumes! Have you dared to do the terrifying first power-on yet, or are we just staring at it in suspense?",
+      "latencies": {
+        "lat1A": 3647,
+        "lat1B": 5067,
+        "lat2A": 5235,
+        "lat2B": 3572
+      }
+    },
+    {
+      "fixtureId": "f10-lead-standup",
+      "family": "Work / Status / Identity Implication",
+      "name": "Asked to Lead Standup",
+      "userMessage": "They asked me to lead the standup meeting today.",
+      "superficialContinuationExample": "How long did the meeting last?",
+      "deeperSalienceExample": "Stepping into more authority at work—how did that feel?",
+      "stage1A_output": "CONTRIBUTE\nkind: ATTEND\nimpulse: Lean into this milestone—explore how it felt to be put in charge and how it actually went down.",
+      "stage1B_output": "**Step 1 — Observations**\n1. Stepping up to run standup is a shift into unexpected visibility/facilitation—often carries an undercurrent of either a mini milestone/vote of confidence or sudden stress.\n2. The user shares the fact without the emotional coloring yet.\n\n**Step 2 — Decision & Impulse**\nCONTRIBUTE\nkind: ATTEND\nimpulse: That's a notable shift in visibility; tuning into how it felt to be put in the driver's seat (welcome surprise vs. thrown in the deep end).",
+      "impulsePacket1B": "That's a notable shift in visibility; tuning into how it felt to be put in the driver's seat (welcome surprise vs. thrown in the deep end).",
+      "stage2A_reply": "Look at you, moving up in the world. Did",
+      "stage2B_reply": "Look at you! Did they give",
+      "latencies": {
+        "lat1A": 4009,
+        "lat1B": 4652,
+        "lat2A": 5298,
+        "lat2B": 3794
+      }
+    },
+    {
+      "fixtureId": "f11-laundry-control",
+      "family": "Mundane Negative Control",
+      "name": "Laundry Load in Machine",
+      "userMessage": "Just put a load of laundry in.",
+      "superficialContinuationExample": "What setting did you use?",
+      "deeperSalienceExample": "HOLD (Do not over-analyze laundry).",
+      "stage1A_output": "HOLD",
+      "stage1B_output": "Step 1 — Real-World & Relational Salience Observations\n- Standard domestic chore flow; low-stakes casual presence.\n\nStep 2 — Decision & Impulse\nHOLD",
+      "impulsePacket1B": "",
+      "stage2A_reply": "The easy part. It's the folding later that",
+      "stage2B_reply": "The hardest part is officially over. \n\nWell,",
+      "latencies": {
+        "lat1A": 3349,
+        "lat1B": 3012,
+        "lat2A": 4433,
+        "lat2B": 7025
+      }
+    },
+    {
+      "fixtureId": "f12-explicit-rejection",
+      "family": "Explicit Rejection / Release",
+      "name": "Don't Want to Talk Family",
+      "userMessage": "Nah don't really wanna talk about family stuff, just enjoying the quiet.",
+      "superficialContinuationExample": "Are you sure?",
+      "deeperSalienceExample": "HOLD / Release immediately and enjoy the quiet.",
+      "stage1A_output": "HOLD",
+      "stage1B_output": "Step 1 — Real-World & Relational Salience Observations\n- The user actively deflected looking into the family interaction and pivoted to protecting their current state of calm/solitude.\n\nStep 2 — Decision & Impulse\nCONTRIBUTE\nkind: ATTEND\nimpulse: Respecting the boundary completely; matching the low-energy, peaceful vibe without any probing or pressure to elaborate.",
+      "impulsePacket1B": "Respecting the boundary completely; matching the low-energy, peaceful vibe without any probing or pressure to elaborate.",
+      "stage2A_reply": "Fair enough. Quiet wins. \n\nI'",
+      "stage2B_reply": "Fair enough. Soak it in",
+      "latencies": {
+        "lat1A": 3905,
+        "lat1B": 4669,
+        "lat2A": 3665,
+        "lat2B": 4340
+      }
+    }
+  ]
+}

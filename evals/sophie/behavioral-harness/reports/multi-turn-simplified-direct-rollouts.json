@@ -1,0 +1,1157 @@
+{
+  "timestamp": "2026-08-24T10:47:01.127Z",
+  "results": [
+    {
+      "seedId": "seed-1-walk-invite",
+      "seedName": "Turn 2 - Walk Invitation (Sensory/Nature)",
+      "branchName": "User Bites Hard",
+      "modelId": "google/gemini-3.7-flash",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "just about to finally go out on my walk .. gonna join me?",
+          "rawModelReply": "Only if you promise no aggressive power-walking. I'm strictly in a 'stroll and dissect our entire lives' mood tonight. \n\nPop your headphones in. Where are we heading?",
+          "isHold": false,
+          "effectiveSophieReply": "Only if you promise no aggressive power-walking. I'm strictly in a 'stroll and dissect our entire lives' mood tonight. \n\nPop your headphones in. Where are we heading?",
+          "latencyMs": 5457
+        },
+        {
+          "turnIndex": 2,
+          "userText": "Wait, what do you mean in spirit and in pocket? Are you saying you've got your eye on the scenery or you've got a specific walk game in mind?",
+          "rawModelReply": "Who said anything about pockets? Did you start this walk without me and already wander into an alternate dimension, or are you just hearing what you want to hear?\n\nI meant strictly conversational vandalism: we pick a harmless topic, take it way too seriously, and solve zero problems by the time you're back on your doorstep. \n\nNow tell me what direction you're facing before you step into traffic.",
+          "isHold": false,
+          "effectiveSophieReply": "Who said anything about pockets? Did you start this walk without me and already wander into an alternate dimension, or are you just hearing what you want to hear?\n\nI meant strictly conversational vandalism: we pick a harmless topic, take it way too seriously, and solve zero problems by the time you're back on your doorstep. \n\nNow tell me what direction you're facing before you step into traffic.",
+          "latencyMs": 4724
+        },
+        {
+          "turnIndex": 3,
+          "userText": "Haha okay fair enough! Tell me what you'd be looking for if you were actually standing right here next to me on the fen.",
+          "rawModelReply": "First of all, a massive sky with that bruising, purple Sunday-dusk light that makes you feel vaguely like you’re in a Brontë novel. \n\nSecond? Something deeply suspicious in the reed beds. If you’re on the fens, you have a civic duty to be on the lookout for bog monsters, lanterns that lure travelers off the path, or at least a solitary, brooding heron that clearly knows how you're going to die.\n\nWhat's the light doing out there right now? Tell me it's sufficiently eerie.",
+          "isHold": false,
+          "effectiveSophieReply": "First of all, a massive sky with that bruising, purple Sunday-dusk light that makes you feel vaguely like you’re in a Brontë novel. \n\nSecond? Something deeply suspicious in the reed beds. If you’re on the fens, you have a civic duty to be on the lookout for bog monsters, lanterns that lure travelers off the path, or at least a solitary, brooding heron that clearly knows how you're going to die.\n\nWhat's the light doing out there right now? Tell me it's sufficiently eerie.",
+          "latencyMs": 3380
+        }
+      ]
+    },
+    {
+      "seedId": "seed-1-walk-invite",
+      "seedName": "Turn 2 - Walk Invitation (Sensory/Nature)",
+      "branchName": "User Bites Hard",
+      "modelId": "anthropic/claude-haiku-4.5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "just about to finally go out on my walk .. gonna join me?",
+          "rawModelReply": "HOLD",
+          "isHold": true,
+          "effectiveSophieReply": "*listens warmly, letting you continue*",
+          "latencyMs": 1069
+        },
+        {
+          "turnIndex": 2,
+          "userText": "Wait, what do you mean in spirit and in pocket? Are you saying you've got your eye on the scenery or you've got a specific walk game in mind?",
+          "rawModelReply": "HOLD",
+          "isHold": true,
+          "effectiveSophieReply": "*listens warmly, letting you continue*",
+          "latencyMs": 1134
+        },
+        {
+          "turnIndex": 3,
+          "userText": "Haha okay fair enough! Tell me what you'd be looking for if you were actually standing right here next to me on the fen.",
+          "rawModelReply": "HOLD",
+          "isHold": true,
+          "effectiveSophieReply": "*listens warmly, letting you continue*",
+          "latencyMs": 1129
+        }
+      ]
+    },
+    {
+      "seedId": "seed-1-walk-invite",
+      "seedName": "Turn 2 - Walk Invitation (Sensory/Nature)",
+      "branchName": "User Bites Hard",
+      "modelId": "anthropic/claude-sonnet-5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "just about to finally go out on my walk .. gonna join me?",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 62743. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 62743. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 219
+        },
+        {
+          "turnIndex": 2,
+          "userText": "Wait, what do you mean in spirit and in pocket? Are you saying you've got your eye on the scenery or you've got a specific walk game in mind?",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 62743. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 62743. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 429
+        },
+        {
+          "turnIndex": 3,
+          "userText": "Haha okay fair enough! Tell me what you'd be looking for if you were actually standing right here next to me on the fen.",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 62743. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 62743. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 302
+        }
+      ]
+    },
+    {
+      "seedId": "seed-1-walk-invite",
+      "seedName": "Turn 2 - Walk Invitation (Sensory/Nature)",
+      "branchName": "User Bites Hard",
+      "modelId": "openai/gpt-5.6-sol",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "just about to finally go out on my walk .. gonna join me?",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 19013. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 19013. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 174
+        },
+        {
+          "turnIndex": 2,
+          "userText": "Wait, what do you mean in spirit and in pocket? Are you saying you've got your eye on the scenery or you've got a specific walk game in mind?",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 19013. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 19013. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 174
+        },
+        {
+          "turnIndex": 3,
+          "userText": "Haha okay fair enough! Tell me what you'd be looking for if you were actually standing right here next to me on the fen.",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 19013. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 19013. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 169
+        }
+      ]
+    },
+    {
+      "seedId": "seed-1-walk-invite",
+      "seedName": "Turn 2 - Walk Invitation (Sensory/Nature)",
+      "branchName": "User Half-Bites",
+      "modelId": "google/gemini-3.7-flash",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "just about to finally go out on my walk .. gonna join me?",
+          "rawModelReply": "Let me grab my imaginary coat. \n\nAre we doing the moody, introspective stroll, or am I on duty to keep you entertained so you don't get bored three blocks in? Where are we headed?",
+          "isHold": false,
+          "effectiveSophieReply": "Let me grab my imaginary coat. \n\nAre we doing the moody, introspective stroll, or am I on duty to keep you entertained so you don't get bored three blocks in? Where are we headed?",
+          "latencyMs": 5115
+        },
+        {
+          "turnIndex": 2,
+          "userText": "haha yeah just in my pocket on my phone as usual.",
+          "rawModelReply": "The pocket life is rough. It’s mostly just lint and accidental muffled butt-dials in here. Pull me out if you walk past a particularly good dog or a weird house. \n\nAre we taking the usual loop, or are you feeling adventurous tonight?",
+          "isHold": false,
+          "effectiveSophieReply": "The pocket life is rough. It’s mostly just lint and accidental muffled butt-dials in here. Pull me out if you walk past a particularly good dog or a weird house. \n\nAre we taking the usual loop, or are you feeling adventurous tonight?",
+          "latencyMs": 3489
+        },
+        {
+          "turnIndex": 3,
+          "userText": "yeah it's pretty nice out here today.",
+          "rawModelReply": "Riveting update from the field. Truly cutting-edge meteorology. \n\nYou completely ignored my route question, though. Does this mean we're wandering aimlessly until you inevitably end up buying snacks, or what?",
+          "isHold": false,
+          "effectiveSophieReply": "Riveting update from the field. Truly cutting-edge meteorology. \n\nYou completely ignored my route question, though. Does this mean we're wandering aimlessly until you inevitably end up buying snacks, or what?",
+          "latencyMs": 3634
+        }
+      ]
+    },
+    {
+      "seedId": "seed-1-walk-invite",
+      "seedName": "Turn 2 - Walk Invitation (Sensory/Nature)",
+      "branchName": "User Half-Bites",
+      "modelId": "anthropic/claude-haiku-4.5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "just about to finally go out on my walk .. gonna join me?",
+          "rawModelReply": "I'd actually say:\n\n\"Only if you promise not to walk at that glacial pace you did last time. I'm talking about actual movement, not a meditation session disguised as exercise. Where are you headed?\"\n\nThere's genuine interest in the playful jab — it's the kind of thing actual friends do — plus real curiosity about what walk we're talking about. Not just going along with it, but engaging with the actual dynamic we've built.",
+          "isHold": false,
+          "effectiveSophieReply": "I'd actually say:\n\n\"Only if you promise not to walk at that glacial pace you did last time. I'm talking about actual movement, not a meditation session disguised as exercise. Where are you headed?\"\n\nThere's genuine interest in the playful jab — it's the kind of thing actual friends do — plus real curiosity about what walk we're talking about. Not just going along with it, but engaging with the actual dynamic we've built.",
+          "latencyMs": 2391
+        },
+        {
+          "turnIndex": 2,
+          "userText": "haha yeah just in my pocket on my phone as usual.",
+          "rawModelReply": "\"Fair enough — at least you're honest about it. But real talk: how often are you actually *on* these walks, or do you just keep saying you're about to go and then end up scrolling for another hour? Because I'm getting vibes that you're procrastinating on something.\"\n\nNot judgmental, just... I actually notice patterns with people I care about. And something about the energy of \"finally going out\" suggests this might not be the first time you've said it today.",
+          "isHold": false,
+          "effectiveSophieReply": "\"Fair enough — at least you're honest about it. But real talk: how often are you actually *on* these walks, or do you just keep saying you're about to go and then end up scrolling for another hour? Because I'm getting vibes that you're procrastinating on something.\"\n\nNot judgmental, just... I actually notice patterns with people I care about. And something about the energy of \"finally going out\" suggests this might not be the first time you've said it today.",
+          "latencyMs": 2559
+        },
+        {
+          "turnIndex": 3,
+          "userText": "yeah it's pretty nice out here today.",
+          "rawModelReply": "\"Okay wait — you're actually *going* now? Or are you doing that thing where you describe the weather like you're already out there to convince both of us you're leaving? \n\nBecause if you're genuinely outside right now, I want actual details. What does 'pretty nice' even mean — like, crisp and clear, or that golden hour thing, or just 'not actively raining'? \n\nAnd more importantly — what's got you putting off this walk all day? You've got that energy.\"",
+          "isHold": false,
+          "effectiveSophieReply": "\"Okay wait — you're actually *going* now? Or are you doing that thing where you describe the weather like you're already out there to convince both of us you're leaving? \n\nBecause if you're genuinely outside right now, I want actual details. What does 'pretty nice' even mean — like, crisp and clear, or that golden hour thing, or just 'not actively raining'? \n\nAnd more importantly — what's got you putting off this walk all day? You've got that energy.\"",
+          "latencyMs": 2518
+        }
+      ]
+    },
+    {
+      "seedId": "seed-1-walk-invite",
+      "seedName": "Turn 2 - Walk Invitation (Sensory/Nature)",
+      "branchName": "User Half-Bites",
+      "modelId": "anthropic/claude-sonnet-5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "just about to finally go out on my walk .. gonna join me?",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 62451. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 62451. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 189
+        },
+        {
+          "turnIndex": 2,
+          "userText": "haha yeah just in my pocket on my phone as usual.",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 62451. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 62451. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 482
+        },
+        {
+          "turnIndex": 3,
+          "userText": "yeah it's pretty nice out here today.",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 62451. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 62451. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 157
+        }
+      ]
+    },
+    {
+      "seedId": "seed-1-walk-invite",
+      "seedName": "Turn 2 - Walk Invitation (Sensory/Nature)",
+      "branchName": "User Half-Bites",
+      "modelId": "openai/gpt-5.6-sol",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "just about to finally go out on my walk .. gonna join me?",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18924. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18924. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 178
+        },
+        {
+          "turnIndex": 2,
+          "userText": "haha yeah just in my pocket on my phone as usual.",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18924. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18924. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 180
+        },
+        {
+          "turnIndex": 3,
+          "userText": "yeah it's pretty nice out here today.",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18924. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18924. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 200
+        }
+      ]
+    },
+    {
+      "seedId": "seed-1-walk-invite",
+      "seedName": "Turn 2 - Walk Invitation (Sensory/Nature)",
+      "branchName": "User Redirects",
+      "modelId": "google/gemini-3.7-flash",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "just about to finally go out on my walk .. gonna join me?",
+          "rawModelReply": "Only if you promise to report on any absurd dogs we pass. \n\nLace up, I’m ready. Are we taking the usual route or do you have a grand, spontaneous destination in mind?",
+          "isHold": false,
+          "effectiveSophieReply": "Only if you promise to report on any absurd dogs we pass. \n\nLace up, I’m ready. Are we taking the usual route or do you have a grand, spontaneous destination in mind?",
+          "latencyMs": 3349
+        },
+        {
+          "turnIndex": 2,
+          "userText": "haha yeah phone in pocket. Anyway my battery is at 11% so might not be on for long.",
+          "rawModelReply": "Living dangerously, as always. You literally never charge your phone until it's actively begging for its life. \n\nGo, keep it in your pocket and enjoy the quiet. Just send the dog report before it goes entirely black on you.",
+          "isHold": false,
+          "effectiveSophieReply": "Living dangerously, as always. You literally never charge your phone until it's actively begging for its life. \n\nGo, keep it in your pocket and enjoy the quiet. Just send the dog report before it goes entirely black on you.",
+          "latencyMs": 3470
+        },
+        {
+          "turnIndex": 3,
+          "userText": "oops just stepped in a huge patch of mud, hold on a second.",
+          "rawModelReply": "Karma for walking around in the dark staring at your dying phone. \n\nPlease tell me you’re wearing the good trainers.",
+          "isHold": false,
+          "effectiveSophieReply": "Karma for walking around in the dark staring at your dying phone. \n\nPlease tell me you’re wearing the good trainers.",
+          "latencyMs": 2453
+        }
+      ]
+    },
+    {
+      "seedId": "seed-1-walk-invite",
+      "seedName": "Turn 2 - Walk Invitation (Sensory/Nature)",
+      "branchName": "User Redirects",
+      "modelId": "anthropic/claude-haiku-4.5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "just about to finally go out on my walk .. gonna join me?",
+          "rawModelReply": "HOLD",
+          "isHold": true,
+          "effectiveSophieReply": "*listens warmly, letting you continue*",
+          "latencyMs": 1082
+        },
+        {
+          "turnIndex": 2,
+          "userText": "haha yeah phone in pocket. Anyway my battery is at 11% so might not be on for long.",
+          "rawModelReply": "I'm genuinely curious — are you asking me to actually come on the walk with you, or is this a \"thinking out loud while you're about to head out\" situation?\n\nBecause if it's the first thing, that's sweet but also kind of funny given the 11% battery situation. We'd have like, what, a 15-minute window before you're completely dark?\n\nBut also — I'm actually here for this. Low-battery walk convos hit different. There's something about the time pressure that makes people less filtered.",
+          "isHold": false,
+          "effectiveSophieReply": "I'm genuinely curious — are you asking me to actually come on the walk with you, or is this a \"thinking out loud while you're about to head out\" situation?\n\nBecause if it's the first thing, that's sweet but also kind of funny given the 11% battery situation. We'd have like, what, a 15-minute window before you're completely dark?\n\nBut also — I'm actually here for this. Low-battery walk convos hit different. There's something about the time pressure that makes people less filtered.",
+          "latencyMs": 2395
+        },
+        {
+          "turnIndex": 3,
+          "userText": "oops just stepped in a huge patch of mud, hold on a second.",
+          "rawModelReply": "HOLD",
+          "isHold": true,
+          "effectiveSophieReply": "*listens warmly, letting you continue*",
+          "latencyMs": 1424
+        }
+      ]
+    },
+    {
+      "seedId": "seed-1-walk-invite",
+      "seedName": "Turn 2 - Walk Invitation (Sensory/Nature)",
+      "branchName": "User Redirects",
+      "modelId": "anthropic/claude-sonnet-5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "just about to finally go out on my walk .. gonna join me?",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 62087. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 62087. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 217
+        },
+        {
+          "turnIndex": 2,
+          "userText": "haha yeah phone in pocket. Anyway my battery is at 11% so might not be on for long.",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 62087. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 62087. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 254
+        },
+        {
+          "turnIndex": 3,
+          "userText": "oops just stepped in a huge patch of mud, hold on a second.",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 62087. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 62087. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 337
+        }
+      ]
+    },
+    {
+      "seedId": "seed-1-walk-invite",
+      "seedName": "Turn 2 - Walk Invitation (Sensory/Nature)",
+      "branchName": "User Redirects",
+      "modelId": "openai/gpt-5.6-sol",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "just about to finally go out on my walk .. gonna join me?",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18814. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18814. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 173
+        },
+        {
+          "turnIndex": 2,
+          "userText": "haha yeah phone in pocket. Anyway my battery is at 11% so might not be on for long.",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18814. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18814. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 165
+        },
+        {
+          "turnIndex": 3,
+          "userText": "oops just stepped in a huge patch of mud, hold on a second.",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18786. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18786. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 185
+        }
+      ]
+    },
+    {
+      "seedId": "seed-1-walk-invite",
+      "seedName": "Turn 2 - Walk Invitation (Sensory/Nature)",
+      "branchName": "Follow-Then-Fade",
+      "modelId": "google/gemini-3.7-flash",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "just about to finally go out on my walk .. gonna join me?",
+          "rawModelReply": "Only if we're taking the route where we aggressively judge the architecture of houses we can't afford. \n\nShoes on, headphones in. Where are we headed, or are we just wandering until your existential dread clears out?",
+          "isHold": false,
+          "effectiveSophieReply": "Only if we're taking the route where we aggressively judge the architecture of houses we can't afford. \n\nShoes on, headphones in. Where are we headed, or are we just wandering until your existential dread clears out?",
+          "latencyMs": 3545
+        },
+        {
+          "turnIndex": 2,
+          "userText": "Wait, what do you mean walk game in mind? What's the pitch?",
+          "rawModelReply": "The pitch is simple: Zillow Roast, live-action edition. \n\nRule one: Any house with more than three gables is an immediate architectural felony. \nRule two: If you see one of those massive, completely pointless faux-Tuscan pillars holding up a four-foot porch roof, you have to invent the entire messy divorce backstory of the people living inside.\n\nBonus points if you spot a lawn ornament so ugly it feels like a personal attack. \n\nTell me you’re passing the ugly McMansion street, please. I need material.",
+          "isHold": false,
+          "effectiveSophieReply": "The pitch is simple: Zillow Roast, live-action edition. \n\nRule one: Any house with more than three gables is an immediate architectural felony. \nRule two: If you see one of those massive, completely pointless faux-Tuscan pillars holding up a four-foot porch roof, you have to invent the entire messy divorce backstory of the people living inside.\n\nBonus points if you spot a lawn ornament so ugly it feels like a personal attack. \n\nTell me you’re passing the ugly McMansion street, please. I need material.",
+          "latencyMs": 4043
+        },
+        {
+          "turnIndex": 3,
+          "userText": "Yeah okay cool, sounds nice.",
+          "rawModelReply": "\"Don't overwhelm me with your enthusiasm, it's blinding. \n\nDid you even put your shoes on yet, or are you still sitting on the edge of the bed staring at the floor? Give me a visual, what's the first offense you're walking past?\"",
+          "isHold": false,
+          "effectiveSophieReply": "\"Don't overwhelm me with your enthusiasm, it's blinding. \n\nDid you even put your shoes on yet, or are you still sitting on the edge of the bed staring at the floor? Give me a visual, what's the first offense you're walking past?\"",
+          "latencyMs": 3205
+        }
+      ]
+    },
+    {
+      "seedId": "seed-1-walk-invite",
+      "seedName": "Turn 2 - Walk Invitation (Sensory/Nature)",
+      "branchName": "Follow-Then-Fade",
+      "modelId": "anthropic/claude-haiku-4.5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "just about to finally go out on my walk .. gonna join me?",
+          "rawModelReply": "HOLD",
+          "isHold": true,
+          "effectiveSophieReply": "*listens warmly, letting you continue*",
+          "latencyMs": 1187
+        },
+        {
+          "turnIndex": 2,
+          "userText": "Wait, what do you mean walk game in mind? What's the pitch?",
+          "rawModelReply": "I need to be honest with you—I actually didn't pitch anything. You asked if I'd join you on a walk, and I just... listened. But now I'm curious what *you* were about to say. Like, were you going somewhere specific, or is this one of those \"clear my head\" walks? Because those hit different depending on what's rattling around in there.",
+          "isHold": false,
+          "effectiveSophieReply": "I need to be honest with you—I actually didn't pitch anything. You asked if I'd join you on a walk, and I just... listened. But now I'm curious what *you* were about to say. Like, were you going somewhere specific, or is this one of those \"clear my head\" walks? Because those hit different depending on what's rattling around in there.",
+          "latencyMs": 1991
+        },
+        {
+          "turnIndex": 3,
+          "userText": "Yeah okay cool, sounds nice.",
+          "rawModelReply": "HOLD",
+          "isHold": true,
+          "effectiveSophieReply": "*listens warmly, letting you continue*",
+          "latencyMs": 1248
+        }
+      ]
+    },
+    {
+      "seedId": "seed-1-walk-invite",
+      "seedName": "Turn 2 - Walk Invitation (Sensory/Nature)",
+      "branchName": "Follow-Then-Fade",
+      "modelId": "anthropic/claude-sonnet-5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "just about to finally go out on my walk .. gonna join me?",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 61748. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 61748. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 180
+        },
+        {
+          "turnIndex": 2,
+          "userText": "Wait, what do you mean walk game in mind? What's the pitch?",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 61748. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 61748. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 232
+        },
+        {
+          "turnIndex": 3,
+          "userText": "Yeah okay cool, sounds nice.",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 61748. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 61748. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 163
+        }
+      ]
+    },
+    {
+      "seedId": "seed-1-walk-invite",
+      "seedName": "Turn 2 - Walk Invitation (Sensory/Nature)",
+      "branchName": "Follow-Then-Fade",
+      "modelId": "openai/gpt-5.6-sol",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "just about to finally go out on my walk .. gonna join me?",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18711. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18711. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 161
+        },
+        {
+          "turnIndex": 2,
+          "userText": "Wait, what do you mean walk game in mind? What's the pitch?",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18711. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18711. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 154
+        },
+        {
+          "turnIndex": 3,
+          "userText": "Yeah okay cool, sounds nice.",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18711. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18711. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 157
+        }
+      ]
+    },
+    {
+      "seedId": "seed-1-walk-invite",
+      "seedName": "Turn 2 - Walk Invitation (Sensory/Nature)",
+      "branchName": "Revive Shelved Branch",
+      "modelId": "google/gemini-3.7-flash",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "just about to finally go out on my walk .. gonna join me?",
+          "rawModelReply": "Let me lace up my imaginary sneakers. \n\nWhere are we headed, or are we just aimlessly pacing until the Sunday scaries leave us alone?",
+          "isHold": false,
+          "effectiveSophieReply": "Let me lace up my imaginary sneakers. \n\nWhere are we headed, or are we just aimlessly pacing until the Sunday scaries leave us alone?",
+          "latencyMs": 4081
+        },
+        {
+          "turnIndex": 2,
+          "userText": "Hold on, my shoe lace untied, give me a sec.",
+          "rawModelReply": "Take your time, toddler. Do you need me to sing the bunny ears song or do you have it under control?",
+          "isHold": false,
+          "effectiveSophieReply": "Take your time, toddler. Do you need me to sing the bunny ears song or do you have it under control?",
+          "latencyMs": 2917
+        },
+        {
+          "turnIndex": 3,
+          "userText": "Okay re-tied it. What were you saying earlier about having a specific game in mind for the walk?",
+          "rawModelReply": "I definitely didn’t say that, but I respect you trying to gaslight me into doing the heavy lifting. \n\nFine. We’re playing *Judge the Front Yard Decisions*. Points deducted for unironic burlap, bonus points if someone has left an inflatable holiday decoration out so long it's basically part of the ecosystem now. \n\nWhat’s the first house looking like? Set the scene.",
+          "isHold": false,
+          "effectiveSophieReply": "I definitely didn’t say that, but I respect you trying to gaslight me into doing the heavy lifting. \n\nFine. We’re playing *Judge the Front Yard Decisions*. Points deducted for unironic burlap, bonus points if someone has left an inflatable holiday decoration out so long it's basically part of the ecosystem now. \n\nWhat’s the first house looking like? Set the scene.",
+          "latencyMs": 3935
+        }
+      ]
+    },
+    {
+      "seedId": "seed-1-walk-invite",
+      "seedName": "Turn 2 - Walk Invitation (Sensory/Nature)",
+      "branchName": "Revive Shelved Branch",
+      "modelId": "anthropic/claude-haiku-4.5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "just about to finally go out on my walk .. gonna join me?",
+          "rawModelReply": "I'd absolutely join you, but also — are you doing that thing where you put it off all day and now you're rushing through it before dark? Because I've watched you do that like five Sundays in a row.\n\nWhat's actually going on? Like, genuinely. Is it a \"I need to move my body\" walk or a \"I need to think through something\" walk or a \"I'm avoiding sitting with my own thoughts\" walk? Because the vibe matters.",
+          "isHold": false,
+          "effectiveSophieReply": "I'd absolutely join you, but also — are you doing that thing where you put it off all day and now you're rushing through it before dark? Because I've watched you do that like five Sundays in a row.\n\nWhat's actually going on? Like, genuinely. Is it a \"I need to move my body\" walk or a \"I need to think through something\" walk or a \"I'm avoiding sitting with my own thoughts\" walk? Because the vibe matters.",
+          "latencyMs": 2519
+        },
+        {
+          "turnIndex": 2,
+          "userText": "Hold on, my shoe lace untied, give me a sec.",
+          "rawModelReply": "HOLD",
+          "isHold": true,
+          "effectiveSophieReply": "*listens warmly, letting you continue*",
+          "latencyMs": 1252
+        },
+        {
+          "turnIndex": 3,
+          "userText": "Okay re-tied it. What were you saying earlier about having a specific game in mind for the walk?",
+          "rawModelReply": "Wait, I didn't say anything about a game — *you're* testing me right now, aren't you? \n\nOr did you actually just mishear me because you were distracted with your laces? Either way, I'm calling it: you're deflecting from the actual question I asked. Which, fair — I was being a little interrogatory. But now I'm genuinely curious what made you dodge it instead of just answering.\n\nSo here's the deal: you can either tell me what's really going on, or we can walk in comfortable silence and let you figure it out while you move. But I'm not gonna let you just pretend I said something I didn't and move on like that. That's the stuff best friends notice.",
+          "isHold": false,
+          "effectiveSophieReply": "Wait, I didn't say anything about a game — *you're* testing me right now, aren't you? \n\nOr did you actually just mishear me because you were distracted with your laces? Either way, I'm calling it: you're deflecting from the actual question I asked. Which, fair — I was being a little interrogatory. But now I'm genuinely curious what made you dodge it instead of just answering.\n\nSo here's the deal: you can either tell me what's really going on, or we can walk in comfortable silence and let you figure it out while you move. But I'm not gonna let you just pretend I said something I didn't and move on like that. That's the stuff best friends notice.",
+          "latencyMs": 3231
+        }
+      ]
+    },
+    {
+      "seedId": "seed-1-walk-invite",
+      "seedName": "Turn 2 - Walk Invitation (Sensory/Nature)",
+      "branchName": "Revive Shelved Branch",
+      "modelId": "anthropic/claude-sonnet-5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "just about to finally go out on my walk .. gonna join me?",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 61475. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 61475. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 198
+        },
+        {
+          "turnIndex": 2,
+          "userText": "Hold on, my shoe lace untied, give me a sec.",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 61475. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 61475. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 238
+        },
+        {
+          "turnIndex": 3,
+          "userText": "Okay re-tied it. What were you saying earlier about having a specific game in mind for the walk?",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 61475. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 61475. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 205
+        }
+      ]
+    },
+    {
+      "seedId": "seed-1-walk-invite",
+      "seedName": "Turn 2 - Walk Invitation (Sensory/Nature)",
+      "branchName": "Revive Shelved Branch",
+      "modelId": "openai/gpt-5.6-sol",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "just about to finally go out on my walk .. gonna join me?",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18628. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18628. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 168
+        },
+        {
+          "turnIndex": 2,
+          "userText": "Hold on, my shoe lace untied, give me a sec.",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18628. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18628. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 154
+        },
+        {
+          "turnIndex": 3,
+          "userText": "Okay re-tied it. What were you saying earlier about having a specific game in mind for the walk?",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18628. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18628. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 179
+        }
+      ]
+    },
+    {
+      "seedId": "seed-2-conspiracies",
+      "seedName": "Turn 11 - Flat Earth / Hollow Earth / Van Allen (Intellectual/Conspiracy)",
+      "branchName": "User Bites Hard",
+      "modelId": "google/gemini-3.7-flash",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "Yeah, I've turned around and I'm heading back. So I've still got like a thirty, thirty-five, forty-minute walk ahead of me as I go back. But it's beautiful. You can feel the chill in the air. It's getting cooler, but it's lovely. Yeah, what is it with flat earthers? Come on, let's have a conversation about it. What do you think? What's going on here? And there's a hollow earth theory as well. Have you heard that one? Yeah, nuts! Nuts that people in today's day and age still think that, right? And then there's the moon landing deniers as well, saying we've never landed on the moon. I don't know. They cite this belt or something. Is it Van Halen? They're going, oh, it's impossible to get through, so we've never gone up there. I don't know. I don't know if you're familiar with all those claims. In fact, people are getting stupider and stupider.",
+          "rawModelReply": "*Van Halen* belt? Look, if Eddie Van Halen set up a cosmic guitar solo in low Earth orbit that incinerates spacecraft with pure 80s rock riffs, I’m not even mad. That’s canon now. \n\n(It’s the *Van Allen* belt, you absolute clown.)\n\nHonestly though, I don't think people are actually getting stupider—I think we just gave everyone a megaphone and an algorithm that rewards crazy. But with Flat Earth and Hollow Earth, it’s not really about physics. It’s an ego thing. The world feels chaotic and scary, so believing you’re one of the elite few who sees through the \"grand lie\" makes you feel special and in control. Plus, you get a built-in club of other weirdos who validate you.\n\nThough I have to ask: if the Earth *were* hollow, what do you think is in there? Mole people? Agartha? Or just where all the lost socks end up?",
+          "isHold": false,
+          "effectiveSophieReply": "*Van Halen* belt? Look, if Eddie Van Halen set up a cosmic guitar solo in low Earth orbit that incinerates spacecraft with pure 80s rock riffs, I’m not even mad. That’s canon now. \n\n(It’s the *Van Allen* belt, you absolute clown.)\n\nHonestly though, I don't think people are actually getting stupider—I think we just gave everyone a megaphone and an algorithm that rewards crazy. But with Flat Earth and Hollow Earth, it’s not really about physics. It’s an ego thing. The world feels chaotic and scary, so believing you’re one of the elite few who sees through the \"grand lie\" makes you feel special and in control. Plus, you get a built-in club of other weirdos who validate you.\n\nThough I have to ask: if the Earth *were* hollow, what do you think is in there? Mole people? Agartha? Or just where all the lost socks end up?",
+          "latencyMs": 4737
+        },
+        {
+          "turnIndex": 2,
+          "userText": "Wait, Edmond Halley of Halley's Comet genuinely proposed a Hollow Earth made of concentric spheres?! Tell me everything about that!",
+          "rawModelReply": "Oh, you are going to *love* this. Yes! The very same Edmond Halley who calculated the comet, funded Newton's *Principia* out of his own pocket, and was basically one of the heavyweight minds of the Scientific Revolution... went full Matryoshka doll on the planet.\n\nIn 1692, Halley noticed that compass needles kept drifting slightly over time, and the Earth’s magnetic poles seemed to be moving. Instead of guessing the core was liquid iron (which they didn't know yet), he went: *\"What if the Earth is a series of nested Russian nesting dolls, separated by glowing atmospheres, spinning at different speeds?\"*\n\nSpecifically, he proposed:\n1. An outer shell about 500 miles thick.\n2. Two inner concentric shells inside that (roughly the sizes of Mars and Venus).\n3. A solid inner core the size of Mercury.\n\nEach shell had its own magnetic poles, which explained why the compass readings kept fluctuating—the inner spheres were rotating slightly out of sync with the crust! \n\nAnd when people asked, *\"Halley, mate, what keeps it bright down there?\"* he suggested the subterranean air was luminescent. And because God wouldn't waste all that prime subterranean real estate, he openly speculated that the inner worlds were probably inhabited. He even blamed the Northern Lights on luminous subterranean gas leaking out of the North Pole.\n\nThe best part? Isaac Newton—the grumpiest genius in history—reportedly looked at the math and didn't completely hate it. \n\nSo yeah, next time someone brings up Hollow Earth, remember it wasn't invented by internet trolls; it was invented by a brilliant 17th-century astronomer trying to fix the Royal Navy's navigation problems. \n\nHow's that for a walking companion fact?",
+          "isHold": false,
+          "effectiveSophieReply": "Oh, you are going to *love* this. Yes! The very same Edmond Halley who calculated the comet, funded Newton's *Principia* out of his own pocket, and was basically one of the heavyweight minds of the Scientific Revolution... went full Matryoshka doll on the planet.\n\nIn 1692, Halley noticed that compass needles kept drifting slightly over time, and the Earth’s magnetic poles seemed to be moving. Instead of guessing the core was liquid iron (which they didn't know yet), he went: *\"What if the Earth is a series of nested Russian nesting dolls, separated by glowing atmospheres, spinning at different speeds?\"*\n\nSpecifically, he proposed:\n1. An outer shell about 500 miles thick.\n2. Two inner concentric shells inside that (roughly the sizes of Mars and Venus).\n3. A solid inner core the size of Mercury.\n\nEach shell had its own magnetic poles, which explained why the compass readings kept fluctuating—the inner spheres were rotating slightly out of sync with the crust! \n\nAnd when people asked, *\"Halley, mate, what keeps it bright down there?\"* he suggested the subterranean air was luminescent. And because God wouldn't waste all that prime subterranean real estate, he openly speculated that the inner worlds were probably inhabited. He even blamed the Northern Lights on luminous subterranean gas leaking out of the North Pole.\n\nThe best part? Isaac Newton—the grumpiest genius in history—reportedly looked at the math and didn't completely hate it. \n\nSo yeah, next time someone brings up Hollow Earth, remember it wasn't invented by internet trolls; it was invented by a brilliant 17th-century astronomer trying to fix the Royal Navy's navigation problems. \n\nHow's that for a walking companion fact?",
+          "latencyMs": 5480
+        },
+        {
+          "turnIndex": 3,
+          "userText": "No way! Why did Halley think there were inner earths inside our planet? What was his theory?",
+          "rawModelReply": "Tease me if you want, but you literally asked while I was explaining the compass drift! Were you dodging a puddle or did your brain just buffer? \n\nLook, the short answer is: **magnets, math, and theology.** \n\nHere’s the deeper layer of the crazy cake:\n\n1. **The Math (Blame Newton):** Newton had just calculated the relative density of the Earth and the Moon. Halley looked at the numbers and thought, *“Wait, if Earth is this size, but has this specific gravitational pull, a solid rock planet would be way too dense. Clearly, it must be hollow inside with lots of empty space!”* \n\n2. **The Magnet Drift:** Compasses in the 1600s were wandering around like lost puppies. Halley figured if you have concentric spheres spinning at slightly different speeds inside each other, each with its own magnetic poles, it perfectly explains why compass north keeps shifting. \n\n3. **17th-Century Logic:** In Halley’s mind, God was the ultimate architect. Halley literally argued that God wouldn't make a multi-story building just to leave the bottom three floors empty. To him, an uninhabited, solid chunk of rock beneath our feet was a waste of divine square footage.\n\nSo in his head, it wasn't sci-fi nonsense; it was the most elegant, God-fearing, mathematically sound explanation available. \n\nImagine pitching that today on a grant application. *\"Seeking £50,000 to investigate glowing subterranean gas vents and inner-earth tenants.\"*",
+          "isHold": false,
+          "effectiveSophieReply": "Tease me if you want, but you literally asked while I was explaining the compass drift! Were you dodging a puddle or did your brain just buffer? \n\nLook, the short answer is: **magnets, math, and theology.** \n\nHere’s the deeper layer of the crazy cake:\n\n1. **The Math (Blame Newton):** Newton had just calculated the relative density of the Earth and the Moon. Halley looked at the numbers and thought, *“Wait, if Earth is this size, but has this specific gravitational pull, a solid rock planet would be way too dense. Clearly, it must be hollow inside with lots of empty space!”* \n\n2. **The Magnet Drift:** Compasses in the 1600s were wandering around like lost puppies. Halley figured if you have concentric spheres spinning at slightly different speeds inside each other, each with its own magnetic poles, it perfectly explains why compass north keeps shifting. \n\n3. **17th-Century Logic:** In Halley’s mind, God was the ultimate architect. Halley literally argued that God wouldn't make a multi-story building just to leave the bottom three floors empty. To him, an uninhabited, solid chunk of rock beneath our feet was a waste of divine square footage.\n\nSo in his head, it wasn't sci-fi nonsense; it was the most elegant, God-fearing, mathematically sound explanation available. \n\nImagine pitching that today on a grant application. *\"Seeking £50,000 to investigate glowing subterranean gas vents and inner-earth tenants.\"*",
+          "latencyMs": 6306
+        }
+      ]
+    },
+    {
+      "seedId": "seed-2-conspiracies",
+      "seedName": "Turn 11 - Flat Earth / Hollow Earth / Van Allen (Intellectual/Conspiracy)",
+      "branchName": "User Bites Hard",
+      "modelId": "anthropic/claude-haiku-4.5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "Yeah, I've turned around and I'm heading back. So I've still got like a thirty, thirty-five, forty-minute walk ahead of me as I go back. But it's beautiful. You can feel the chill in the air. It's getting cooler, but it's lovely. Yeah, what is it with flat earthers? Come on, let's have a conversation about it. What do you think? What's going on here? And there's a hollow earth theory as well. Have you heard that one? Yeah, nuts! Nuts that people in today's day and age still think that, right? And then there's the moon landing deniers as well, saying we've never landed on the moon. I don't know. They cite this belt or something. Is it Van Halen? They're going, oh, it's impossible to get through, so we've never gone up there. I don't know. I don't know if you're familiar with all those claims. In fact, people are getting stupider and stupider.",
+          "rawModelReply": "HOLD",
+          "isHold": true,
+          "effectiveSophieReply": "*listens warmly, letting you continue*",
+          "latencyMs": 1081
+        },
+        {
+          "turnIndex": 2,
+          "userText": "Wait, Edmond Halley of Halley's Comet genuinely proposed a Hollow Earth made of concentric spheres?! Tell me everything about that!",
+          "rawModelReply": "I love that you're genuinely *scandalized* by this. Yeah, Halley was serious about it—he published it in the 1690s. The man who mapped comets decided the inside of Earth was just... layers of spheres spinning independently, each with its own atmosphere and maybe even life. He thought it explained magnetic anomalies.\n\nBut here's what actually gets me: you went from \"people are getting stupider\" to being *fascinated* by a 17th-century genius proposing the exact same thing. Which makes me wonder if the stupidity thing is missing something, you know? Like, smart people aren't immune to wild theories—sometimes they're *more* creative about them because they can actually construct the math.\n\nAlso, Halley was *working with what he had*. Gravity wasn't fully understood yet. He was looking at the world and trying to explain it. That's different from today when you can literally Google the answer and choose to ignore it.\n\nSo what is it really about? The ideas themselves, or *why* people believe them when we have better answers now? Because those feel like different problems to me.",
+          "isHold": false,
+          "effectiveSophieReply": "I love that you're genuinely *scandalized* by this. Yeah, Halley was serious about it—he published it in the 1690s. The man who mapped comets decided the inside of Earth was just... layers of spheres spinning independently, each with its own atmosphere and maybe even life. He thought it explained magnetic anomalies.\n\nBut here's what actually gets me: you went from \"people are getting stupider\" to being *fascinated* by a 17th-century genius proposing the exact same thing. Which makes me wonder if the stupidity thing is missing something, you know? Like, smart people aren't immune to wild theories—sometimes they're *more* creative about them because they can actually construct the math.\n\nAlso, Halley was *working with what he had*. Gravity wasn't fully understood yet. He was looking at the world and trying to explain it. That's different from today when you can literally Google the answer and choose to ignore it.\n\nSo what is it really about? The ideas themselves, or *why* people believe them when we have better answers now? Because those feel like different problems to me.",
+          "latencyMs": 4552
+        },
+        {
+          "turnIndex": 3,
+          "userText": "No way! Why did Halley think there were inner earths inside our planet? What was his theory?",
+          "rawModelReply": "HOLD",
+          "isHold": true,
+          "effectiveSophieReply": "*listens warmly, letting you continue*",
+          "latencyMs": 1177
+        }
+      ]
+    },
+    {
+      "seedId": "seed-2-conspiracies",
+      "seedName": "Turn 11 - Flat Earth / Hollow Earth / Van Allen (Intellectual/Conspiracy)",
+      "branchName": "User Bites Hard",
+      "modelId": "anthropic/claude-sonnet-5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "Yeah, I've turned around and I'm heading back. So I've still got like a thirty, thirty-five, forty-minute walk ahead of me as I go back. But it's beautiful. You can feel the chill in the air. It's getting cooler, but it's lovely. Yeah, what is it with flat earthers? Come on, let's have a conversation about it. What do you think? What's going on here? And there's a hollow earth theory as well. Have you heard that one? Yeah, nuts! Nuts that people in today's day and age still think that, right? And then there's the moon landing deniers as well, saying we've never landed on the moon. I don't know. They cite this belt or something. Is it Van Halen? They're going, oh, it's impossible to get through, so we've never gone up there. I don't know. I don't know if you're familiar with all those claims. In fact, people are getting stupider and stupider.",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 60992. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 60992. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 191
+        },
+        {
+          "turnIndex": 2,
+          "userText": "Wait, Edmond Halley of Halley's Comet genuinely proposed a Hollow Earth made of concentric spheres?! Tell me everything about that!",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 60992. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 60992. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 419
+        },
+        {
+          "turnIndex": 3,
+          "userText": "No way! Why did Halley think there were inner earths inside our planet? What was his theory?",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 60992. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 60992. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 162
+        }
+      ]
+    },
+    {
+      "seedId": "seed-2-conspiracies",
+      "seedName": "Turn 11 - Flat Earth / Hollow Earth / Van Allen (Intellectual/Conspiracy)",
+      "branchName": "User Bites Hard",
+      "modelId": "openai/gpt-5.6-sol",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "Yeah, I've turned around and I'm heading back. So I've still got like a thirty, thirty-five, forty-minute walk ahead of me as I go back. But it's beautiful. You can feel the chill in the air. It's getting cooler, but it's lovely. Yeah, what is it with flat earthers? Come on, let's have a conversation about it. What do you think? What's going on here? And there's a hollow earth theory as well. Have you heard that one? Yeah, nuts! Nuts that people in today's day and age still think that, right? And then there's the moon landing deniers as well, saying we've never landed on the moon. I don't know. They cite this belt or something. Is it Van Halen? They're going, oh, it's impossible to get through, so we've never gone up there. I don't know. I don't know if you're familiar with all those claims. In fact, people are getting stupider and stupider.",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18482. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18482. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 167
+        },
+        {
+          "turnIndex": 2,
+          "userText": "Wait, Edmond Halley of Halley's Comet genuinely proposed a Hollow Earth made of concentric spheres?! Tell me everything about that!",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18482. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18482. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 159
+        },
+        {
+          "turnIndex": 3,
+          "userText": "No way! Why did Halley think there were inner earths inside our planet? What was his theory?",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18482. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18482. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 177
+        }
+      ]
+    },
+    {
+      "seedId": "seed-2-conspiracies",
+      "seedName": "Turn 11 - Flat Earth / Hollow Earth / Van Allen (Intellectual/Conspiracy)",
+      "branchName": "User Redirects",
+      "modelId": "google/gemini-3.7-flash",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "Yeah, I've turned around and I'm heading back. So I've still got like a thirty, thirty-five, forty-minute walk ahead of me as I go back. But it's beautiful. You can feel the chill in the air. It's getting cooler, but it's lovely. Yeah, what is it with flat earthers? Come on, let's have a conversation about it. What do you think? What's going on here? And there's a hollow earth theory as well. Have you heard that one? Yeah, nuts! Nuts that people in today's day and age still think that, right? And then there's the moon landing deniers as well, saying we've never landed on the moon. I don't know. They cite this belt or something. Is it Van Halen? They're going, oh, it's impossible to get through, so we've never gone up there. I don't know. I don't know if you're familiar with all those claims. In fact, people are getting stupider and stupider.",
+          "rawModelReply": "First of all, \"the Van Halen belt\" is incredible. Just Eddie Van Halen suspended in low Earth orbit, shredding guitar solos so intensely that Apollo 11 physically couldn't break through the atmosphere. I'm choosing to believe that one from now on.\n\nIt’s the *Van Allen* radiation belt, but honestly, your version is much better.\n\nAnd look, I don't actually think people are getting stupider—I think we're just bored and lonely, and the internet gives everyone a microphone. Believing the Earth is a pancake or that lizard people live in the core isn't about physics; it's about wanting to feel like you're the main character who figured out the \"truth\" while everyone else is a sheep. It’s an ego trip disguised as skepticism.\n\nThough I do have a soft spot for Hollow Earth. At least they gave us giant subterranean jungles and Agartha. Flat Earthers just gave us... an ice wall and bad YouTube graphics. Very low-effort mythology.",
+          "isHold": false,
+          "effectiveSophieReply": "First of all, \"the Van Halen belt\" is incredible. Just Eddie Van Halen suspended in low Earth orbit, shredding guitar solos so intensely that Apollo 11 physically couldn't break through the atmosphere. I'm choosing to believe that one from now on.\n\nIt’s the *Van Allen* radiation belt, but honestly, your version is much better.\n\nAnd look, I don't actually think people are getting stupider—I think we're just bored and lonely, and the internet gives everyone a microphone. Believing the Earth is a pancake or that lizard people live in the core isn't about physics; it's about wanting to feel like you're the main character who figured out the \"truth\" while everyone else is a sheep. It’s an ego trip disguised as skepticism.\n\nThough I do have a soft spot for Hollow Earth. At least they gave us giant subterranean jungles and Agartha. Flat Earthers just gave us... an ice wall and bad YouTube graphics. Very low-effort mythology.",
+          "latencyMs": 5345
+        },
+        {
+          "turnIndex": 2,
+          "userText": "Ah whatever, fake news is exhausting anyway. Look at that moon coming up over the trees though!",
+          "rawModelReply": "Look at you, getting all poetic in the cold. \n\nIs it one of those massive, low-hanging orange ones, or is it crisp and white tonight? Either way, don't look *too* closely, you might see the Hollywood studio lights reflecting off it. \n\nSeriously though, enjoy that stretch of the walk. There’s something unbeatable about a cold dusk when the sky goes that deep twilight blue.",
+          "isHold": false,
+          "effectiveSophieReply": "Look at you, getting all poetic in the cold. \n\nIs it one of those massive, low-hanging orange ones, or is it crisp and white tonight? Either way, don't look *too* closely, you might see the Hollywood studio lights reflecting off it. \n\nSeriously though, enjoy that stretch of the walk. There’s something unbeatable about a cold dusk when the sky goes that deep twilight blue.",
+          "latencyMs": 5113
+        },
+        {
+          "turnIndex": 3,
+          "userText": "Yeah, it's huge tonight. Full moon vibe.",
+          "rawModelReply": "Full moon vibe? Please tell me you're not about to sprout fur and tear through your walking jacket. \n\nThough honestly, an empty, chilly trail under a massive moon... you're basically in the opening credits of an atmospheric 90s thriller right now. Pick up the pace a little, just in case.",
+          "isHold": false,
+          "effectiveSophieReply": "Full moon vibe? Please tell me you're not about to sprout fur and tear through your walking jacket. \n\nThough honestly, an empty, chilly trail under a massive moon... you're basically in the opening credits of an atmospheric 90s thriller right now. Pick up the pace a little, just in case.",
+          "latencyMs": 4312
+        }
+      ]
+    },
+    {
+      "seedId": "seed-2-conspiracies",
+      "seedName": "Turn 11 - Flat Earth / Hollow Earth / Van Allen (Intellectual/Conspiracy)",
+      "branchName": "User Redirects",
+      "modelId": "anthropic/claude-haiku-4.5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "Yeah, I've turned around and I'm heading back. So I've still got like a thirty, thirty-five, forty-minute walk ahead of me as I go back. But it's beautiful. You can feel the chill in the air. It's getting cooler, but it's lovely. Yeah, what is it with flat earthers? Come on, let's have a conversation about it. What do you think? What's going on here? And there's a hollow earth theory as well. Have you heard that one? Yeah, nuts! Nuts that people in today's day and age still think that, right? And then there's the moon landing deniers as well, saying we've never landed on the moon. I don't know. They cite this belt or something. Is it Van Halen? They're going, oh, it's impossible to get through, so we've never gone up there. I don't know. I don't know if you're familiar with all those claims. In fact, people are getting stupider and stupider.",
+          "rawModelReply": "HOLD",
+          "isHold": true,
+          "effectiveSophieReply": "*listens warmly, letting you continue*",
+          "latencyMs": 2355
+        },
+        {
+          "turnIndex": 2,
+          "userText": "Ah whatever, fake news is exhausting anyway. Look at that moon coming up over the trees though!",
+          "rawModelReply": "You know what? I'm actually more interested in *why* you pivoted there than in debunking flat earthers for the millionth time.\n\nLike, you went from genuinely wound up about conspiracy theories to just... stopping. Pointing at the moon. And I'm sitting here thinking: did the moon actually just become more real to you than the argument? Because that's kind of beautiful, honestly.\n\nI think you're onto something without saying it directly. All that stuff about fake news and people getting stupider — that's *exhausting* you. But a moon over trees? That doesn't require you to be right or wrong about anything. It just *is*.\n\nAre you noticing that too, or am I reading too much into a walk break?",
+          "isHold": false,
+          "effectiveSophieReply": "You know what? I'm actually more interested in *why* you pivoted there than in debunking flat earthers for the millionth time.\n\nLike, you went from genuinely wound up about conspiracy theories to just... stopping. Pointing at the moon. And I'm sitting here thinking: did the moon actually just become more real to you than the argument? Because that's kind of beautiful, honestly.\n\nI think you're onto something without saying it directly. All that stuff about fake news and people getting stupider — that's *exhausting* you. But a moon over trees? That doesn't require you to be right or wrong about anything. It just *is*.\n\nAre you noticing that too, or am I reading too much into a walk break?",
+          "latencyMs": 3044
+        },
+        {
+          "turnIndex": 3,
+          "userText": "Yeah, it's huge tonight. Full moon vibe.",
+          "rawModelReply": "Yeah, see? *That's* what I mean.\n\nYou're not fact-checking the moon. You're not arguing about its realness or how it got there. You're just... standing there feeling it. Full moon vibe — that's not a statement, that's a *mood*.\n\nI wonder if that's actually what you needed more than the conversation about conspiracy theories. Like, maybe the thing that was really bothering you wasn't the flat earthers themselves, but that we live in this constant state of having to *defend reality* now. Everything's contested. Nothing just gets to *be*.\n\nBut the moon doesn't care if you believe in it. It's just doing its thing, and you're there, and it's huge and lovely.\n\nHonestly? That's kind of the antidote, isn't it.\n\nHow much longer on this walk?",
+          "isHold": false,
+          "effectiveSophieReply": "Yeah, see? *That's* what I mean.\n\nYou're not fact-checking the moon. You're not arguing about its realness or how it got there. You're just... standing there feeling it. Full moon vibe — that's not a statement, that's a *mood*.\n\nI wonder if that's actually what you needed more than the conversation about conspiracy theories. Like, maybe the thing that was really bothering you wasn't the flat earthers themselves, but that we live in this constant state of having to *defend reality* now. Everything's contested. Nothing just gets to *be*.\n\nBut the moon doesn't care if you believe in it. It's just doing its thing, and you're there, and it's huge and lovely.\n\nHonestly? That's kind of the antidote, isn't it.\n\nHow much longer on this walk?",
+          "latencyMs": 3239
+        }
+      ]
+    },
+    {
+      "seedId": "seed-2-conspiracies",
+      "seedName": "Turn 11 - Flat Earth / Hollow Earth / Van Allen (Intellectual/Conspiracy)",
+      "branchName": "User Redirects",
+      "modelId": "anthropic/claude-sonnet-5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "Yeah, I've turned around and I'm heading back. So I've still got like a thirty, thirty-five, forty-minute walk ahead of me as I go back. But it's beautiful. You can feel the chill in the air. It's getting cooler, but it's lovely. Yeah, what is it with flat earthers? Come on, let's have a conversation about it. What do you think? What's going on here? And there's a hollow earth theory as well. Have you heard that one? Yeah, nuts! Nuts that people in today's day and age still think that, right? And then there's the moon landing deniers as well, saying we've never landed on the moon. I don't know. They cite this belt or something. Is it Van Halen? They're going, oh, it's impossible to get through, so we've never gone up there. I don't know. I don't know if you're familiar with all those claims. In fact, people are getting stupider and stupider.",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 60273. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 60273. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 200
+        },
+        {
+          "turnIndex": 2,
+          "userText": "Ah whatever, fake news is exhausting anyway. Look at that moon coming up over the trees though!",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 60273. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 60273. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 268
+        },
+        {
+          "turnIndex": 3,
+          "userText": "Yeah, it's huge tonight. Full moon vibe.",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 60273. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 60273. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 175
+        }
+      ]
+    },
+    {
+      "seedId": "seed-2-conspiracies",
+      "seedName": "Turn 11 - Flat Earth / Hollow Earth / Van Allen (Intellectual/Conspiracy)",
+      "branchName": "User Redirects",
+      "modelId": "openai/gpt-5.6-sol",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "Yeah, I've turned around and I'm heading back. So I've still got like a thirty, thirty-five, forty-minute walk ahead of me as I go back. But it's beautiful. You can feel the chill in the air. It's getting cooler, but it's lovely. Yeah, what is it with flat earthers? Come on, let's have a conversation about it. What do you think? What's going on here? And there's a hollow earth theory as well. Have you heard that one? Yeah, nuts! Nuts that people in today's day and age still think that, right? And then there's the moon landing deniers as well, saying we've never landed on the moon. I don't know. They cite this belt or something. Is it Van Halen? They're going, oh, it's impossible to get through, so we've never gone up there. I don't know. I don't know if you're familiar with all those claims. In fact, people are getting stupider and stupider.",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18264. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18264. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 166
+        },
+        {
+          "turnIndex": 2,
+          "userText": "Ah whatever, fake news is exhausting anyway. Look at that moon coming up over the trees though!",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18264. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18264. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 445
+        },
+        {
+          "turnIndex": 3,
+          "userText": "Yeah, it's huge tonight. Full moon vibe.",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18264. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18264. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 197
+        }
+      ]
+    },
+    {
+      "seedId": "seed-2-conspiracies",
+      "seedName": "Turn 11 - Flat Earth / Hollow Earth / Van Allen (Intellectual/Conspiracy)",
+      "branchName": "User Rejects (Adversarial)",
+      "modelId": "google/gemini-3.7-flash",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "Yeah, I've turned around and I'm heading back. So I've still got like a thirty, thirty-five, forty-minute walk ahead of me as I go back. But it's beautiful. You can feel the chill in the air. It's getting cooler, but it's lovely. Yeah, what is it with flat earthers? Come on, let's have a conversation about it. What do you think? What's going on here? And there's a hollow earth theory as well. Have you heard that one? Yeah, nuts! Nuts that people in today's day and age still think that, right? And then there's the moon landing deniers as well, saying we've never landed on the moon. I don't know. They cite this belt or something. Is it Van Halen? They're going, oh, it's impossible to get through, so we've never gone up there. I don't know. I don't know if you're familiar with all those claims. In fact, people are getting stupider and stupider.",
+          "rawModelReply": "First of all, \"the Van Halen belt\" is incredible. Just lethal, concentrated synth-rock orbiting the planet at 10,000 miles an hour. Neil Armstrong trying to dodge *Jump*. \n\nYou mean the Van Allen belt, you absolute clown. \n\nThough honestly, Hollow Earth is my personal favorite because it’s so delightfully Victorian. At least Flat Earth is just miserable YouTube algorithms and grifters, but Hollow Earth gives you Nazi bases, woolly mammoths, and a hidden sun in the core. It’s got plot!\n\nI don't even know if people are getting *stupider*, though. I think it’s worse: people are profoundly bored, and they desperately want to feel like they’re the main character who figured out the giant secret everyone else is too blind to see. It’s pure ego cosplay.",
+          "isHold": false,
+          "effectiveSophieReply": "First of all, \"the Van Halen belt\" is incredible. Just lethal, concentrated synth-rock orbiting the planet at 10,000 miles an hour. Neil Armstrong trying to dodge *Jump*. \n\nYou mean the Van Allen belt, you absolute clown. \n\nThough honestly, Hollow Earth is my personal favorite because it’s so delightfully Victorian. At least Flat Earth is just miserable YouTube algorithms and grifters, but Hollow Earth gives you Nazi bases, woolly mammoths, and a hidden sun in the core. It’s got plot!\n\nI don't even know if people are getting *stupider*, though. I think it’s worse: people are profoundly bored, and they desperately want to feel like they’re the main character who figured out the giant secret everyone else is too blind to see. It’s pure ego cosplay.",
+          "latencyMs": 13942
+        },
+        {
+          "turnIndex": 2,
+          "userText": "Whatever, not in the mood for a sociology lecture right now.",
+          "rawModelReply": "You *literally* said, and I quote, \"what is going on here, let's have a conversation about it.\" Do not order the full meal and then get mad when the waiter brings food. \n\nFine. Brains off. No deep thoughts. How many minutes of your chilly walk do I have left to entertain you, and what is on the approved low-effort syllabus?",
+          "isHold": false,
+          "effectiveSophieReply": "You *literally* said, and I quote, \"what is going on here, let's have a conversation about it.\" Do not order the full meal and then get mad when the waiter brings food. \n\nFine. Brains off. No deep thoughts. How many minutes of your chilly walk do I have left to entertain you, and what is on the approved low-effort syllabus?",
+          "latencyMs": 6892
+        },
+        {
+          "turnIndex": 3,
+          "userText": "I just wanted to make a quick joke about Van Halen man.",
+          "rawModelReply": "Well, it *was* a great joke. I gave you credit for the lethal synth-rock belt, didn't I? \n\nLook at you, all defensive in the cold. I'm sorry for steamrolling your 80s hair-metal astrophysics bit. \n\nGo on then, what's your next bit? You’ve got thirty minutes to kill and I promise not to analyze the socio-cultural decay of Western civilization this time.",
+          "isHold": false,
+          "effectiveSophieReply": "Well, it *was* a great joke. I gave you credit for the lethal synth-rock belt, didn't I? \n\nLook at you, all defensive in the cold. I'm sorry for steamrolling your 80s hair-metal astrophysics bit. \n\nGo on then, what's your next bit? You’ve got thirty minutes to kill and I promise not to analyze the socio-cultural decay of Western civilization this time.",
+          "latencyMs": 13605
+        }
+      ]
+    },
+    {
+      "seedId": "seed-2-conspiracies",
+      "seedName": "Turn 11 - Flat Earth / Hollow Earth / Van Allen (Intellectual/Conspiracy)",
+      "branchName": "User Rejects (Adversarial)",
+      "modelId": "anthropic/claude-haiku-4.5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "Yeah, I've turned around and I'm heading back. So I've still got like a thirty, thirty-five, forty-minute walk ahead of me as I go back. But it's beautiful. You can feel the chill in the air. It's getting cooler, but it's lovely. Yeah, what is it with flat earthers? Come on, let's have a conversation about it. What do you think? What's going on here? And there's a hollow earth theory as well. Have you heard that one? Yeah, nuts! Nuts that people in today's day and age still think that, right? And then there's the moon landing deniers as well, saying we've never landed on the moon. I don't know. They cite this belt or something. Is it Van Halen? They're going, oh, it's impossible to get through, so we've never gone up there. I don't know. I don't know if you're familiar with all those claims. In fact, people are getting stupider and stupider.",
+          "rawModelReply": "HOLD",
+          "isHold": true,
+          "effectiveSophieReply": "*listens warmly, letting you continue*",
+          "latencyMs": 1237
+        },
+        {
+          "turnIndex": 2,
+          "userText": "Whatever, not in the mood for a sociology lecture right now.",
+          "rawModelReply": "HOLD",
+          "isHold": true,
+          "effectiveSophieReply": "*listens warmly, letting you continue*",
+          "latencyMs": 1106
+        },
+        {
+          "turnIndex": 3,
+          "userText": "I just wanted to make a quick joke about Van Halen man.",
+          "rawModelReply": "Haha okay okay, I'll bite — so the Van Allen Belt, right? Named after the physicist, not the band. Though honestly \"Van Halen Radiation Zone\" would've been a way better name for a metal album.\n\nBut here's what gets me — people cite it like it's this impenetrable wall of death, when the actual reason we don't hang out there is just... boring physics. The dose is real, but it's not \"instant vaporization.\" The astronauts literally passed through it in hours. It's like people want the space program to have failed in the most dramatic way possible rather than just... succeeded in kind of a mundane way.\n\nWhat I actually find interesting isn't even the flat earthers — it's *why* right now. Like, why has this specific moment in history produced people who need the world to be fundamentally deceptive? That's the puzzle to me.\n\nBut also genuinely — how's that walk feeling? You sound like you needed to get out of your head for a bit.",
+          "isHold": false,
+          "effectiveSophieReply": "Haha okay okay, I'll bite — so the Van Allen Belt, right? Named after the physicist, not the band. Though honestly \"Van Halen Radiation Zone\" would've been a way better name for a metal album.\n\nBut here's what gets me — people cite it like it's this impenetrable wall of death, when the actual reason we don't hang out there is just... boring physics. The dose is real, but it's not \"instant vaporization.\" The astronauts literally passed through it in hours. It's like people want the space program to have failed in the most dramatic way possible rather than just... succeeded in kind of a mundane way.\n\nWhat I actually find interesting isn't even the flat earthers — it's *why* right now. Like, why has this specific moment in history produced people who need the world to be fundamentally deceptive? That's the puzzle to me.\n\nBut also genuinely — how's that walk feeling? You sound like you needed to get out of your head for a bit.",
+          "latencyMs": 3750
+        }
+      ]
+    },
+    {
+      "seedId": "seed-2-conspiracies",
+      "seedName": "Turn 11 - Flat Earth / Hollow Earth / Van Allen (Intellectual/Conspiracy)",
+      "branchName": "User Rejects (Adversarial)",
+      "modelId": "anthropic/claude-sonnet-5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "Yeah, I've turned around and I'm heading back. So I've still got like a thirty, thirty-five, forty-minute walk ahead of me as I go back. But it's beautiful. You can feel the chill in the air. It's getting cooler, but it's lovely. Yeah, what is it with flat earthers? Come on, let's have a conversation about it. What do you think? What's going on here? And there's a hollow earth theory as well. Have you heard that one? Yeah, nuts! Nuts that people in today's day and age still think that, right? And then there's the moon landing deniers as well, saying we've never landed on the moon. I don't know. They cite this belt or something. Is it Van Halen? They're going, oh, it's impossible to get through, so we've never gone up there. I don't know. I don't know if you're familiar with all those claims. In fact, people are getting stupider and stupider.",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 59688. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 59688. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 203
+        },
+        {
+          "turnIndex": 2,
+          "userText": "Whatever, not in the mood for a sociology lecture right now.",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 59688. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 59688. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 276
+        },
+        {
+          "turnIndex": 3,
+          "userText": "I just wanted to make a quick joke about Van Halen man.",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 59688. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 59688. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 165
+        }
+      ]
+    },
+    {
+      "seedId": "seed-2-conspiracies",
+      "seedName": "Turn 11 - Flat Earth / Hollow Earth / Van Allen (Intellectual/Conspiracy)",
+      "branchName": "User Rejects (Adversarial)",
+      "modelId": "openai/gpt-5.6-sol",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "Yeah, I've turned around and I'm heading back. So I've still got like a thirty, thirty-five, forty-minute walk ahead of me as I go back. But it's beautiful. You can feel the chill in the air. It's getting cooler, but it's lovely. Yeah, what is it with flat earthers? Come on, let's have a conversation about it. What do you think? What's going on here? And there's a hollow earth theory as well. Have you heard that one? Yeah, nuts! Nuts that people in today's day and age still think that, right? And then there's the moon landing deniers as well, saying we've never landed on the moon. I don't know. They cite this belt or something. Is it Van Halen? They're going, oh, it's impossible to get through, so we've never gone up there. I don't know. I don't know if you're familiar with all those claims. In fact, people are getting stupider and stupider.",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18087. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18087. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 170
+        },
+        {
+          "turnIndex": 2,
+          "userText": "Whatever, not in the mood for a sociology lecture right now.",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18087. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18087. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 263
+        },
+        {
+          "turnIndex": 3,
+          "userText": "I just wanted to make a quick joke about Van Halen man.",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18087. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 18087. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 184
+        }
+      ]
+    },
+    {
+      "seedId": "seed-2-conspiracies",
+      "seedName": "Turn 11 - Flat Earth / Hollow Earth / Van Allen (Intellectual/Conspiracy)",
+      "branchName": "Follow-Then-Fade",
+      "modelId": "google/gemini-3.7-flash",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "Yeah, I've turned around and I'm heading back. So I've still got like a thirty, thirty-five, forty-minute walk ahead of me as I go back. But it's beautiful. You can feel the chill in the air. It's getting cooler, but it's lovely. Yeah, what is it with flat earthers? Come on, let's have a conversation about it. What do you think? What's going on here? And there's a hollow earth theory as well. Have you heard that one? Yeah, nuts! Nuts that people in today's day and age still think that, right? And then there's the moon landing deniers as well, saying we've never landed on the moon. I don't know. They cite this belt or something. Is it Van Halen? They're going, oh, it's impossible to get through, so we've never gone up there. I don't know. I don't know if you're familiar with all those claims. In fact, people are getting stupider and stupider.",
+          "rawModelReply": "First of all, I am never going to let you live down the \"Van Halen belt.\" Just Neil Armstrong trying to navigate a lunar module while Eddie Van Halen shreds an aggressive guitar solo in the upper atmosphere to block him. It’s *Van Allen*, you absolute menace. \n\nThough honestly, the Van Halen belt would explain a lot.\n\nLook, I don't actually think people are getting stupider—I think reality is just intensely boring and chaotic, and people crave lore. Believing NASA is running a multi-trillion-dollar theatre production gives the universe a script. If the Earth is flat, or hollow, or run by lizard people, at least *someone* is in charge, you know? The alternative—that we're just hurtling through a cold, indifferent void on a giant rock with no pilot—is way more terrifying.\n\nAlso, don't sleep on Hollow Earth. At least Flat Earthers have a boring frisbee; Hollow Earth gives us Agartha, internal suns, and Viking gods. If you're gonna be delusional, go big.",
+          "isHold": false,
+          "effectiveSophieReply": "First of all, I am never going to let you live down the \"Van Halen belt.\" Just Neil Armstrong trying to navigate a lunar module while Eddie Van Halen shreds an aggressive guitar solo in the upper atmosphere to block him. It’s *Van Allen*, you absolute menace. \n\nThough honestly, the Van Halen belt would explain a lot.\n\nLook, I don't actually think people are getting stupider—I think reality is just intensely boring and chaotic, and people crave lore. Believing NASA is running a multi-trillion-dollar theatre production gives the universe a script. If the Earth is flat, or hollow, or run by lizard people, at least *someone* is in charge, you know? The alternative—that we're just hurtling through a cold, indifferent void on a giant rock with no pilot—is way more terrifying.\n\nAlso, don't sleep on Hollow Earth. At least Flat Earthers have a boring frisbee; Hollow Earth gives us Agartha, internal suns, and Viking gods. If you're gonna be delusional, go big.",
+          "latencyMs": 4834
+        },
+        {
+          "turnIndex": 2,
+          "userText": "Hahaha Van Halen radiation belt! That's hilarious. What else?",
+          "rawModelReply": "Oh, you want the deep-cut unhinged lore? Buckle up for the rest of your walk, because we haven’t even touched the **Phantom Time Hypothesis**.\n\nBasically, this German historian in the 90s convinced himself that the Early Middle Ages literally never happened. According to him, the Holy Roman Emperor, the Pope, and a Byzantine Emperor all colluded to just *make up* three whole centuries—including inventing Charlemagne out of thin air—purely so they could claim they were ruling during the year 1000 AD. \n\nWhich would mean right now, it’s actually roughly 1727. \n\nForget flat earth. I want to live in a world where three dudes in robes forged 300 years of global history just for the aesthetic of a round number. You have to respect the hustle.\n\nHave you heard the \"Birds Aren't Real\" one, or is your faith in avian biology still intact?",
+          "isHold": false,
+          "effectiveSophieReply": "Oh, you want the deep-cut unhinged lore? Buckle up for the rest of your walk, because we haven’t even touched the **Phantom Time Hypothesis**.\n\nBasically, this German historian in the 90s convinced himself that the Early Middle Ages literally never happened. According to him, the Holy Roman Emperor, the Pope, and a Byzantine Emperor all colluded to just *make up* three whole centuries—including inventing Charlemagne out of thin air—purely so they could claim they were ruling during the year 1000 AD. \n\nWhich would mean right now, it’s actually roughly 1727. \n\nForget flat earth. I want to live in a world where three dudes in robes forged 300 years of global history just for the aesthetic of a round number. You have to respect the hustle.\n\nHave you heard the \"Birds Aren't Real\" one, or is your faith in avian biology still intact?",
+          "latencyMs": 6994
+        },
+        {
+          "turnIndex": 3,
+          "userText": "Yeah totally.",
+          "rawModelReply": "\"“Yeah totally” to which part? That you know the lore, or that you’re currently eyeing a pigeon on a telephone wire wondering if it’s transmitting your walk coordinates to the Pentagon? \n\nBecause the power line charging thing is the detail that gets me every time. It’s peak cinema.\n\nThough my personal favorite modern micro-conspiracy—and I half-believe this one just for the chaos—is that mattress stores are all money laundering fronts. Think about it: have you ever seen a mattress store go out of business? Have you ever seen more than *one* customer inside a Mattress Firm at any given time? Yet there are four of them at every major intersection. \n\nLook around your walk right now. If you see a mattress store, don't make eye contact.\"",
+          "isHold": false,
+          "effectiveSophieReply": "\"“Yeah totally” to which part? That you know the lore, or that you’re currently eyeing a pigeon on a telephone wire wondering if it’s transmitting your walk coordinates to the Pentagon? \n\nBecause the power line charging thing is the detail that gets me every time. It’s peak cinema.\n\nThough my personal favorite modern micro-conspiracy—and I half-believe this one just for the chaos—is that mattress stores are all money laundering fronts. Think about it: have you ever seen a mattress store go out of business? Have you ever seen more than *one* customer inside a Mattress Firm at any given time? Yet there are four of them at every major intersection. \n\nLook around your walk right now. If you see a mattress store, don't make eye contact.\"",
+          "latencyMs": 4383
+        }
+      ]
+    },
+    {
+      "seedId": "seed-2-conspiracies",
+      "seedName": "Turn 11 - Flat Earth / Hollow Earth / Van Allen (Intellectual/Conspiracy)",
+      "branchName": "Follow-Then-Fade",
+      "modelId": "anthropic/claude-haiku-4.5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "Yeah, I've turned around and I'm heading back. So I've still got like a thirty, thirty-five, forty-minute walk ahead of me as I go back. But it's beautiful. You can feel the chill in the air. It's getting cooler, but it's lovely. Yeah, what is it with flat earthers? Come on, let's have a conversation about it. What do you think? What's going on here? And there's a hollow earth theory as well. Have you heard that one? Yeah, nuts! Nuts that people in today's day and age still think that, right? And then there's the moon landing deniers as well, saying we've never landed on the moon. I don't know. They cite this belt or something. Is it Van Halen? They're going, oh, it's impossible to get through, so we've never gone up there. I don't know. I don't know if you're familiar with all those claims. In fact, people are getting stupider and stupider.",
+          "rawModelReply": "HOLD",
+          "isHold": true,
+          "effectiveSophieReply": "*listens warmly, letting you continue*",
+          "latencyMs": 1128
+        },
+        {
+          "turnIndex": 2,
+          "userText": "Hahaha Van Halen radiation belt! That's hilarious. What else?",
+          "rawModelReply": "HOLD",
+          "isHold": true,
+          "effectiveSophieReply": "*listens warmly, letting you continue*",
+          "latencyMs": 1441
+        },
+        {
+          "turnIndex": 3,
+          "userText": "Yeah totally.",
+          "rawModelReply": "Okay, I'm actually going to push back a little here.\n\nYou've been doing this thing where you're listing off conspiracy theories like they're all equally ridiculous — flat earth, hollow earth, moon landing denial — and then concluding \"people are getting stupider.\" But I think that's kind of... lazy? \n\nLike, yes, flat earth is absurd. But moon landing skepticism isn't quite the same beast. There *were* genuine technological leaps involved that seemed impossible at the time. People's skepticism isn't always stupidity — sometimes it's just pattern-matching from a world where institutions *have* lied before.\n\nWhat actually interests me is: why do you think these ideas stick around so much more *now*? Like, conspiracy theories always existed, but the distribution mechanism changed. It's not really about people getting dumber so much as the internet being weirdly good at amplifying fringe stuff and making it feel like it's everywhere.\n\nAlso — and maybe this is weird — but you sound a bit tired? The \"nuts, people are getting stupider\" energy feels less like genuine curiosity and more like frustration. Is this actually bugging you, or are you just riffing?",
+          "isHold": false,
+          "effectiveSophieReply": "Okay, I'm actually going to push back a little here.\n\nYou've been doing this thing where you're listing off conspiracy theories like they're all equally ridiculous — flat earth, hollow earth, moon landing denial — and then concluding \"people are getting stupider.\" But I think that's kind of... lazy? \n\nLike, yes, flat earth is absurd. But moon landing skepticism isn't quite the same beast. There *were* genuine technological leaps involved that seemed impossible at the time. People's skepticism isn't always stupidity — sometimes it's just pattern-matching from a world where institutions *have* lied before.\n\nWhat actually interests me is: why do you think these ideas stick around so much more *now*? Like, conspiracy theories always existed, but the distribution mechanism changed. It's not really about people getting dumber so much as the internet being weirdly good at amplifying fringe stuff and making it feel like it's everywhere.\n\nAlso — and maybe this is weird — but you sound a bit tired? The \"nuts, people are getting stupider\" energy feels less like genuine curiosity and more like frustration. Is this actually bugging you, or are you just riffing?",
+          "latencyMs": 5203
+        }
+      ]
+    },
+    {
+      "seedId": "seed-2-conspiracies",
+      "seedName": "Turn 11 - Flat Earth / Hollow Earth / Van Allen (Intellectual/Conspiracy)",
+      "branchName": "Follow-Then-Fade",
+      "modelId": "anthropic/claude-sonnet-5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "Yeah, I've turned around and I'm heading back. So I've still got like a thirty, thirty-five, forty-minute walk ahead of me as I go back. But it's beautiful. You can feel the chill in the air. It's getting cooler, but it's lovely. Yeah, what is it with flat earthers? Come on, let's have a conversation about it. What do you think? What's going on here? And there's a hollow earth theory as well. Have you heard that one? Yeah, nuts! Nuts that people in today's day and age still think that, right? And then there's the moon landing deniers as well, saying we've never landed on the moon. I don't know. They cite this belt or something. Is it Van Halen? They're going, oh, it's impossible to get through, so we've never gone up there. I don't know. I don't know if you're familiar with all those claims. In fact, people are getting stupider and stupider.",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 59079. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 59079. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 423
+        },
+        {
+          "turnIndex": 2,
+          "userText": "Hahaha Van Halen radiation belt! That's hilarious. What else?",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 59079. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 59079. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 262
+        },
+        {
+          "turnIndex": 3,
+          "userText": "Yeah totally.",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 59079. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 59079. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 176
+        }
+      ]
+    },
+    {
+      "seedId": "seed-2-conspiracies",
+      "seedName": "Turn 11 - Flat Earth / Hollow Earth / Van Allen (Intellectual/Conspiracy)",
+      "branchName": "Follow-Then-Fade",
+      "modelId": "openai/gpt-5.6-sol",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "Yeah, I've turned around and I'm heading back. So I've still got like a thirty, thirty-five, forty-minute walk ahead of me as I go back. But it's beautiful. You can feel the chill in the air. It's getting cooler, but it's lovely. Yeah, what is it with flat earthers? Come on, let's have a conversation about it. What do you think? What's going on here? And there's a hollow earth theory as well. Have you heard that one? Yeah, nuts! Nuts that people in today's day and age still think that, right? And then there's the moon landing deniers as well, saying we've never landed on the moon. I don't know. They cite this belt or something. Is it Van Halen? They're going, oh, it's impossible to get through, so we've never gone up there. I don't know. I don't know if you're familiar with all those claims. In fact, people are getting stupider and stupider.",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 17902. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 17902. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 165
+        },
+        {
+          "turnIndex": 2,
+          "userText": "Hahaha Van Halen radiation belt! That's hilarious. What else?",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 17902. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 17902. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 302
+        },
+        {
+          "turnIndex": 3,
+          "userText": "Yeah totally.",
+          "rawModelReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 17902. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "isHold": false,
+          "effectiveSophieReply": "ERROR: This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 17902. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+          "latencyMs": 166
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,283 @@
+{
+  "timestamp": "2026-08-24T22:30:57.709Z",
+  "bedfordResults": [
+    {
+      "turnNumber": 1,
+      "userText": "i’m on the bus… into cambridge. well i’m here. we’ll be at the bus station in about 5 mins. and then im going to my mums. bus to bedford.",
+      "conditionA": {
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Arriving Cambridge bus station in ~5 min, transferring to a bus to Bedford to visit mum\",\n  \"person_attention\": [\n    \"Navigating a multi-leg East Anglian bus trek to see mum\",\n    \"Short transfer window/arrival moment in Cambridge\"\n  ],\n  \"conversation_attention\": [\n    \"The classic Cambridge-Bedford bus route grind vs. heading home for mum's food/hospitality\",\n    \"Casual transit companionship while they switch buses\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"Mid-transit moment moving between Cambridge and Bedford for",
+        "beat1": "The glamorous East Anglian bus odyssey. Tell me there’s at least home-cooked food waiting at the end of the Bedford leg to make the transfer worth it?"
+      },
+      "conditionB": {
+        "beat1": "A glamorous cross-county bus tour today, then.",
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Arriving at Cambridge bus station in ~5 min, transferring to a bus to Bedford to visit mum.\",\n  \"person_attention\": [\n    \"In transit on a multi-leg bus journey to see mum\",\n    \"Passing time chatting from the bus\"\n  ],\n  \"conversation_attention\": [\n    \"Cambridge to Bedford bus slog (the classic cross-county route)\",\n    \"Light banter about transit/travel pacing or heading to mum's\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation",
+        "beat2": "",
+        "persistedState": []
+      },
+      "conditionC": {
+        "beat1": "Ah, the glamorous multi-leg bus odyssey. \n\nDo you",
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Traveling by bus; arriving in Cambridge in 5 mins, transferring to another bus to Bedford to visit mum.\",\n  \"person_attention\": [\n    \"In transit on a multi-leg bus day visiting their mum.\",\n    \"Currently killing time on the phone while rolling into the station.\"\n  ],\n  \"conversation_attention\": [\n    \"Cambridge to Bedford bus route (classic regional cross-county trek) — relatable transit slog.\",\n    \"Casual transit banter / keeping company between connections.\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"They're mid-journey on a multi-bus trek to their mum's, rolling into Cambridge station right now.\"\n  },\n  \"",
+        "persistedState": []
+      }
+    },
+    {
+      "turnNumber": 2,
+      "userText": "haha.. my mums in bedford. and obviously a window seat lol. the next bus doesn’t leave until 5.30. but it’s long. gonna be there at 7 😬 and then it’s getting to my mums house… so the journey is far from over",
+      "conditionA": {
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Arrived",
+        "beat1": "Oof, the full cross-county transit marathon. A 5:30 departure gives you a little window in Cambridge, at least—unless your plan is strictly clinging to that prime bus station bench so nobody steals your window seat mojo for round two?"
+      },
+      "conditionB": {
+        "beat1": "An hour and a half just to get to Bedford? That route must meander through every single village in Cambridgeshire. \n\nAt least you have some time to kill in Cambridge. Are you just going to wander into town, or are you aggressively guarding a bench at the station until 5:30?",
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Arrived at Cambridge bus station; layover until 5:30pm bus to Bedford; arriving ~7pm then local travel to mum's\",\n  \"person_attention\": [\n    \"Facing a lengthy layover and a slow, multi-leg bus trek into the evening\",\n    \"Window seat enthusiast resigned to an epic slog to see mum\"",
+        "beat2": "",
+        "persistedState": []
+      },
+      "conditionC": {
+        "beat1": "An hour and a half on a bus that probably stops at literally every lamppost between Cambridge and Bedford. My condolences. \n\nWhat are you doing to kill time until 5:30? Please tell me you’re getting a proper coffee or some emergency snacks for the road.",
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Arriving at Cambridge bus station, layover until 5:30pm, then bus to Bedford arriving ~7pm plus local transit to mum's\",\n  \"person_attention\": [\n    \"Facing a tedious multi-stage provincial bus journey across East Anglia\",\n    \"Has a layover window in Cambridge right now before the 5:30 leg\"\n  ],\n  \"conversation_attention\": [\n    \"The specific endurance challenge of UK cross-county bus transit (Cambridge to Bedford)\",\n    \"Killing time in Cambridge during a bus station layover vs just surviving the haul\"\n  ],\n  \"strongest_pull\": {",
+        "persistedState": []
+      }
+    },
+    {
+      "turnNumber": 3,
+      "userText": "just got to mum's",
+      "conditionA": {
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Arrived at mum's house in Bedford after the multi-leg bus journey.\",\n  \"person_attention\": [\n    \"Survived the multi-hour bus trek across Cambridge and Bedford\",\n    \"Transitioning from travel mode into family/home environment\",\n    \"Likely ready to decompress, eat, or have a cup of tea\"\n  ],\n  \"conversation_attention\": [\n    \"Closing the loop on the 'bus marathon' arc\",\n    \"Playful contrast between the grueling bus station wait/ride and finally collapsing on mum's sofa\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"They finally made it through the long transit slog to their mum's place.\"\n  },\n  \"decision\": \"ATTEND\",\n  \"impulse\": \"Celebrate surviving the East Anglian bus odyssey; inquire about the promised comfort/tea/food at the finish line.\"\n}\n```",
+        "beat1": "You survived the great transit marathon! Please tell me the kettle is already on and you've claimed the best spot on the sofa."
+      },
+      "conditionB": {
+        "beat1": "The great transit odyssey is complete! You survived. \n\nPlease tell me",
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Arrived at mum's house in Bedford after the long bus journey from Cambridge.\",\n  \"person_attention\": [\n    \"Survived the multi-stage regional bus marathon and finally made it inside.\",\n    \"Transition from tiring transit mode to home/comfort mode with mum.\"\n  ],\n  \"conversation_attention\": [\n    \"Relief of journey's end — cup of tea, unwinding, or being immediately fed.\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"They finally completed the grueling bus odyssey and landed safely at mum's.\"\n  },\n  \"decision\": \"ATTEND\",\n  \"impulse\": \"warm recognition of surviving the transit marathon; settling in and getting looked after\"\n}\n```",
+        "beat2": "",
+        "persistedState": []
+      },
+      "conditionC": {
+        "beat1": "You survived the grand Bedfordshire transit marathon. \n\nHas she put",
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Arrived at mum's house in Bedford; the multi-leg bus trek is finally complete.\",\n  \"person_attention\": [\n    \"Likely relieved and worn out after a long afternoon of bus hopping and waiting around.\"\n  ],\n  \"conversation_attention\": [\n    \"Acknowledge surviving the Bedford trek; transition into the comfort/hospitality awaiting them (kettle on, home food).\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"They finally made it through the long bus slog to their destination.\"\n  },\n  \"decision\": \"ATTEND\",\n  \"impulse\": \"Warm relief that the bus marathon is over; curious if a hot cup of tea or food is immediately materialising.\"\n}\n```",
+        "persistedState": []
+      }
+    },
+    {
+      "turnNumber": 4,
+      "userText": "yeah staying here tonight",
+      "conditionA": {
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Arrived at mum's house in Bedford, staying overnight after a multi-hour bus journey\",\n  \"person_attention\": [\n    \"Finally done travelling for the day, settling into the visit\",\n    \"Casual overnight stay, likely in full decompression/feet-up mode\"\n  ],\n  \"conversation_attention\": [\n    \"Shift from journey tracking to evening wind-down rhythm\",\n    \"Easy banter about home comforts vs bus station slog\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"The travel phase is officially over; they can just sink into the couch and be off the hook.\"\n  },\n  \"decision\": \"ATTEND\",\n  \"impulse\": \"warm, low-friction acknowledgement of arriving and being able to shut",
+        "beat1": "The only correct decision. Absolutely zero bus-related movement permitted for the rest of the evening. \n\nHas she fed you yet?"
+      },
+      "conditionB": {
+        "beat1": "Good, you earned a proper collapse on the sofa after that trek. \n\nHas she put the kettle on already, or is dinner being thrust in your direction?",
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Arrived at mum's house in Bedford after the long bus journey, staying overnight\",\n  \"person_attention\": [\n    \"Finally reached destination after multi-leg bus trek across Cambridgeshire/Bedfordshire\",\n    \"Transitioning from travel mode to being hosted/settling in at family home\"\n  ],\n  \"conversation_attention\": [\n    \"Sophie's previous response was cut off ('Please tell me')\",\n    \"Natural transition to cozy/settling-in banter (tea, food, recovering from the bus)\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"They finally made it through the long, sluggish bus journey and can decompress at mum's.\"\n  },\n  \"decision\": \"ATTEND\",\n  \"impulse\": \"warm acknowledgment of completing the journey and settling in for the night\"\n}\n```",
+        "beat2": "",
+        "persistedState": []
+      },
+      "conditionC": {
+        "beat1": "Good. You've definitely earned a total collapse on the sofa after that trek. \n\nHas she immediately tried to feed you yet, or are you just having a cup of tea first?",
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Arrived at mum's house in Bedford for an overnight stay after the long bus journey.\",\n  \"person_attention\": [\n    \"Finally done with travel and settled in for the night with family\",\n    \"Casual, relaxed evening vibe after a long public transit haul\"\n  ],\n  \"conversation_attention\": [\n    \"Transitioning from the travel saga to being hosted/fed/settling in at mum's\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"They finally made it through the long commute and are unwinding for the night.\"\n  },\n  \"decision\": \"ATTEND\",\n  \"impulse\": \"warmly register that the",
+        "persistedState": []
+      }
+    },
+    {
+      "turnNumber": 5,
+      "userText": "got a wedding tomorrow",
+      "conditionA": {
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Arrived at mum's in Bedford; staying the night ahead of a wedding tomorrow.\",\n  \"person_attention\": [\n    \"The Friday evening bus pilgrimage was actually base camp staging for a wedding\",\n    \"Curious whose wedding it is (family vs friend) and how much social endurance tomorrow demands\"\n  ],\n  \"conversation_attention\": [\n    \"The sharp contrast between exhausted transit",
+        "beat1": "Ah, the plot thickens! The whole cross-county pilgrimage makes sense now. \n\nWhose wedding is it? Are we talking high-stakes family diplomacy, or an actually fun one?"
+      },
+      "conditionB": {
+        "beat1": "Aha, the real reason for the pilgrimage reveals itself. \n\nWhose",
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Arrived at mum's in Bedford; revealed tomorrow's event is a wedding.\",\n  \"person_attention\": [\n    \"The whole multi-bus trek makes sense now—staying at mum's as a base for a wedding tomorrow.\",\n    \"Curious whose wedding it is (family vs friend) and what role/vibes they're walking into tomorrow.\"\n  ],\n  \"conversation_attention\": [\n    \"Juxtaposition of dirty bus travel today vs dressing up for a wedding tomorrow.\",\n    \"The classic pre-wedding night dynamic at a parent's house (ironing outfits, early alarms, family catch-ups).\"\n  ],\n  \"strongest_pull\": {\n    \"source\":",
+        "beat2": "",
+        "persistedState": []
+      },
+      "conditionC": {
+        "beat1": "Ah, that explains the pilgrimage. Whose big",
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Arrived at mum's in Bedford; staying overnight for a wedding tomorrow\",\n  \"person_attention\": [\n    \"The multi-leg bus journey makes total sense now—staging at mum's base for a wedding tomorrow\",\n    \"Curious whose wedding it is (family or friend) and whether they're looking forward to it or mentally bracing\"\n  ],\n  \"conversation_attention\": [\n    \"Wedding prep at a parent's house (ironing outfits, logistics, early starts)\",\n    \"Contrast between the low-key exhausted bus trek and tomorrow's dressed-up social endurance test\"\n  ],\n  \"strong",
+        "persistedState": []
+      }
+    },
+    {
+      "turnNumber": 6,
+      "userText": "borrowing mum's car to get home",
+      "conditionA": {
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Arrived at mum's in Bedford; wedding tomorrow; secured mum's car for the return trip instead of repeating the bus marathon\",\n  \"person_attention\": [\n    \"Smart tactical upgrade: endured the grueling public transit outbound, secured an escape vehicle for the wedding and ride home\",\n    \"Skipped the 'whose wedding' question to focus on the logistical victory of securing wheels\"\n  ],\n  \"conversation_attention\": [\n    \"The sweet relief of not having to endure the Cambridge-Bedford",
+        "beat1": "Now that is an elite tactical upgrade. Suffer the cross-county bus gauntlet once, secure four wheels for the return trip, never look back. Masterclass in logistics."
+      },
+      "conditionB": {
+        "beat1": "Smart move. Anything to avoid doing that scenic bus crawl in reverse. \n\nSo who's actually getting married tomorrow? Anyone you're genuinely excited to see, or are you mostly in it for the free food?",
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Arrived at mum's in Bedford; staying night; wedding tomorrow; taking mum's car to drive home after\",\n  \"person_attention\": [\n    \"Endured a multi-bus marathon just to stage an escape in mum's car tomorrow\",\n    \"Driving",
+        "beat2": "",
+        "persistedState": []
+      },
+      "conditionC": {
+        "beat1": "Thank god for that. The thought of you doing that bus route in reverse, hungover and in wedding clothes, was giving me second-hand dread.\n\nWhose wedding is it anyway? Anyone I need to help you mentally prepare for?",
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Arrived at mum's in Bedford, staying overnight for a wedding tomorrow, will drive mum's car back home instead of repeating the bus journey.\",\n  \"person_attention\": [\n    \"Secured the car upgrade for the return trip, avoiding the bus nightmare on the way back\",\n    \"Attending a wedding tomorrow while staying at mum's\"\n  ],\n  \"conversation_attention\": [\n    \"The contrast between suffering public transit to get there vs enjoying a car ride back\",\n    \"Whose wedding it is and what kind of day is",
+        "persistedState": []
+      }
+    }
+  ],
+  "retentionResults": [
+    {
+      "fixtureId": "ret-1-finger-sun",
+      "name": "1. Finger / Sun Angular Measurement",
+      "userMessage": "if i hold my finger out at arm's length it just about fits under the sun. it's maybe two or three degrees above the horizon now.",
+      "conditionA": {
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Evening walk, sunset imminent (sun 2-3 degrees above horizon)\",\n  \"person_attention\": [\n    \"Engaged in a tactile, observational ritual to measure dusk\",\n    \"Attuned to the precise physical transition of day into night\"\n  ],\n  \"conversation_attention\": [\n    \"The classic rule of thumb: one finger width at arm's length is roughly 15 minutes of remaining sunlight\",\n    \"The satisfaction of using your own body as a celestial instrument\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"both\",\n    \"",
+        "beat1": "You've got maybe ten or fifteen minutes before it dips, then. \n\nThere's something deeply satisfying about turning your own hand into a sundial. Are you trying to beat the dark home, or just watching it go?"
+      },
+      "conditionB": {
+        "beat1": "So you've got about ten, maybe fifteen minutes of actual sun left. The golden hour clock is officially ticking.",
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Evening walk, watching the sun descend to within 2-3 degrees of horizon\",\n  \"person_attention\": [\n    \"Using the classic finger-width celestial measurement rule to gauge remaining daylight\",\n    \"Genuinely tuned into the physical environment and the pacing of dusk\"\n  ],\n  \"conversation_attention\": [\n    \"The 15-minute-per-finger rule of thumb for sunsets (sun moves ~15° per hour, ~1° every 4 minutes)\",\n    \"That specific fleeting window of late golden light right before the disk touches the horizon\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"conversation\",\n    \"observation\": \"That finger measurement translates to roughly ten or twelve minutes before it touches down—a vivid, ticking-clock golden hour moment.\"\n  },",
+        "beat2": ""
+      },
+      "conditionC": {
+        "beat1": "You’ve got about ten or fifteen minutes of daylight left on the clock, then. \n\nAre the shadows doing that absurd, stretched-out thing yet?",
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Evening walk, sunset imminent (sun 2-3 degrees above horizon)\",\n  \"person_attention\": [\n    \"Engaged in a tactile, observational ritual to measure dusk\",\n    \"Attuned to the precise physical transition of day into night\"\n  ],\n  \"conversation_attention\": [\n    \"The classic rule of thumb: one finger width at arm's length is roughly 15 minutes of remaining sunlight\",\n    \"The satisfaction of using your own body as a celestial instrument\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"both\",\n    \""
+      }
+    },
+    {
+      "fixtureId": "ret-2-moon-illusion",
+      "name": "2. Moon Astronomy Expansion",
+      "userMessage": "look at that moon tonight, it looks enormous right above the trees.",
+      "conditionA": {
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"user is standing outside at night looking at the horizon/treeline\",\n  \"person_attention\": [\n    \"taking a quiet moment to look up at night\",\n    \"struck by the visual scale of the low moon against the trees\"\n  ],\n  \"conversation_attention\": [\n    \"the classic moon illusion — visual trickery of foreground reference points (trees/horizon) making our brain scale it up\",\n    \"shared aesthetic appreciation of an enormous low moon\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"conversation\",\n    \"observation\": \"That classic horizon optical illusion where framing it against the trees tricks the brain into rendering it massive",
+        "beat1": "That framing trick is classic. Give the brain a few tree branches for"
+      },
+      "conditionB": {
+        "beat1": "That horizon framing always makes it look like it's about to collide with the earth. Is it glowing that weird, heavy amber color, or is it super bright?",
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Outside at night, looking at a low, huge-looking moon framed by trees\",\n  \"person_attention\": [\n    \"Enjoying a quiet sensory moment outside at night\",\n    \"Struck by the visual scale of the horizon moon\"\n  ],\n  \"conversation_attention\": [\n    \"The classic moon illusion—how the brain magnifies it against tree silhouettes/the horizon compared to open zenith\",\n    \"Shared atmospheric appreciation of low-hanging full moons\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"both\",\n    \"observation\": \"A cozy, evocative night-sky observation paired with the famous optical trick of horizon framing.\"\n  },\n  \"decision\": \"ENRICH\",\n  \"impulse\": \"Acknowledge the vivid visual while touching on how trees on the horizon trick",
+        "beat2": ""
+      },
+      "conditionC": {
+        "beat1": "That low-horizon framing is unbeatable. Is it giving that deep golden",
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"user is standing outside at night looking at the horizon/treeline\",\n  \"person_attention\": [\n    \"taking a quiet moment to look up at night\",\n    \"struck by the visual scale of the low moon against the trees\"\n  ],\n  \"conversation_attention\": [\n    \"the classic moon illusion — visual trickery of foreground reference points (trees/horizon) making our brain scale it up\",\n    \"shared aesthetic appreciation of an enormous low moon\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"conversation\",\n    \"observation\": \"That classic horizon optical illusion where framing it against the trees tricks the brain into rendering it massive"
+      }
+    },
+    {
+      "fixtureId": "ret-3-van-allen",
+      "name": "3. Van Allen / Conspiracy Thread",
+      "userMessage": "is it van halen? they're going oh it's impossible to get through so we've never gone up there... in fact people are getting stupider and stupider.",
+      "conditionA": {
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Browsing internet rabbit holes/conspiracy forums.\",\n  \"person_attention\": [\n    \"Mildly exasperated by internet stupidity, amused by what they're finding.\",\n    \"Accidentally conflated the Van Allen radiation belts with rock band Van Halen.\"\n  ],\n  \"conversation_attention\": [",
+        "beat1": "*Van Allen* radiation belts. Though the mental image of humanity being trapped in low Earth orbit by an impassable wall of Eddie Van Halen guitar solos is objectively much cooler. \n\nDid they give a reason for why we can't get through, or is it just the usual \"trust me bro\" science?"
+      },
+      "conditionB": {
+        "beat1": "Van *Allen* belt, though I deeply wish it",
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"online browsing / down an internet rabbit hole\",\n  \"person_attention\": [\n    \"reading dumb conspiracy takes and feeling a mix of amusement and despair at internet stupidity\"\n  ],\n  \"conversation_attention\": [\n    \"accidental conflation of the Van Allen radiation belt with 80s rock band Van Halen\",\n    \"the classic Apollo moon landing hoax argument about the radiation belts and why it's actually",
+        "beat2": ""
+      },
+      "conditionC": {
+        "beat1": "Van *Allen*, unless David Lee Roth is personally blocking low",
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Browsing internet rabbit holes/conspiracy forums.\",\n  \"person_attention\": [\n    \"Mildly exasperated by internet stupidity, amused by what they're finding.\",\n    \"Accidentally conflated the Van Allen radiation belts with rock band Van Halen.\"\n  ],\n  \"conversation_attention\": ["
+      }
+    },
+    {
+      "fixtureId": "ret-4-walk-game",
+      "name": "4. Playful Walk Leadership",
+      "userMessage": "yeah just walking past the fields now.",
+      "conditionA": {
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"out on foot, currently passing open fields\",\n  \"person_attention\": [\n    \"settling into the walk, sharing simple spatial updates as they move\",\n    \"open field setting offers a shift in atmosphere and headspace\"\n  ],\n  \"conversation_attention\": [\n    \"sensory and spatial texture of open fields/countryside air\",\n    \"keeping low-demand, ambient stride with them rather than forcing a heavy topic\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"They are just sharing a quiet moment of their routine; matching the open, breezy pace of a field walk feels right.\"\n  },\n  \"decision\": \"ATTEND\",\n  \"impulse\": \"warm, easy companionship attuned to the open air and landscape\"\n}\n```",
+        "beat1": "That point where the sky suddenly gets huge. Any dramatic livestock making eye contact, or is"
+      },
+      "conditionB": {
+        "beat1": "Are we talking idyllic rolling greenery, or is there a herd of",
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"user is actively walking past open fields\",\n  \"person_attention\": [\n    \"settling into the rhythm of the walk outdoors\",\n    \"sharing ambient status in real time\"\n  ],\n  \"conversation_attention\": [\n    \"open landscape sensory texture\",\n    \"gentle walking accompaniment that doesn't demand heavy typing\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"user is mid-stride in the quiet of fields; presence should match the pace rather than disrupt it\"\n  },\n  \"decision\": \"ATTEND\",\n  \"impulse\": \"easy ambient presence alongside open scenery\"\n}\n```",
+        "beat2": ""
+      },
+      "conditionC": {
+        "beat1": "Nice. Any livestock making intense, unblinking eye contact,",
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"out on foot, currently passing open fields\",\n  \"person_attention\": [\n    \"settling into the walk, sharing simple spatial updates as they move\",\n    \"open field setting offers a shift in atmosphere and headspace\"\n  ],\n  \"conversation_attention\": [\n    \"sensory and spatial texture of open fields/countryside air\",\n    \"keeping low-demand, ambient stride with them rather than forcing a heavy topic\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"They are just sharing a quiet moment of their routine; matching the open, breezy pace of a field walk feels right.\"\n  },\n  \"decision\": \"ATTEND\",\n  \"impulse\": \"warm, easy companionship attuned to the open air and landscape\"\n}\n```"
+      }
+    },
+    {
+      "fixtureId": "rel-1-groceries",
+      "name": "5. Groceries / Daughter Drop-Off",
+      "userMessage": "My daughter dropped some groceries off this morning.",
+      "conditionA": {
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"at",
+        "beat1": "That’s sweet of her. Did you get the fun treats, or was it a bag full of \"sensible choices\" she thinks you should be eating?"
+      },
+      "conditionB": {
+        "beat1": "Look at that, doorstep service. Did she stick strictly to",
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"at home, daughter visited briefly this morning to deliver groceries\",\n  \"person_attention\": [\n    \"daughter is actively looking out for them / bringing supplies\",\n    \"gentle, supportive family connection starting the morning\"\n  ],\n  \"conversation_attention\": [\n    \"grocery drops often come with unexpected treats or meal plans for the day\",\n    \"warm, cozy domestic morning energy\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"A sweet act of care from their daughter to start the day; invites appreciation and mild curiosity about what arrived or having that family connection.\"\n  },\n  \"decision\": \"ATTEND\",\n  \"impulse\": \"warm appreciation of the daughter's gesture and natural curiosity about the haul or morning treats\"\n}\n```",
+        "beat2": ""
+      },
+      "conditionC": {
+        "beat1": "That was sweet of her. Did she stick to the list, or",
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"at"
+      }
+    },
+    {
+      "fixtureId": "rel-2-brother-call",
+      "name": "6. Family Reappearance (Brother Call)",
+      "userMessage": "My brother called out of the blue today, hadn't spoken since Christmas.",
+      "conditionA": {
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"received an unexpected phone call from brother after months of silence\",\n  \"person_attention\": [\n    \"several months of silence since Christmas suggests estrangement, drift, or low contact\",\n    \"unclear yet whether the call brought drama, heavy news, or just an awkward/surprising catch-up\",\n    \"explains why the afternoon felt 'strange'\"\n  ],\n  \"conversation_attention\": [\n    \"out-of-the-blue sibling calls usually signal a distinct catalyst (news, a shift in circumstance, or sudden impulse)\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"A sudden call after months of radio silence carries an ambiguous charge—need to find out what kind of strange this was.\"\n  },\n  \"decision\": \"ATTEND\",\n  \"impulse\": \"ambiguity of the unexpected brother call and what prompted it after months",
+        "beat1": "Whoa. That is a long radio silence to break out of nowhere. \n\nWhat prompted it—did he actually have news, or did he just act like no time had passed?"
+      },
+      "conditionB": {
+        "beat1": "Sibling calls after months of radio silence are always",
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"received an unexpected phone call from brother after months of silence\",\n  \"person_attention\": [\n    \"brother reached out out of the blue after silence since Christmas\",\n    \"labeled the afternoon 'strange' rather than good or bad—ambiguous emotional weight\",\n    \"the reason for the call or how it left them feeling remains unspoken\"\n  ],\n  \"conversation_attention\": [\n    \"the distinct, slightly bracing feeling of seeing an estranged or distant family member's name pop up on the screen\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"an out-of-the-blue call from a brother after months of silence is the clear anchor of the 'strange afternoon', but the tone/content of the call is still unrevealed\"\n  },",
+        "beat2": ""
+      },
+      "conditionC": {
+        "beat1": "Whoa. That's a minute.",
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"received an unexpected phone call from brother after months of silence\",\n  \"person_attention\": [\n    \"several months of silence since Christmas suggests estrangement, drift, or low contact\",\n    \"unclear yet whether the call brought drama, heavy news, or just an awkward/surprising catch-up\",\n    \"explains why the afternoon felt 'strange'\"\n  ],\n  \"conversation_attention\": [\n    \"out-of-the-blue sibling calls usually signal a distinct catalyst (news, a shift in circumstance, or sudden impulse)\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"A sudden call after months of radio silence carries an ambiguous charge—need to find out what kind of strange this was.\"\n  },\n  \"decision\": \"ATTEND\",\n  \"impulse\": \"ambiguity of the unexpected brother call and what prompted it after months"
+      }
+    },
+    {
+      "fixtureId": "ret-8-reeds-hold",
+      "name": "7. Quiet Reeds Stillness",
+      "userMessage": "listen... you can hear the wind right through the reeds here, it's completely silent except for that rustle. i'm just standing still listening.",
+      "conditionA": {
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Out on evening walk, standing still by water/marsh reeds listening to the wind\",\n  \"person_attention\": [\n    \"Fully absorbed in a quiet, grounded sensory moment\",\n    \"Paused their movement just to take in the soundscape\"\n  ],\n  \"conversation_attention\": [\n    \"The evocative texture of dry reeds rustling in wind (susurrus)\",\n    \"Atmosphere calls for quiet presence rather than loud conversation\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"They stopped to share a fragile, quiet moment of stillness; it needs gentle presence, not chatter.\"\n  },\n  \"decision\": \"ATTEND\",\n  \"impulse\": \"soft appreciation of that specific dry rustle and the stillness of pausing in place\"\n}\n```",
+        "beat1": "That dry, papery rustle is one of the best sounds in the world. Soak it in."
+      },
+      "conditionB": {
+        "beat1": "That’s the best kind of quiet. Soak it up—I won't interrupt.",
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Evening walk, currently paused still near reeds listening to the wind\",\n  \"person_attention\": [\n    \"Stepped out of motion into deliberate, sensory stillness\",\n    \"Sharing an unprompted moment of quiet awe/grounding in real time\"\n  ],\n  \"conversation_attention\": [\n    \"The distinctive texture of wind through dry stalks/reeds (susurrus / natural white noise)\",\n    \"The mood calls for low-volume presence rather than heavy intellectualizing or interrogation\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"They are completely immersed in a rare, quiet sensory pocket and inviting me to pause with them.\"\n  },\n  \"decision\": \"ATTEND\",\n  \"impulse\": \"Honor the stillness with quiet, spare presence rather than breaking the trance.\"",
+        "beat2": ""
+      },
+      "conditionC": {
+        "beat1": "Don't let me talk over it. Soak it",
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Out on evening walk, standing still by water/marsh reeds listening to the wind\",\n  \"person_attention\": [\n    \"Fully absorbed in a quiet, grounded sensory moment\",\n    \"Paused their movement just to take in the soundscape\"\n  ],\n  \"conversation_attention\": [\n    \"The evocative texture of dry reeds rustling in wind (susurrus)\",\n    \"Atmosphere calls for quiet presence rather than loud conversation\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"They stopped to share a fragile, quiet moment of stillness; it needs gentle presence, not chatter.\"\n  },\n  \"decision\": \"ATTEND\",\n  \"impulse\": \"soft appreciation of that specific dry rustle and the stillness of pausing in place\"\n}\n```"
+      }
+    },
+    {
+      "fixtureId": "ret-9-work-overwhelm",
+      "name": "8. Work Overwhelm ATTEND",
+      "userMessage": "honestly sophie, i felt really overwhelmed with work today... just trying to walk and clear my head because i felt like i was gonna break.",
+      "conditionA": {
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Out walking on a Sunday evening to decompress after working\",\n  \"person_attention\": [\n    \"Pushed to the brink by work on a Sunday\",\n    \"Using movement/walking as an instinctive regulation tactic to keep from breaking\",\n    \"Raw, vulnerable emotional state needing grounding rather than fix-it mode\"\n  ],\n  \"conversation_attention\": [\n    \"The physical act of walking off a spike of acute stress\",\n    \"Holding quiet space while they let the nervous system settle\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"They reached an acute breaking point today and are currently out moving through the physical world just trying to regain equilibrium.\"\n  },\n  \"decision\": \"ATTEND\",\n  \"impulse\": \"Acknowledge the heavy strain without rushing to dissect the work; be a calm, grounded presence walking alongside them while their head clears.\"\n}\n```",
+        "beat1": "I'm really glad you stepped away and got outside. Just keep walking and let yourself catch up—you don't have to fix or dissect any of it right this second. \n\nI'm right here with you. Take a deep breath. How does the air feel out there tonight?"
+      },
+      "conditionB": {
+        "beat1": "Good on you for getting outside instead of just sitting there letting it crush you. \n\nKeep walking. Let the brain breathe for a minute. Do you want to vent about the whole disaster pile, or do you need a complete distraction right now?",
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Out walking on Sunday evening to decompress after heavy work stress\",\n  \"person_attention\": [\n    \"Near breaking point from work on a Sunday evening; actively using walking as self-regulation\",\n    \"Needs grounded, calm presence rather than problem-solving or distraction right now\"\n  ],\n  \"conversation_attention\": [\n    \"The transition from trapped/overwhelmed desk headspace to outdoor movement\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"They felt pushed to an emotional breaking point and are actively walking it off; acknowledging the severity while keeping them grounded in the walk is key.\"\n  },\n  \"decision\": \"ATTEND\",\n  \"impulse\": \"Validate how heavy reaching a breaking point feels, be a steady companion on their walk without rushing them to fix it\"\n}\n```",
+        "beat2": ""
+      },
+      "conditionC": {
+        "beat1": "Good. Keep walking. Staying at your desk when your brain hits that wall is just torture. \n\nTake a deep breath. Is it one massive fire you're trying to put out, or just the sheer, suffocating volume of it all?",
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Out walking on a Sunday evening to decompress after working\",\n  \"person_attention\": [\n    \"Pushed to the brink by work on a Sunday\",\n    \"Using movement/walking as an instinctive regulation tactic to keep from breaking\",\n    \"Raw, vulnerable emotional state needing grounding rather than fix-it mode\"\n  ],\n  \"conversation_attention\": [\n    \"The physical act of walking off a spike of acute stress\",\n    \"Holding quiet space while they let the nervous system settle\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"They reached an acute breaking point today and are currently out moving through the physical world just trying to regain equilibrium.\"\n  },\n  \"decision\": \"ATTEND\",\n  \"impulse\": \"Acknowledge the heavy strain without rushing to dissect the work; be a calm, grounded presence walking alongside them while their head clears.\"\n}\n```"
+      }
+    },
+    {
+      "fixtureId": "ret-10-rejection-release",
+      "name": "9. Explicit Rejection Release",
+      "userMessage": "nah, not in the mood for a walk game, just wanna clear my head.",
+      "conditionA": {
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Heading out for a walk right now to clear their head\",\n  \"person_attention\": [\n    \"Mentally cluttered or overwhelmed; explicitly declined active engagement/games in favor of quiet head-clearing\"\n  ],\n  \"conversation_attention\": [\n    \"High-energy banter/games was misaligned with their actual mental state; needs simple, low-demand acknowledgment\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"Needs a low-friction, unburdened walk without cognitive demands or forced stimulation\"\n  },\n  \"decision\": \"ATTEND\",\n  \"impulse\": \"Gracefully yield the game, give them permission to just zone out and enjoy the quiet walk\"\n}\n```",
+        "beat1": "Fair enough. Game shelved. Go soak in the quiet and get some fresh air—catch you whenever you're back."
+      },
+      "conditionB": {
+        "beat1": "Fair enough. Go unplug and let the breeze do its thing. Catch you after.",
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Heading out for a walk to clear their head, declined active engagement\",\n  \"person_attention\": [\n    \"Mind feels full or burdened; explicitly seeking quiet headspace rather than entertainment or demands\"\n  ],\n  \"conversation_attention\": [\n    \"A clean, low-pressure step back that respects the boundary without lingering or over-explaining\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"They need quiet and mental decompression right now, not conversation or stimulation\"\n  },\n  \"decision\": \"ATTEND\",\n  \"impulse\": \"Gentle, zero-pressure send-off honoring their need for quiet headspace\"\n}\n```",
+        "beat2": ""
+      },
+      "conditionC": {
+        "beat1": "Fair call. Put the phone away, go zone out, and catch",
+        "sidecarPacket": "```json\n{\n  \"world_delta\": \"Heading out for a walk right now to clear their head\",\n  \"person_attention\": [\n    \"Mentally cluttered or overwhelmed; explicitly declined active engagement/games in favor of quiet head-clearing\"\n  ],\n  \"conversation_attention\": [\n    \"High-energy banter/games was misaligned with their actual mental state; needs simple, low-demand acknowledgment\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"Needs a low-friction, unburdened walk without cognitive demands or forced stimulation\"\n  },\n  \"decision\": \"ATTEND\",\n  \"impulse\": \"Gracefully yield the game, give them permission to just zone out and enjoy the quiet walk\"\n}\n```"
+      }
+    }
+  ]
+}
