@@ -427,3 +427,97 @@ export async function routeWithCortex(query: string) {
     return null;
   }
 }
+
+// ── Commitment candidates ("Sophie noticed") ──────────────────────────────
+// Cortex owns the uncertain/implicit commitment intelligence; the app only
+// exposes its pending candidates and turns a promoted candidate into a
+// canonical Task through the deterministic domain (never a second detector).
+
+export type CommitmentCandidate = {
+  key: string;
+  canonicalKey: string | null;
+  title: string;
+  notes: string | null;
+  evidenceVerbatim: string | null;
+  evidenceClass: string | null;
+  authority: 'act' | 'ask';
+  sourceMessageId: string | null;
+  createdAt: string;
+};
+
+function mapCommitmentCandidate(row: Record<string, unknown>): CommitmentCandidate | null {
+  const key = typeof row.candidate_key === 'string' ? row.candidate_key : '';
+  const title = typeof row.title === 'string' ? row.title : '';
+  if (!key || !title) return null;
+  return {
+    key,
+    canonicalKey:
+      typeof row.canonical_key === 'string' ? row.canonical_key : null,
+    title,
+    notes: typeof row.notes === 'string' ? row.notes : null,
+    evidenceVerbatim:
+      typeof row.evidence_verbatim === 'string' ? row.evidence_verbatim : null,
+    evidenceClass:
+      typeof row.evidence_class === 'string' ? row.evidence_class : null,
+    authority: row.authority === 'ask' ? 'ask' : 'act',
+    sourceMessageId:
+      typeof row.source_message_id === 'string' ? row.source_message_id : null,
+    createdAt:
+      typeof row.created_at === 'string' ? row.created_at : new Date().toISOString(),
+  };
+}
+
+export async function listCommitmentCandidates(input: {
+  userId: string;
+  limit?: number;
+}): Promise<{ available: boolean; candidates: CommitmentCandidate[] } | null> {
+  const configurationLocal = configuration();
+  if (!configurationLocal.enabled || !configurationLocal.baseURL) return null;
+  const ids = honchoIds(input.userId, '');
+  const params = new URLSearchParams({
+    workspace_id: ids.workspaceId,
+    owner_peer_id: ids.userPeerId,
+    limit: String(Math.max(1, Math.min(input.limit ?? 20, 50))),
+  });
+  try {
+    const raw = await cortexFetch(
+      `/v1/cortex/commitment-candidates?${params.toString()}`,
+    );
+    if (!raw) return null;
+    const rows =
+      (raw as { candidates?: Array<Record<string, unknown>> }).candidates ?? [];
+    const candidates = rows
+      .map(mapCommitmentCandidate)
+      .filter((candidate): candidate is CommitmentCandidate => candidate !== null)
+      .slice(0, 50);
+    return { available: true, candidates };
+  } catch (error) {
+    console.warn('[synapse-cortex] commitment candidates list failed (fail-open)', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+    return null;
+  }
+}
+
+export async function markCommitmentCandidate(input: {
+  userId: string;
+  candidateKey: string;
+  status: 'materialized' | 'dismissed';
+  sourceObjectId?: string | null;
+}): Promise<Record<string, unknown> | null> {
+  const configLocal = configuration();
+  if (!configLocal.enabled || !configLocal.baseURL) {
+    throw new Error('cortex_disabled');
+  }
+  const ids = honchoIds(input.userId, '');
+  return cortexFetch('/v1/cortex/commitment-candidates/mark', {
+    method: 'POST',
+    body: JSON.stringify({
+      workspace_id: ids.workspaceId,
+      owner_peer_id: ids.userPeerId,
+      candidate_key: input.candidateKey,
+      status: input.status,
+      source_object_id: input.sourceObjectId ?? null,
+    }),
+  });
+}

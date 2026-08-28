@@ -1,6 +1,7 @@
 import { auth } from '@/app/(auth)/auth';
 import { redirect } from 'next/navigation';
 import { listTasksForUser } from '@/lib/tasks/domain';
+import { listCommitmentCandidates } from '@/lib/synapse-cortex';
 import { ThingsScreen } from '@/components/things/things-screen';
 
 export default async function ThingsPage() {
@@ -8,7 +9,10 @@ export default async function ThingsPage() {
   if (!session?.user?.id) {
     redirect('/login');
   }
-  const tasks = await listTasksForUser(session.user.id);
+  const [tasks, candidates] = await Promise.all([
+    listTasksForUser(session.user.id),
+    listCommitmentCandidates({ userId: session.user.id, limit: 20 }),
+  ]);
   return (
     <ThingsScreen
       initialTasks={tasks.map((task) => ({
@@ -28,6 +32,15 @@ export default async function ThingsPage() {
           status: reminder.status,
         })),
       }))}
+      initialCandidates={candidates?.candidates.map((candidate) => ({
+        key: candidate.key,
+        title: candidate.title,
+        notes: candidate.notes,
+        evidence: candidate.evidenceVerbatim,
+        authority: candidate.authority,
+        createdAt: candidate.createdAt,
+      }))}
+      candidatesAvailable={candidates?.available ?? false}
     />
   );
 }

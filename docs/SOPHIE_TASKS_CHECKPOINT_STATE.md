@@ -109,13 +109,24 @@ interpreter, and satisfies "model proposes, code commits."
     - acceptance harness scripts/tasks-reconciliation-test.ts (create slow-pass,
       completion slow-pass, candidate promotion -> one Task, enqueue+delivery
       retry convergence, app message id travel).
-  - Checkpoint 4 (Things UI) — 5469681 chain; routes/tasks exercised:
+  - Checkpoint 4 (Things UI) — committed:
     - app/(chat)/things page + components/things/things-screen (first-class
       minimal surface: list/add/edit/complete/cancel/snooze/reschedule,
       chatless manual create, user-level cross-chat list, no projects/tags).
     - sidebar nav link; tests/routes/things.test.ts (CI; auth-guard, CRUD,
       ownership isolation at the HTTP boundary).
+  - Checkpoint 5 (Sophie noticed) — IN PROGRESS, committed next:
+    - lib/synapse-cortex.ts: listCommitmentCandidates + markCommitmentCandidate
+      (owner-scoped against Cortex /v1/cortex/commitment-candidates).
+    - app/api/tasks/candidates (+promote/dismiss): list pending candidates;
+      promote = create canonical Task (source sophie_accepted,
+      materializedCandidateKey=key -> retry idempotent) + mark materialized
+      with source_object_id; dismiss durable (Cortex refuses resurrection).
+    - Things UI "Sophie noticed" panel, clearly separate from canonical tasks.
+    - tests/routes/candidates.test.ts (401 guards, fail-open available:false,
+      malformed keys). Proven live against a running local Cortex: list/promote/
+      idempotent re-promote/dismiss/no-reappear.
 - Known failures: 3 pre-existing unrelated unit tests (agent-tool-schema:6,
   agent-ash:185, research-policy:441) — do not fix unless touched.
-- CURRENT: Checkpoint 5 (Sophie Noticed) — pending.
-- NEXT: Checkpoint 5 candidate UI/promote/dismiss → Checkpoint 6 E2E.
+- CURRENT: Checkpoint 6 (behavioural/E2E hardening) — pending.
+- NEXT: Checkpoint 6 real messy-scenario harness -> final report.

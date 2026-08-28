@@ -9,6 +9,7 @@ import {
   Circle,
   ListChecks,
   Pencil,
+  Sparkles,
   X,
 } from 'lucide-react';
 
@@ -45,6 +46,15 @@ type ThingsTask = {
 };
 
 type FilterKey = 'all' | 'pending' | 'completed' | 'cancelled';
+
+type CandidateShape = {
+  key: string;
+  title: string;
+  notes: string | null;
+  evidence: string | null;
+  authority: 'act' | 'ask';
+  createdAt: string | null;
+};
 
 const dateTimeInputValue = (iso: string | null): string => {
   if (!iso) return '';
@@ -85,13 +95,26 @@ const sourceLabel = (task: ThingsTask): string => {
 
 export function ThingsScreen({
   initialTasks,
+  initialCandidates = [],
+  candidatesAvailable = false,
 }: {
   initialTasks: ThingsTask[];
+  initialCandidates?: CandidateShape[];
+  candidatesAvailable?: boolean;
 }) {
   const [tasks, setTasks] = useState<ThingsTask[]>(initialTasks);
   const [filter, setFilter] = useState<FilterKey>('all');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+
+  // "Sophie noticed" — uncertain commitment candidates from Cortex, kept
+  // visibly separate from canonical Things.
+  const [candidates, setCandidates] = useState<CandidateShape[]>(
+    initialCandidates,
+  );
+  const [candidatesEnabled, setCandidatesEnabled] = useState(
+    candidatesAvailable,
+  );
 
   // Add form
   const [newTitle, setNewTitle] = useState('');
@@ -115,11 +138,24 @@ export function ThingsScreen({
     setTasks(body.data ?? []);
   }, []);
 
+  const refreshCandidates = useCallback(async () => {
+    const response = await fetch('/api/tasks/candidates', { cache: 'no-store' });
+    if (!response.ok) return;
+    const body = (await response.json()) as {
+      ok: boolean;
+      available?: boolean;
+      data?: CandidateShape[];
+    };
+    setCandidatesEnabled(body.available ?? false);
+    setCandidates(body.data ?? []);
+  }, []);
+
   useEffect(() => {
     refresh().catch((reason) =>
       setError(reason instanceof Error ? reason.message : 'refresh failed'),
     );
-  }, [refresh]);
+    refreshCandidates().catch(() => undefined);
+  }, [refresh, refreshCandidates]);
 
   const runMutation = useCallback(
     async (label: string, url: string, init: RequestInit) => {
@@ -184,6 +220,37 @@ export function ThingsScreen({
       body: JSON.stringify({ action, ...payload }),
     });
 
+  const candidateMutation = async (
+    path: string,
+    key: string,
+    label: string,
+  ) => {
+    setBusy(label);
+    setError(null);
+    try {
+      const response = await fetch(path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key }),
+      });
+      const body = (await response.json()) as {
+        ok: boolean;
+        error?: string;
+      };
+      if (!response.ok || !body.ok) {
+        setError(`${label}: ${body.error ?? response.status}`);
+        return;
+      }
+      await Promise.all([refresh(), refreshCandidates()]);
+    } catch (reason) {
+      setError(
+        `${label}: ${reason instanceof Error ? reason.message : 'failed'}`,
+      );
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const beginEdit = (task: ThingsTask) => {
     setEditingId(task.id);
     setEditTitle(task.title);
@@ -222,6 +289,77 @@ export function ThingsScreen({
         <div className="mb-4 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
           {error}
         </div>
+      ) : null}
+
+      {candidatesEnabled || candidates.length > 0 ? (
+        <Card className="mb-6 border-dashed">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Sparkles className="size-4" />
+              Sophie noticed
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Possible commitments from your conversation — not canonical Tasks
+              yet. Promote the ones you mean.
+            </p>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            {candidates.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Nothing pending right now.
+              </p>
+            ) : null}
+            {candidates.map((candidate) => (
+              <div
+                key={candidate.key}
+                className="flex items-start justify-between gap-3 border-b pb-3 last:border-0 last:pb-0"
+              >
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-medium">{candidate.title}</span>
+                    <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                      {candidate.authority === 'ask' ? 'ask first' : 'act'}
+                    </span>
+                  </div>
+                  {candidate.evidence ? (
+                    <p className="mt-1 text-sm italic text-muted-foreground">
+                      “{candidate.evidence}”
+                    </p>
+                  ) : null}
+                </div>
+                <div className="flex shrink-0 items-center gap-1">
+                  <Button
+                    size="xs"
+                    disabled={busy !== null}
+                    onClick={() =>
+                      void candidateMutation(
+                        '/api/tasks/candidates/promote',
+                        candidate.key,
+                        'promote',
+                      )
+                    }
+                  >
+                    Make it a task
+                  </Button>
+                  <Button
+                    size="xs"
+                    variant="ghost"
+                    disabled={busy !== null}
+                    onClick={() =>
+                      void candidateMutation(
+                        '/api/tasks/candidates/dismiss',
+                        candidate.key,
+                        'dismiss',
+                      )
+                    }
+                  >
+                    Dismiss
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
       ) : null}
 
       <Card className="mb-6">
