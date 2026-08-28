@@ -139,6 +139,7 @@ export async function mirrorCompletedTurn(turn: CompletedHonchoTurn) {
             userId: turn.userId,
             chatId: turn.chatId,
             honchoMessageId: createdUserMsg.id,
+            appMessageId: turn.userMessage.id,
             text: turn.userMessage.text,
             createdAt: turn.userMessage.createdAt,
           });
@@ -163,6 +164,7 @@ export async function mirrorShadowTurnToSynapseCortex(input: {
   userId: string;
   chatId: string;
   honchoMessageId: string;
+  appMessageId?: string | null;
   text: string;
   createdAt?: Date | string;
   timezone?: string;
@@ -177,6 +179,7 @@ export async function mirrorShadowTurnToSynapseCortex(input: {
       userId: input.userId,
       chatId: input.chatId,
       honchoMessageId: input.honchoMessageId,
+      appMessageId: input.appMessageId,
       text: input.text,
       timezone: input.timezone,
     });

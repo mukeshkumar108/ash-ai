@@ -96,15 +96,20 @@ interpreter, and satisfies "model proposes, code commits."
 - Fixed invariants: user-owned Tasks; nullable chatId provenance; cross-chat
   ops; chatless/manual tasks; single proactive scheduler; model proposes/code
   commits; TurnAction ledger; candidate materialization idempotency.
-- COMPLETED: Checkpoint 1 (repairs) — see 5056bda.
-- CURRENT: Checkpoint 2 (semantic ownership + fast path) — IN PROGRESS:
-  - Option B chosen (app-side interpreter anchored to the visible reply).
-  - commitTurnSemantics orchestration (new: lib/ai/interaction/commit-turn.ts).
-  - interpreter.ts: recent-context grounding, deterministic
-    resolveDestructiveBinding guard, message-scoped ledger idempotency, fast
-    create candidate key, sourceMessageId provenance.
-  - chat route: captureExplicitTasks retired; commitTurnSemantics wired.
-  - acceptance harness: scripts/tasks-fast-path-test.ts (9 scenarios).
+- COMPLETED:
+  - Checkpoint 1 (repairs) — 5056bda.
+  - Checkpoint 2 (semantic ownership + fast path) — 20f3f0a. Option B (app-side
+    interpreter anchored to the visible reply); commitTurnSemantics;
+    resolveDestructiveBinding guard; message-scoped ledger idempotency; fast
+    create candidate key; captureExplicitTasks retired as the semantic owner.
+  - Checkpoint 3 (fast/slow Cortex reconciliation) — IN PROGRESS:
+    - outbox enqueue stores app_message_id; deliverOnce resolves the app
+      message's TurnAction ledger at delivery time into `materialized_actions`
+      on the /v1/events/turn payload (cortex suppress contract already live).
+    - acceptance harness scripts/tasks-reconciliation-test.ts (create slow-pass,
+      completion slow-pass, candidate promotion -> one Task, enqueue+delivery
+      retry convergence, app message id travel).
 - Known failures: 3 pre-existing unrelated unit tests (agent-tool-schema:6,
   agent-ash:185, research-policy:441) — do not fix unless touched.
-- NEXT: Checkpoint 2 commit → Checkpoint 3 (fast/slow Cortex reconciliation).
+- CURRENT: Checkpoint 4 (Things UI) — pending.
+- NEXT: Checkpoint 4 UI → Checkpoint 5 Sophie Noticed → Checkpoint 6 E2E.

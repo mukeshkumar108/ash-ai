@@ -1,8 +1,12 @@
 import 'server-only';
 
-import { and, asc, eq, inArray, isNull, lt, lte, or } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNotNull, isNull, lt, lte, or } from 'drizzle-orm';
 import { db } from '@/lib/db/queries';
-import { cortexOutbox, type CortexOutboxRow } from '@/lib/db/schema';
+import {
+  cortexOutbox,
+  turnAction,
+  type CortexOutboxRow,
+} from '@/lib/db/schema';
 import { honchoIds } from '@/lib/honcho';
 
 /**
@@ -29,6 +33,8 @@ export type OutboxEnqueueInput = {
   userId: string;
   chatId: string;
   honchoMessageId: string;
+  /** Stable app message id (exists immediately; Honcho identity arrives later). */
+  appMessageId?: string | null;
   text: string;
   timezone?: string;
 };
@@ -114,6 +120,7 @@ export async function enqueueCortexTurn(input: OutboxEnqueueInput) {
       workspaceId: ids.workspaceId,
       sessionId: ids.sessionId,
       honchoMessageId: input.honchoMessageId,
+      appMessageId: input.appMessageId ?? null,
       peerId: ids.userPeerId,
       text: input.text,
       timezone: input.timezone ?? process.env.ASH_TIME_ZONE ?? 'Europe/London',
@@ -121,6 +128,57 @@ export async function enqueueCortexTurn(input: OutboxEnqueueInput) {
     .onConflictDoNothing({ target: cortexOutbox.honchoMessageId })
     .returning({ id: cortexOutbox.id });
   return { queued: true as const, inserted: inserted.length === 1 };
+}
+
+/**
+ * Fast→slow reconciliation source. At DELIVERY time the app message's committed
+ * TurnAction rows are read and reported as `materialized_actions` so the Cortex
+ * watcher deterministically suppresses same-turn conversation candidates that
+ * would duplicate canonical actions already committed by the fast path.
+ * Reading at delivery (not enqueue) is deliberate: the outbox is enqueued before
+ * the fast-path commit finishes, and delivery is always later.
+ */
+const MATERIALIZED_ACTION_VALUES = new Set([
+  'created',
+  'updated',
+  'completed',
+  'cancelled',
+]);
+
+export async function materializedActionsForAppMessage(
+  appMessageId: string | null,
+): Promise<
+  Array<{
+    action: 'created' | 'updated' | 'completed' | 'cancelled';
+    source_system: 'app_task';
+    object_id: string;
+    evidence_span: string | null;
+  }>
+> {
+  if (!appMessageId) return [];
+  const rows = await db
+    .select()
+    .from(turnAction)
+    .where(
+      and(
+        eq(turnAction.messageId, appMessageId),
+        isNotNull(turnAction.taskId),
+      ),
+    )
+    .orderBy(asc(turnAction.createdAt));
+  return rows
+    .filter(
+      (row) =>
+        row.taskId !== null &&
+        MATERIALIZED_ACTION_VALUES.has(row.action as string),
+    )
+    .slice(0, 3)
+    .map((row) => ({
+      action: row.action as 'created' | 'updated' | 'completed' | 'cancelled',
+      source_system: 'app_task' as const,
+      object_id: row.taskId as string,
+      evidence_span: row.evidenceText,
+    }));
 }
 
 // ── Delivery core (real HTTP, injectable for tests) ────────────────────────
@@ -135,7 +193,13 @@ export type DeliveryObservation = {
 export async function deliverOnce(
   row: Pick<
     CortexOutboxRow,
-    'workspaceId' | 'sessionId' | 'honchoMessageId' | 'peerId' | 'text' | 'timezone'
+    | 'workspaceId'
+    | 'sessionId'
+    | 'honchoMessageId'
+    | 'appMessageId'
+    | 'peerId'
+    | 'text'
+    | 'timezone'
   >,
   opts: { post?: typeof fetch; now?: Date } = {},
 ): Promise<DeliveryObservation> {
@@ -149,6 +213,9 @@ export async function deliverOnce(
     };
   }
   const post = opts.post ?? fetch;
+  const materializedActions = await materializedActionsForAppMessage(
+    row.appMessageId,
+  );
   const body = JSON.stringify({
     workspace_id: row.workspaceId,
     session_id: row.sessionId,
@@ -157,6 +224,7 @@ export async function deliverOnce(
     text: row.text,
     now: (opts.now ?? new Date()).toISOString(),
     timezone: row.timezone,
+    materialized_actions: materializedActions,
   });
   let statusCode: number | null = null;
   let payload: Record<string, unknown> | null = null;

@@ -112,6 +112,7 @@ function run() {
     workspaceId: 'ws',
     sessionId: 's',
     honchoMessageId: 'm1',
+    appMessageId: null,
     peerId: 'user',
     text: 'hello',
     timezone: 'Europe/London',
