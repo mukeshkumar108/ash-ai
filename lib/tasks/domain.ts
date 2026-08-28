@@ -168,27 +168,59 @@ export async function createTask(
   const candidateKey = input.materializedCandidateKey ?? null;
   let created: Task;
   try {
-    [created] = await db
-      .insert(taskTable)
-      .values({
-        userId: input.userId,
-        // Origin provenance only — nullable for manual/system tasks.
-        chatId: input.chatId ?? null,
-        title: input.title,
-        notes: input.notes ?? null,
-        dueAt: input.dueAt ?? null,
-        source: input.source ?? 'conversation',
-        sourceMessageId: input.sourceMessageId ?? null,
-        materializedCandidateKey: candidateKey,
-        status: 'pending',
-        cortexVersion: 1,
-        cortexDirty: true,
-      })
-      .returning();
+    // Canonical row + reminders + the created TurnAction commit atomically so a
+    // fast/slow reconciliation source can never see a Task without its ledger
+    // row (mutation+ledger integrity). The Cortex push stays outside: a failed
+    // push leaves the row dirty and the sweep converges it.
+    created = await db.transaction(async (tx) => {
+      const [row] = await tx
+        .insert(taskTable)
+        .values({
+          userId: input.userId,
+          // Origin provenance only — nullable for manual/system tasks.
+          chatId: input.chatId ?? null,
+          title: input.title,
+          notes: input.notes ?? null,
+          dueAt: input.dueAt ?? null,
+          source: input.source ?? 'conversation',
+          sourceMessageId: input.sourceMessageId ?? null,
+          materializedCandidateKey: candidateKey,
+          status: 'pending',
+          cortexVersion: 1,
+          cortexDirty: true,
+        })
+        .returning();
+      if (reminders.length) {
+        await tx.insert(taskReminderTable).values(
+          reminders.map((window) => ({
+            taskId: row.id,
+            userId: input.userId,
+            startAt: window.startAt,
+            endAt: window.endAt,
+            label: window.label,
+            status: 'scheduled' as const,
+          })),
+        );
+      }
+      await recordTurnAction(
+        {
+          userId: input.userId,
+          messageId: input.originMessageId ?? null,
+          taskId: row.id,
+          action: 'created',
+          evidenceClass: input.source ?? null,
+          evidenceText: input.originEvidence ?? null,
+          candidateKey: input.materializedCandidateKey ?? null,
+        },
+        tx,
+      );
+      return row;
+    });
   } catch (error) {
     // Candidate promotion idempotency: the (userId, materializedCandidateKey)
     // unique index rejects a second materialization of the same candidate under
-    // retries/races. Return the already-materialized task instead of failing.
+    // retries/races. The whole insert transaction rolled back; return the
+    // already-materialized task instead of failing.
     if (candidateKey && isUniqueConstraintError(error)) {
       const [existing] = await db
         .select()
@@ -207,31 +239,6 @@ export async function createTask(
     }
     throw error;
   }
-  const reminderRows = reminders.length
-    ? await db
-        .insert(taskReminderTable)
-        .values(
-          reminders.map((window) => ({
-            taskId: created.id,
-            userId: input.userId,
-            startAt: window.startAt,
-            endAt: window.endAt,
-            label: window.label,
-            status: 'scheduled' as const,
-          })),
-        )
-        .returning()
-    : [];
-
-  await recordTurnAction({
-    userId: input.userId,
-    messageId: input.originMessageId ?? null,
-    taskId: created.id,
-    action: 'created',
-    evidenceClass: input.source ?? null,
-    evidenceText: input.originEvidence ?? null,
-    candidateKey: input.materializedCandidateKey ?? null,
-  });
 
   const pushed = await pushTaskToCortex({
     userId: input.userId,
@@ -251,7 +258,7 @@ export async function createTask(
     await markTaskSynced(created.id, created.cortexVersion);
   }
   const persisted = await getTaskWithReminders(input.userId, created.id);
-  return persisted ?? { ...created, reminders: reminderRows };
+  return persisted ?? { ...created, reminders: [] };
 }
 
 async function markTaskSynced(taskId: string, version: number) {
@@ -339,35 +346,46 @@ export async function completeTask(
   if (!row) return { ok: false, reason: 'not_found' };
   if (row.status !== 'pending') return { ok: false, reason: 'invalid_state' };
   const now = options.now ?? new Date();
-  const [updated] = await db
-    .update(taskTable)
-    .set({
-      status: 'completed',
-      completedAt: now,
-      updatedAt: now,
-      cortexVersion: row.cortexVersion + 1,
-      cortexDirty: true,
-    })
-    .where(and(eq(taskTable.id, taskId), eq(taskTable.status, 'pending')))
-    .returning();
-  await db
-    .update(taskReminderTable)
-    .set({ status: 'cancelled', updatedAt: now })
-    .where(
-      and(
-        eq(taskReminderTable.taskId, taskId),
-        eq(taskReminderTable.status, 'scheduled'),
-      ),
+  // Atomic: status transition + reminder cancellation + the completed ledger
+  // row commit together or not at all.
+  const updated = await db.transaction(async (tx) => {
+    const [changed] = await tx
+      .update(taskTable)
+      .set({
+        status: 'completed',
+        completedAt: now,
+        updatedAt: now,
+        cortexVersion: row.cortexVersion + 1,
+        cortexDirty: true,
+      })
+      .where(and(eq(taskTable.id, taskId), eq(taskTable.status, 'pending')))
+      .returning();
+    if (!changed) return null;
+    await tx
+      .update(taskReminderTable)
+      .set({ status: 'cancelled', updatedAt: now })
+      .where(
+        and(
+          eq(taskReminderTable.taskId, taskId),
+          eq(taskReminderTable.status, 'scheduled'),
+        ),
+      );
+    const provenance = options.provenance;
+    await recordTurnAction(
+      {
+        userId,
+        messageId: provenance?.originMessageId ?? null,
+        taskId,
+        action: 'completed',
+        evidenceClass: provenance?.evidenceClass ?? null,
+        evidenceText: provenance?.evidenceText ?? null,
+      },
+      tx,
     );
-  const provenance = options.provenance;
-  await recordTurnAction({
-    userId,
-    messageId: provenance?.originMessageId ?? null,
-    taskId,
-    action: 'completed',
-    evidenceClass: provenance?.evidenceClass ?? null,
-    evidenceText: provenance?.evidenceText ?? null,
+    return changed;
   });
+  if (!updated) return { ok: false, reason: 'invalid_state' };
+  const provenance = options.provenance;
   const task = await getTaskWithReminders(userId, taskId);
   const pushed = await pushTaskToCortex({
     userId,
@@ -403,35 +421,46 @@ export async function cancelTask(
   if (!row) return { ok: false, reason: 'not_found' };
   if (row.status !== 'pending') return { ok: false, reason: 'invalid_state' };
   const now = options.now ?? new Date();
-  const [updated] = await db
-    .update(taskTable)
-    .set({
-      status: 'cancelled',
-      cancelledAt: now,
-      updatedAt: now,
-      cortexVersion: row.cortexVersion + 1,
-      cortexDirty: true,
-    })
-    .where(and(eq(taskTable.id, taskId), eq(taskTable.status, 'pending')))
-    .returning();
-  await db
-    .update(taskReminderTable)
-    .set({ status: 'cancelled', updatedAt: now })
-    .where(
-      and(
-        eq(taskReminderTable.taskId, taskId),
-        eq(taskReminderTable.status, 'scheduled'),
-      ),
+  // Atomic: status transition + reminder cancellation + the cancelled ledger
+  // row commit together or not at all.
+  const updated = await db.transaction(async (tx) => {
+    const [changed] = await tx
+      .update(taskTable)
+      .set({
+        status: 'cancelled',
+        cancelledAt: now,
+        updatedAt: now,
+        cortexVersion: row.cortexVersion + 1,
+        cortexDirty: true,
+      })
+      .where(and(eq(taskTable.id, taskId), eq(taskTable.status, 'pending')))
+      .returning();
+    if (!changed) return null;
+    await tx
+      .update(taskReminderTable)
+      .set({ status: 'cancelled', updatedAt: now })
+      .where(
+        and(
+          eq(taskReminderTable.taskId, taskId),
+          eq(taskReminderTable.status, 'scheduled'),
+        ),
+      );
+    const provenance = options.provenance;
+    await recordTurnAction(
+      {
+        userId,
+        messageId: provenance?.originMessageId ?? null,
+        taskId,
+        action: 'cancelled',
+        evidenceClass: provenance?.evidenceClass ?? null,
+        evidenceText: provenance?.evidenceText ?? null,
+      },
+      tx,
     );
-  const provenance = options.provenance;
-  await recordTurnAction({
-    userId,
-    messageId: provenance?.originMessageId ?? null,
-    taskId,
-    action: 'cancelled',
-    evidenceClass: provenance?.evidenceClass ?? null,
-    evidenceText: provenance?.evidenceText ?? null,
+    return changed;
   });
+  if (!updated) return { ok: false, reason: 'invalid_state' };
+  const provenance = options.provenance;
   const task = await getTaskWithReminders(userId, taskId);
   const pushed = await pushTaskToCortex({
     userId,
@@ -495,40 +524,48 @@ export async function snoozeTask(
     endAt: Date | null;
     label: string | null;
   }> = [];
-  for (const reminder of reminders) {
-    const startAt = shiftMs
-      ? new Date(reminder.startAt.getTime() + shiftMs)
-      : new Date(now.getTime() + (input.offsetMinutes ?? 60) * 60_000);
-    const endAt = shiftMs
-      ? reminder.endAt
-        ? new Date(reminder.endAt.getTime() + shiftMs)
-        : null
-      : null;
-    await db
-      .update(taskReminderTable)
-      .set({ startAt, endAt, updatedAt: now })
-      .where(eq(taskReminderTable.id, reminder.id));
-    updatedReminders.push({ startAt, endAt, label: reminder.label });
-  }
-  const [updated] = await db
-    .update(taskTable)
-    .set({
-      dueAt: nextDue,
-      snoozeCount: row.snoozeCount + 1,
-      updatedAt: now,
-      cortexVersion: row.cortexVersion + 1,
-      cortexDirty: true,
-    })
-    .where(eq(taskTable.id, taskId))
-    .returning();
   const provenance = input.provenance;
-  await recordTurnAction({
-    userId,
-    messageId: provenance?.originMessageId ?? null,
-    taskId,
-    action: 'updated',
-    evidenceClass: provenance?.evidenceClass ?? null,
-    evidenceText: provenance?.evidenceText ?? null,
+  // Atomic: reminder shifts + due change + the updated ledger row commit
+  // together or not at all.
+  const updated = await db.transaction(async (tx) => {
+    for (const reminder of reminders) {
+      const startAt = shiftMs
+        ? new Date(reminder.startAt.getTime() + shiftMs)
+        : new Date(now.getTime() + (input.offsetMinutes ?? 60) * 60_000);
+      const endAt = shiftMs
+        ? reminder.endAt
+          ? new Date(reminder.endAt.getTime() + shiftMs)
+          : null
+        : null;
+      await tx
+        .update(taskReminderTable)
+        .set({ startAt, endAt, updatedAt: now })
+        .where(eq(taskReminderTable.id, reminder.id));
+      updatedReminders.push({ startAt, endAt, label: reminder.label });
+    }
+    const [changed] = await tx
+      .update(taskTable)
+      .set({
+        dueAt: nextDue,
+        snoozeCount: row.snoozeCount + 1,
+        updatedAt: now,
+        cortexVersion: row.cortexVersion + 1,
+        cortexDirty: true,
+      })
+      .where(eq(taskTable.id, taskId))
+      .returning();
+    await recordTurnAction(
+      {
+        userId,
+        messageId: provenance?.originMessageId ?? null,
+        taskId,
+        action: 'updated',
+        evidenceClass: provenance?.evidenceClass ?? null,
+        evidenceText: provenance?.evidenceText ?? null,
+      },
+      tx,
+    );
+    return changed;
   });
   const task = await getTaskWithReminders(userId, taskId);
   const pushed = await pushTaskToCortex({
@@ -569,39 +606,56 @@ export async function rescheduleTask(
   const now = new Date();
   const replaceReminders = input.reminders !== undefined;
   const reminders = normalizeReminderWindows(input.reminders);
-  const [updated] = await db
-    .update(taskTable)
-    .set({
-      dueAt: input.dueAt !== undefined ? input.dueAt : row.dueAt,
-      updatedAt: now,
-      cortexVersion: row.cortexVersion + 1,
-      cortexDirty: true,
-    })
-    .where(eq(taskTable.id, taskId))
-    .returning();
-  if (replaceReminders) {
-    await db
-      .update(taskReminderTable)
-      .set({ status: 'cancelled', updatedAt: now })
-      .where(
-        and(
-          eq(taskReminderTable.taskId, taskId),
-          eq(taskReminderTable.status, 'scheduled'),
-        ),
-      );
-    if (reminders.length) {
-      await db.insert(taskReminderTable).values(
-        reminders.map((window) => ({
-          taskId,
-          userId,
-          startAt: window.startAt,
-          endAt: window.endAt,
-          label: window.label,
-          status: 'scheduled' as const,
-        })),
-      );
+  const provenance = input.provenance;
+  // Atomic: due change + reminder replacement + the updated ledger row commit
+  // together or not at all.
+  const updated = await db.transaction(async (tx) => {
+    const [changed] = await tx
+      .update(taskTable)
+      .set({
+        dueAt: input.dueAt !== undefined ? input.dueAt : row.dueAt,
+        updatedAt: now,
+        cortexVersion: row.cortexVersion + 1,
+        cortexDirty: true,
+      })
+      .where(eq(taskTable.id, taskId))
+      .returning();
+    if (replaceReminders) {
+      await tx
+        .update(taskReminderTable)
+        .set({ status: 'cancelled', updatedAt: now })
+        .where(
+          and(
+            eq(taskReminderTable.taskId, taskId),
+            eq(taskReminderTable.status, 'scheduled'),
+          ),
+        );
+      if (reminders.length) {
+        await tx.insert(taskReminderTable).values(
+          reminders.map((window) => ({
+            taskId,
+            userId,
+            startAt: window.startAt,
+            endAt: window.endAt,
+            label: window.label,
+            status: 'scheduled' as const,
+          })),
+        );
+      }
     }
-  }
+    await recordTurnAction(
+      {
+        userId,
+        messageId: provenance?.originMessageId ?? null,
+        taskId,
+        action: 'updated',
+        evidenceClass: provenance?.evidenceClass ?? null,
+        evidenceText: provenance?.evidenceText ?? null,
+      },
+      tx,
+    );
+    return changed;
+  });
   const task = await getTaskWithReminders(userId, taskId);
   if (!task) return { ok: false, reason: 'not_found' };
   const activeReminders = task.reminders
@@ -611,15 +665,6 @@ export async function rescheduleTask(
       endAt: reminder.endAt,
       label: reminder.label,
     }));
-  const provenance = input.provenance;
-  await recordTurnAction({
-    userId,
-    messageId: provenance?.originMessageId ?? null,
-    taskId,
-    action: 'updated',
-    evidenceClass: provenance?.evidenceClass ?? null,
-    evidenceText: provenance?.evidenceText ?? null,
-  });
   const pushed = await pushTaskToCortex({
     userId,
     chatId: updated.chatId,
@@ -656,25 +701,32 @@ export async function editTask(
   if (!row) return { ok: false, reason: 'not_found' };
   if (row.status !== 'pending') return { ok: false, reason: 'invalid_state' };
   const now = new Date();
-  const [updated] = await db
-    .update(taskTable)
-    .set({
-      title: input.title?.trim() || row.title,
-      notes: input.notes !== undefined ? input.notes : row.notes,
-      updatedAt: now,
-      cortexVersion: row.cortexVersion + 1,
-      cortexDirty: true,
-    })
-    .where(eq(taskTable.id, taskId))
-    .returning();
-  const provenance = input.provenance;
-  await recordTurnAction({
-    userId,
-    messageId: provenance?.originMessageId ?? null,
-    taskId,
-    action: 'updated',
-    evidenceClass: provenance?.evidenceClass ?? null,
-    evidenceText: provenance?.evidenceText ?? null,
+  // Atomic: title/notes update + the updated ledger row commit together.
+  const updated = await db.transaction(async (tx) => {
+    const [changed] = await tx
+      .update(taskTable)
+      .set({
+        title: input.title?.trim() || row.title,
+        notes: input.notes !== undefined ? input.notes : row.notes,
+        updatedAt: now,
+        cortexVersion: row.cortexVersion + 1,
+        cortexDirty: true,
+      })
+      .where(eq(taskTable.id, taskId))
+      .returning();
+    const provenance = input.provenance;
+    await recordTurnAction(
+      {
+        userId,
+        messageId: provenance?.originMessageId ?? null,
+        taskId,
+        action: 'updated',
+        evidenceClass: provenance?.evidenceClass ?? null,
+        evidenceText: provenance?.evidenceText ?? null,
+      },
+      tx,
+    );
+    return changed;
   });
   const task = await getTaskWithReminders(userId, taskId);
   const pushed = await pushTaskToCortex({

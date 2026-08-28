@@ -135,8 +135,30 @@ interpreter, and satisfies "model proposes, code commits."
     current active chat, same-message retry never duplicates Task/TurnAction.
 - Known failures: 3 pre-existing unrelated unit tests (agent-tool-schema:6,
   agent-ash:185, research-policy:441) — do not fix unless touched.
-- CURRENT: All checkpoints complete. Remaining (documented, not built):
-  - `lib/ai/interaction/interpreter.ts` wiring decision is DONE (Option B).
-  - Things UI inline chips / undo affordances unrendered (ledger data exists).
-  - Auth-boundary HTTP tests run in CI (routes project; need webServer).
-- NEXT: nothing required; final report.
+- CURRENT: post-audit safety repair (bounded pass) — committed:
+  - H1: destructive/update/create-any commits are refused whenever the
+    interpreter declares requires_clarification (clarification/withdrawal
+    situations) — no canonical state behind a question.
+  - H2: recent-context mention alone is no longer sufficient binding evidence;
+    resolveDestructiveBinding now requires a POSITIVE match in the USER text or
+    the VISIBLE reply (or a single pending task). Reply-vs-target contradictions
+    ("no, the other one") veto deterministically, without English heuristics.
+  - H3: chat after() reordered — commitTurnSemantics runs BEFORE the Cortex
+    outbox enqueue (mirrorCompletedTurn), establishing happens-before
+    "fast actions durable -> outbox row exists".
+  - M3: every canonical mutation (create/complete/cancel/snooze/reschedule/
+    edit) commits the TurnAction row in the SAME database transaction as the
+    Task row; a ledger write failure rolls back the mutation.
+  - M1: public POST /api/tasks no longer accepts materializedCandidateKey or
+    sourceMessageId (provenance fields are internal-path only).
+  - M2: /api/tasks/[id] validates the task id is a UUID -> clean 400/404,
+    no more Postgres 22P02 500s.
+  - M4: duplicate proposals of the same (action, target) collapse to one chip.
+  - New counterexample regression suite:
+    scripts/tasks-safety-regression-test.ts (H1, H2, reply-naming preserved,
+    bare-pronoun fail-closed, M3 atomic rollback, M1 schema, M2 uuid, M4).
+- REMAINING (documented, not disabled): a pathological model that sets
+  requires_clarification:false against a clarifying reply with a SINGLE pending
+  task can still complete it — roster==1 is a positive basis; that residual is
+  the model's contradiction, not code's (needs live traffic to measure).
+- NEXT: (external) blind independent audit against this state.

@@ -11,6 +11,10 @@ import { turnAction, type TurnAction } from '@/lib/db/schema';
  *   the background watcher deterministically suppresses its own duplicates;
  * - the Things UI reads them for inline "Reminder set — Friday 09:00 · undo"
  *   confirmations. No client-side parallel lifecycle.
+ *
+ * The ledger is PART of canonical state: canonical mutations commit it in the
+ * SAME database transaction as the Task row (see lib/tasks/domain.ts), so a
+ * mutation can never succeed with a missing ledger row (fast/slow integrity).
  */
 
 export type TurnActionInput = {
@@ -23,11 +27,16 @@ export type TurnActionInput = {
   candidateKey?: string | null;
 };
 
+type LedgerExecutor =
+  | typeof db
+  | Parameters<Parameters<typeof db.transaction>[0]>[0];
+
 export async function recordTurnAction(
   input: TurnActionInput,
+  executor: LedgerExecutor = db,
 ): Promise<TurnAction | null> {
   if (input.taskId == null && input.messageId == null) return null;
-  const inserted = await db
+  const inserted = await executor
     .insert(turnAction)
     .values({
       userId: input.userId,

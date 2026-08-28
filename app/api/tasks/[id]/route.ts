@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+import { z } from 'zod';
+
 import { auth } from '@/app/(auth)/auth';
 import { getUserById } from '@/lib/db/queries';
 import {
@@ -14,6 +16,15 @@ import { mutateTaskSchema } from '@/lib/tasks/schemas';
 
 export const dynamic = 'force-dynamic';
 
+const taskIdSchema = z.string().uuid();
+
+function invalidTaskIdResponse() {
+  return NextResponse.json(
+    { ok: false, error: 'invalid_task_id' },
+    { status: 400 },
+  );
+}
+
 export async function GET(
   _: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -23,6 +34,9 @@ export async function GET(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   const { id } = await params;
+  if (!taskIdSchema.safeParse(id).success) {
+    return invalidTaskIdResponse();
+  }
   const task = await getTaskWithReminders(session.user.id, id);
   if (!task) {
     return NextResponse.json(
@@ -45,6 +59,9 @@ export async function PATCH(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   const { id } = await params;
+  if (!taskIdSchema.safeParse(id).success) {
+    return invalidTaskIdResponse();
+  }
   const userId = session.user.id;
   let body: unknown;
   try {

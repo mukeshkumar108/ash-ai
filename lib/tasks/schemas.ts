@@ -12,11 +12,13 @@ export const createTaskSchema = z.object({
   notes: z.string().trim().max(2000).nullish(),
   dueAt: z.coerce.date().nullish(),
   reminders: z.array(reminderWindowSchema).max(3).optional(),
-  sourceMessageId: z.string().uuid().nullish(),
+  // Provenance fields are NOT public-client settable: sourceMessageId and
+  // materializedCandidateKey are owned by server-controlled internal paths
+  // (fast-path interpreter / candidate promotion). Clients may only claim
+  // manual/api origins.
   source: z
     .enum(['conversation', 'manual', 'sophie_accepted', 'api', 'system'])
     .optional(),
-  materializedCandidateKey: z.string().trim().max(160).nullish(),
 });
 
 export const mutateTaskSchema = z.discriminatedUnion('action', [

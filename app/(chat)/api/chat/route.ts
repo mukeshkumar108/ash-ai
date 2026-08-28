@@ -1237,32 +1237,12 @@ export async function POST(request: Request) {
               createdAt: assistantCreatedAt,
             },
           };
-          await mirrorCompletedTurn(completedTurn);
-          try {
-            const candidates = await extractSophieAttentionCandidates({
-              recentContext: boundedEpistemicContext(uiMessages),
-              userText: currentUserText,
-              assistantText: finalText,
-            });
-            await persistSophieAttention({
-              userId: session.user.id,
-              chatId: id,
-              sourceMessageId: message.id,
-              sourceAssistantMessageId: assistantId,
-              candidates,
-              now: assistantCreatedAt,
-            });
-          } catch (error) {
-            console.warn('[interaction] attention extraction failed open', {
-              chatId: id,
-              error: error instanceof Error ? error.message : 'Unknown error',
-            });
-          }
-          // Fast-path semantic commit: the deterministic semantic owner for
-          // explicit commitment actions in this turn. Runs post-reply so its
-          // interpretation anchors to the visible reply; model proposes, code
-          // commits. Failures fail open (the background Cortex pipeline still
-          // sees the turn unchanged).
+          // Fast-path semantic commit runs BEFORE the Cortex turn is enqueued
+          // (mirrorCompletedTurn below): this establishes the happens-before
+          // "fast actions durable -> outbox row exists", so any later outbox
+          // delivery resolves the app message's TurnAction ledger into
+          // materialized_actions. A sweep can never see the turn before the
+          // fast path committed.
           try {
             const semanticCommit = await commitTurnSemantics({
               userId: session.user.id,
@@ -1308,6 +1288,27 @@ export async function POST(request: Request) {
               messageId: message.id,
               error:
                 error instanceof Error ? error.message : 'Unknown error',
+            });
+          }
+          await mirrorCompletedTurn(completedTurn);
+          try {
+            const candidates = await extractSophieAttentionCandidates({
+              recentContext: boundedEpistemicContext(uiMessages),
+              userText: currentUserText,
+              assistantText: finalText,
+            });
+            await persistSophieAttention({
+              userId: session.user.id,
+              chatId: id,
+              sourceMessageId: message.id,
+              sourceAssistantMessageId: assistantId,
+              candidates,
+              now: assistantCreatedAt,
+            });
+          } catch (error) {
+            console.warn('[interaction] attention extraction failed open', {
+              chatId: id,
+              error: error instanceof Error ? error.message : 'Unknown error',
             });
           }
         });

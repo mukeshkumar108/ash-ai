@@ -40,6 +40,15 @@ const interpreterActionSchema = z.object({
   // Verbatim excerpt from the user's message supporting this action.
   evidence_verbatim: z.string().trim().min(3).max(500),
   target_task_id: z.string().uuid().nullable(),
+  // Deterministic safety contract (REQUIRED for destructive/update actions):
+  // - target_resolution: "explicit" when the user's own words name the task,
+  //   "referential" when resolved from conversational grounding. Code rejects
+  //   referential picks that are not positively named by the USER text, the
+  //   visible reply, or are not the only possible task.
+  // - requires_clarification: set true when the visible reply asks a clarifying
+  //   question or the turn is ambiguous — code then refuses to mutate at all.
+  target_resolution: z.enum(['explicit', 'referential']).nullable(),
+  requires_clarification: z.boolean(),
   title: z.string().trim().min(1).max(280).nullable(),
   notes: z.string().trim().max(2000).nullable(),
   due_iso: z.string().datetime({ offset: true }).nullable(),
@@ -140,17 +149,28 @@ export type DestructiveBindingVerdict =
 
 /**
  * Deterministic target-safety guard for complete/cancel/snooze/reschedule.
- * The model proposes a target; this decides whether committing it is safe:
- * - exactly one pending roster item -> always unambiguous;
- * - the user text lexically names a title where the bound target is the
- *   unique best match -> commit;
- * - otherwise fall back to recent-conversation grounding; the bound target
- *   must be the unique best title signal THERE too;
- * - otherwise fail closed: consequential ambiguity -> clarify, never mutate.
+ *
+ * The model proposes a target and a resolution basis; this function decides
+ * whether committing it is SAFE using only POSITIVE evidence the code can
+ * check (no English-grammar heuristics):
+ * 1. the bound target must exist in the roster;
+ * 2. if the USER's own words positively name a task, the bound target must be
+ *    that unique best match (a contradiction is consequential ambiguity);
+ * 3. else if the VISIBLE Sophie reply positively names a task, the bound
+ *    target must be that unique best match — this makes the visible reply and
+ *    the committed action agree, and rejects reply-vs-target contradictions
+ *    ("no, the other one") without parsing negation;
+ * 4. else the only positive basis permitted is a SINGLE pending roster item
+ *    (there is nothing else it could be);
+ * 5. otherwise fail closed: consequential ambiguity -> clarify, never mutate.
+ *
+ * Recent-conversation mention ALONE is deliberately NOT sufficient evidence:
+ * "this task appears somewhere in history" is not "this is the task the user
+ * positively selected" (see the "no, the other one" counterexample).
  */
 export function resolveDestructiveBinding(params: {
   userText: string;
-  recentContext: string;
+  assistantText: string;
   roster: InterpreterRosterEntry[];
   modelTargetTaskId: string | null;
 }): DestructiveBindingVerdict {
@@ -162,40 +182,35 @@ export function resolveDestructiveBinding(params: {
     (entry) => entry.taskId === params.modelTargetTaskId,
   );
   if (!target) return { ok: false, reason: 'unresolved_target_binding' };
-  if (roster.length === 1) return { ok: true };
 
   const uniqueBest = (
-    signals: Array<{ id: string; s: number }>,
+    text: string,
   ): string | null => {
+    const signals = roster.map((entry) => ({
+      id: entry.taskId,
+      s: titleReferenceSignal(text, entry.title),
+    }));
     const max = Math.max(0, ...signals.map((row) => row.s));
     if (max <= 0) return null;
     const best = signals.filter((row) => row.s === max);
     return best.length === 1 ? best[0].id : null;
   };
 
-  const userBest = uniqueBest(
-    roster.map((entry) => ({
-      id: entry.taskId,
-      s: titleReferenceSignal(params.userText, entry.title),
-    })),
-  );
+  const userBest = uniqueBest(params.userText);
   if (userBest !== null) {
     return userBest === target.taskId
       ? { ok: true }
       : { ok: false, reason: 'ambiguous_target' };
   }
 
-  const contextBest = uniqueBest(
-    roster.map((entry) => ({
-      id: entry.taskId,
-      s: titleReferenceSignal(params.recentContext, entry.title),
-    })),
-  );
-  if (contextBest !== null) {
-    return contextBest === target.taskId
+  const replyBest = uniqueBest(params.assistantText);
+  if (replyBest !== null) {
+    return replyBest === target.taskId
       ? { ok: true }
       : { ok: false, reason: 'ambiguous_target' };
   }
+
+  if (roster.length === 1) return { ok: true };
 
   return { ok: false, reason: 'ambiguous_target' };
 }
@@ -250,11 +265,15 @@ Allowed evidence classes (use exactly one per action):
 - explicit_resolution: the user says an existing task is done ("I finished the tax return", "did it yesterday").
 - explicit_modification: the user moves/cancels/snoozes an existing task ("actually make that Friday", "cancel the dentist", "push it an hour").
 
+REQUIRED contract fields on every action:
+- requires_clarification: MUST be true whenever the visible reply asks a clarifying question or the turn is genuinely ambiguous (zero plausible targets, two or more equally plausible targets, or an uncertain reference). When true, the action is a flagged non-commit; prefer also emitting a clarification.
+- target_resolution: for complete/cancel/snooze/reschedule ONLY — "explicit" when the USER's own words name the target task ("cancel the dentist"), "referential" when you resolved it from the conversation ("cancel that"). For create_task set target_resolution to null.
+
 Grounding rules (critical):
 - The task roster below is the ONLY valid source of target_task_id values.
 - Resolve pronouns and references ("it", "that", "this", "the dentist one") using the recent conversation context and Sophie's visible reply. PRONOUNS AND REFERENCES ARE RESOLVED ONLY FROM CONVERSATIONAL GROUNDING, never invented.
-- If zero plausible targets match, OR two or more are equally plausible targets for a complete/cancel/snooze/reschedule, DO NOT act: emit a clarification instead (intent "ambiguous_target" for binding trouble, "uncertain_resolution" when it is unclear whether something counts as done, "uncertain_commitment" when it is unclear whether something is a commitment at all).
-- Sophie's visible reply is AUTHORITATIVE. If Sophie already handled the request, declined, or asked a clarifying question, do NOT emit matching actions even if the user's words look like a command.
+- If zero plausible targets match, OR two or more are equally plausible targets for a complete/cancel/snooze/reschedule, DO NOT act: set requires_clarification true and emit a clarification instead (intent "ambiguous_target" for binding trouble, "uncertain_resolution" when it is unclear whether something counts as done, "uncertain_commitment" when it is unclear whether something is a commitment at all).
+- Sophie's visible reply is AUTHORITATIVE. When Sophie asks a clarifying question, declines, or shows uncertainty, set requires_clarification true and do NOT emit matching actions even if the user's words look like a command. When Sophie's reply names a specific task, your chosen target must agree with it.
 
 Other rules:
 - "create_task" needs a title. Resolve relative times ("tomorrow at 5", "Friday morning", "in 30 minutes") into ISO 8601 with UTC offset using the supplied local time and timezone. "Friday morning" = 07:00–12:00 local; "afternoon" = 12:00–18:00 local.
@@ -320,6 +339,7 @@ export async function commitInterpreterActions(input: {
     clarifications: InterpreterClarification[];
   };
   userText: string;
+  assistantText: string;
   userId: string;
   chatId: string | null;
   timeZone: string;
@@ -332,6 +352,16 @@ export async function commitInterpreterActions(input: {
   const { listTurnActionsForMessage } = await import('@/lib/tasks/turn-actions');
 
   const committed: CommittedFastAction[] = [];
+  const pushCommitted = (entry: CommittedFastAction) => {
+    // Duplicate proposals of the same (action, target) in one turn collapse
+    // to a single chip — canonical state is already protected elsewhere.
+    const duplicate = committed.some(
+      (existing) =>
+        existing.action === entry.action &&
+        (existing.taskId ?? null) === (entry.taskId ?? null),
+    );
+    if (!duplicate) committed.push(entry);
+  };
   const rejected: Array<{ action: InterpreterAction; reason: string }> = [];
   const clarifications = [...input.interpretation.clarifications];
 
@@ -350,6 +380,12 @@ export async function commitInterpreterActions(input: {
   }
 
   for (const action of input.interpretation.actions) {
+    // Contract gate 0: a clarification situation can never commit canonical
+    // state of ANY kind (create included) — never mutate behind a question.
+    if (action.requires_clarification) {
+      rejected.push({ action, reason: 'requires_clarification' });
+      continue;
+    }
     const provenance = {
       originMessageId: input.originMessageId,
       evidenceClass: action.evidence_class,
@@ -404,7 +440,7 @@ export async function commitInterpreterActions(input: {
           materializedCandidateKey: fastKey,
         });
         if (!existingLedgerKeys.has(`created:${created.id}`)) {
-          committed.push({
+          pushCommitted({
             action: action.action,
             taskId: created.id,
             title: created.title,
@@ -422,9 +458,18 @@ export async function commitInterpreterActions(input: {
     }
 
     // Destructive/update action path.
+    // Contract gate 0 already vetoed requires_clarification; destructive
+    // actions additionally need a declared resolution basis.
+    if (
+      action.target_resolution !== 'explicit' &&
+      action.target_resolution !== 'referential'
+    ) {
+      rejected.push({ action, reason: 'missing_target_resolution' });
+      continue;
+    }
     const binding = resolveDestructiveBinding({
       userText: input.userText,
-      recentContext: input.recentContext ?? '',
+      assistantText: input.assistantText,
       roster: input.roster,
       modelTargetTaskId: action.target_task_id,
     });
@@ -471,7 +516,7 @@ export async function commitInterpreterActions(input: {
           rejected.push({ action, reason: outcome.reason ?? 'mutation_failed' });
           continue;
         }
-        committed.push({
+        pushCommitted({
           action: action.action,
           taskId: targetId,
           title: outcome.task?.title ?? title,
@@ -488,7 +533,7 @@ export async function commitInterpreterActions(input: {
           rejected.push({ action, reason: outcome.reason ?? 'mutation_failed' });
           continue;
         }
-        committed.push({
+        pushCommitted({
           action: action.action,
           taskId: targetId,
           title: outcome.task?.title ?? title,
@@ -506,7 +551,7 @@ export async function commitInterpreterActions(input: {
           rejected.push({ action, reason: outcome.reason ?? 'mutation_failed' });
           continue;
         }
-        committed.push({
+        pushCommitted({
           action: action.action,
           taskId: targetId,
           title: outcome.task?.title ?? title,
@@ -528,7 +573,7 @@ export async function commitInterpreterActions(input: {
         rejected.push({ action, reason: outcome.reason ?? 'mutation_failed' });
         continue;
       }
-      committed.push({
+      pushCommitted({
         action: action.action,
         taskId: targetId,
         title: outcome.task?.title ?? title,

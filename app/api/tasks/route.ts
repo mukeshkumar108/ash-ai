@@ -86,9 +86,7 @@ export async function POST(request: Request) {
       endAt: window.endAt ?? null,
       label: window.label ?? null,
     })),
-    sourceMessageId: parsed.data.sourceMessageId ?? null,
     source: parsed.data.source ?? (parsed.data.chatId ? 'api' : 'manual'),
-    materializedCandidateKey: parsed.data.materializedCandidateKey ?? null,
   });
   return NextResponse.json(
     { ok: true, data: task },

@@ -64,6 +64,7 @@ export async function commitTurnSemantics(input: {
   return commitInterpreterActions({
     interpretation,
     userText: input.userText,
+    assistantText: input.assistantText,
     userId: input.userId,
     chatId: input.chatId,
     timeZone: input.timeZone,
