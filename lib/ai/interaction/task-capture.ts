@@ -1,3 +1,14 @@
+/**
+ * SUPERSEDED — legacy post-turn explicit task capture.
+ *
+ * Kept for reference only. The fast-path semantic owner is now
+ * lib/ai/interaction/commit-turn.ts (via interpreter.ts): it is anchored to
+ * the visible reply, passes the pending roster and conversation context, and
+ * commits through the deterministic binding gates + TurnAction ledger.
+ * Do NOT call this function or re-wire it into the chat route: two active
+ * semantic task systems must never both create canonical Tasks.
+ */
+
 import 'server-only';
 
 import { generateObject } from 'ai';

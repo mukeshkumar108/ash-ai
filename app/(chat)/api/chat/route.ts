@@ -42,8 +42,7 @@ import {
   persistSophieAttention,
 } from '@/lib/synapse-cortex';
 import { extractSophieAttentionCandidates } from '@/lib/ai/interaction/attention';
-import { captureExplicitTasks } from '@/lib/ai/interaction/task-capture';
-import { createTask } from '@/lib/tasks/domain';
+import { commitTurnSemantics } from '@/lib/ai/interaction/commit-turn';
 import {
   createStreamId,
   deleteChatById,
@@ -1259,11 +1258,16 @@ export async function POST(request: Request) {
               error: error instanceof Error ? error.message : 'Unknown error',
             });
           }
-          // Explicit task/reminder capture: canonical app-owned state derived
-          // from the user's own request in this turn. Never blocks the reply;
-          // failures fail open (the user can still ask again).
+          // Fast-path semantic commit: the deterministic semantic owner for
+          // explicit commitment actions in this turn. Runs post-reply so its
+          // interpretation anchors to the visible reply; model proposes, code
+          // commits. Failures fail open (the background Cortex pipeline still
+          // sees the turn unchanged).
           try {
-            const capturedTasks = await captureExplicitTasks({
+            const semanticCommit = await commitTurnSemantics({
+              userId: session.user.id,
+              chatId: id,
+              messageId: message.id,
               userText: currentUserText,
               assistantText: finalText,
               localTime: new Intl.DateTimeFormat('en-GB', {
@@ -1272,33 +1276,38 @@ export async function POST(request: Request) {
                 timeZone,
               }).format(assistantCreatedAt),
               timeZone,
+              recentContext: boundedEpistemicContext(uiMessages),
+              signal: AbortSignal.timeout(
+                Number(
+                  process.env.SOPHIE_COMMITMENT_INTERPRETER_TIMEOUT_MS ??
+                    8_000,
+                ) + 15_000,
+              ),
             });
-            for (const captured of capturedTasks) {
-              await createTask({
-                userId: session.user.id,
+            if (semanticCommit.committed.length > 0) {
+              console.info('[tasks] fast-path committed actions', {
                 chatId: id,
-                title: captured.title,
-                notes: captured.notes,
-                dueAt: captured.dueISO ? new Date(captured.dueISO) : null,
-                reminders: captured.reminderWindows.map((window) => ({
-                  startAt: new Date(window.startISO),
-                  endAt: window.endISO ? new Date(window.endISO) : null,
-                  label: window.label,
+                messageId: message.id,
+                actions: semanticCommit.committed.map((entry) => ({
+                  action: entry.action,
+                  taskId: entry.taskId,
+                  title: entry.title,
                 })),
-                sourceMessageId: message.id,
-                source: 'conversation',
               });
             }
-            if (capturedTasks.length > 0) {
-              console.info('[tasks] captured explicit tasks from turn', {
+            if (semanticCommit.clarifications.length > 0) {
+              console.info('[tasks] fast-path surfaced ambiguity', {
                 chatId: id,
-                count: capturedTasks.length,
+                messageId: message.id,
+                clarifications: semanticCommit.clarifications,
               });
             }
           } catch (error) {
-            console.warn('[tasks] explicit task capture failed open', {
+            console.warn('[tasks] fast-path semantic commit failed open', {
               chatId: id,
-              error: error instanceof Error ? error.message : 'Unknown error',
+              messageId: message.id,
+              error:
+                error instanceof Error ? error.message : 'Unknown error',
             });
           }
         });
