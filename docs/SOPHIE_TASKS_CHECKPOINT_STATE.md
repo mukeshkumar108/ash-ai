@@ -115,7 +115,7 @@ interpreter, and satisfies "model proposes, code commits."
       chatless manual create, user-level cross-chat list, no projects/tags).
     - sidebar nav link; tests/routes/things.test.ts (CI; auth-guard, CRUD,
       ownership isolation at the HTTP boundary).
-  - Checkpoint 5 (Sophie noticed) — IN PROGRESS, committed next:
+  - Checkpoint 5 (Sophie noticed) — 5469681→b59fddd chain:
     - lib/synapse-cortex.ts: listCommitmentCandidates + markCommitmentCandidate
       (owner-scoped against Cortex /v1/cortex/commitment-candidates).
     - app/api/tasks/candidates (+promote/dismiss): list pending candidates;
@@ -126,7 +126,17 @@ interpreter, and satisfies "model proposes, code commits."
     - tests/routes/candidates.test.ts (401 guards, fail-open available:false,
       malformed keys). Proven live against a running local Cortex: list/promote/
       idempotent re-promote/dismiss/no-reappear.
+  - Checkpoint 6 (behavioural/E2E hardening) — scripts/sophie-tasks-e2e-test.ts:
+    chained messy dialogue over real commitTurnSemantics/domain/scan/outbox:
+    explicit reminder, reschedule same-task, cross-chat completion, suggested+
+    "yeah add that" (sophie_accepted), implicit "passport someday" refused +
+    turn still enqueued to slow Cortex, pronominal cancel via context, deleted
+    birth chat -> task intact (SET NULL), chatless reminder anchored to the
+    current active chat, same-message retry never duplicates Task/TurnAction.
 - Known failures: 3 pre-existing unrelated unit tests (agent-tool-schema:6,
   agent-ash:185, research-policy:441) — do not fix unless touched.
-- CURRENT: Checkpoint 6 (behavioural/E2E hardening) — pending.
-- NEXT: Checkpoint 6 real messy-scenario harness -> final report.
+- CURRENT: All checkpoints complete. Remaining (documented, not built):
+  - `lib/ai/interaction/interpreter.ts` wiring decision is DONE (Option B).
+  - Things UI inline chips / undo affordances unrendered (ledger data exists).
+  - Auth-boundary HTTP tests run in CI (routes project; need webServer).
+- NEXT: nothing required; final report.
