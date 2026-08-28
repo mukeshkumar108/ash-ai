@@ -102,14 +102,20 @@ interpreter, and satisfies "model proposes, code commits."
     interpreter anchored to the visible reply); commitTurnSemantics;
     resolveDestructiveBinding guard; message-scoped ledger idempotency; fast
     create candidate key; captureExplicitTasks retired as the semantic owner.
-  - Checkpoint 3 (fast/slow Cortex reconciliation) — IN PROGRESS:
+  - Checkpoint 3 (fast/slow Cortex reconciliation) — commits:
     - outbox enqueue stores app_message_id; deliverOnce resolves the app
       message's TurnAction ledger at delivery time into `materialized_actions`
       on the /v1/events/turn payload (cortex suppress contract already live).
     - acceptance harness scripts/tasks-reconciliation-test.ts (create slow-pass,
       completion slow-pass, candidate promotion -> one Task, enqueue+delivery
       retry convergence, app message id travel).
+  - Checkpoint 4 (Things UI) — 5469681 chain; routes/tasks exercised:
+    - app/(chat)/things page + components/things/things-screen (first-class
+      minimal surface: list/add/edit/complete/cancel/snooze/reschedule,
+      chatless manual create, user-level cross-chat list, no projects/tags).
+    - sidebar nav link; tests/routes/things.test.ts (CI; auth-guard, CRUD,
+      ownership isolation at the HTTP boundary).
 - Known failures: 3 pre-existing unrelated unit tests (agent-tool-schema:6,
   agent-ash:185, research-policy:441) — do not fix unless touched.
-- CURRENT: Checkpoint 4 (Things UI) — pending.
-- NEXT: Checkpoint 4 UI → Checkpoint 5 Sophie Noticed → Checkpoint 6 E2E.
+- CURRENT: Checkpoint 5 (Sophie Noticed) — pending.
+- NEXT: Checkpoint 5 candidate UI/promote/dismiss → Checkpoint 6 E2E.
