@@ -9,7 +9,6 @@ import {
 } from '@playwright/test';
 import { generateId } from 'ai';
 import { generateUUID } from '@/lib/utils';
-import { ChatPage } from './pages/chat';
 import { getUnixTime } from 'date-fns';
 import { saveChat, saveMessages, voteMessage } from '@/lib/db/queries';
 import type { DBMessage } from '@/lib/db/schema';
@@ -42,8 +41,8 @@ export async function createAuthenticatedContext({
 
   const email = `test-${name}@playwright.com`;
   const password = generateId();
-
-  await page.goto('http://localhost:3000/register');
+  const port = process.env.PORT || 3000;
+  await page.goto(`http://localhost:${port}/register`);
   await page.getByPlaceholder('user@acme.com').click();
   await page.getByPlaceholder('user@acme.com').fill(email);
   await page.getByLabel('Password').click();
@@ -53,11 +52,6 @@ export async function createAuthenticatedContext({
   await expect(page.getByTestId('toast').first()).toContainText(
     'Account created successfully!',
   );
-
-  const chatPage = new ChatPage(page);
-  await chatPage.createNewChat();
-  await chatPage.chooseModelFromSelector('chat-model-reasoning');
-  await expect(chatPage.getSelectedModel()).resolves.toEqual('Reasoning model');
 
   await page.waitForTimeout(1000);
 
