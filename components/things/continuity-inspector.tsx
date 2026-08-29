@@ -33,7 +33,13 @@ type SectionKey =
   | 'initiative_opportunities'
   | 'initiative_decisions'
   | 'cortex_deliveries'
-  | 'worker_heartbeats';
+  | 'worker_heartbeats'
+  | 'brief_now'
+  | 'brief_today'
+  | 'brief_tomorrow'
+  | 'brief_unresolved'
+  | 'brief_review'
+  | 'editorial_briefs';
 
 const sections: Array<{ key: SectionKey; label: string }> = [
   { key: 'tasks', label: 'Canonical tasks' },
@@ -48,6 +54,12 @@ const sections: Array<{ key: SectionKey; label: string }> = [
   { key: 'initiative_decisions', label: 'Outreach decisions' },
   { key: 'cortex_deliveries', label: 'Cortex delivery' },
   { key: 'worker_heartbeats', label: 'Worker health' },
+  { key: 'brief_now', label: 'Brief · now' },
+  { key: 'brief_today', label: 'Brief · today' },
+  { key: 'brief_tomorrow', label: 'Brief · tomorrow' },
+  { key: 'brief_unresolved', label: 'Brief · unresolved' },
+  { key: 'brief_review', label: 'Backstage review' },
+  { key: 'editorial_briefs', label: 'Chief-of-staff briefs' },
 ];
 
 function display(value: unknown): string {
@@ -89,15 +101,22 @@ export function ContinuityInspector({
   tasks,
   cortex,
   delivery,
+  brief,
 }: {
   tasks: CanonicalTask[];
   cortex: ContinuityInspectorState | null;
   delivery: ContinuityDeliveryDiagnostics;
+  brief: {
+    horizons?: Record<string, unknown[]>;
+  } | null;
 }) {
   const [section, setSection] = useState<SectionKey>('expectations');
   const [query, setQuery] = useState('');
 
   const filtered = useMemo(() => {
+    const briefKey = section.startsWith('brief_')
+      ? section.replace('brief_', '').replace('review', 'review_needed')
+      : null;
     const records =
       section === 'tasks'
         ? (tasks.map((task) => ({ ...task })) as Array<Record<string, unknown>>)
@@ -109,15 +128,21 @@ export function ContinuityInspector({
               ? delivery.cortexDeliveries
               : section === 'worker_heartbeats'
                 ? delivery.workerHeartbeats
-                : ((cortex?.[section] as
-                    | Array<Record<string, unknown>>
-                    | undefined) ?? []);
+                : section === 'editorial_briefs'
+                  ? delivery.continuityBriefs
+                  : briefKey
+                    ? ((brief?.horizons?.[briefKey] ?? []) as Array<
+                        Record<string, unknown>
+                      >)
+                    : (((cortex as unknown as Record<string, unknown> | null)?.[
+                        section
+                      ] as Array<Record<string, unknown>> | undefined) ?? []);
     const needle = query.trim().toLowerCase();
     if (!needle) return records;
     return records.filter((item) =>
       JSON.stringify(item).toLowerCase().includes(needle),
     );
-  }, [cortex, delivery, query, section, tasks]);
+  }, [brief, cortex, delivery, query, section, tasks]);
 
   const countFor = (key: SectionKey) => {
     if (key === 'tasks') return tasks.length;
@@ -127,7 +152,14 @@ export function ContinuityInspector({
       return delivery.initiativeDecisions.length;
     if (key === 'cortex_deliveries') return delivery.cortexDeliveries.length;
     if (key === 'worker_heartbeats') return delivery.workerHeartbeats.length;
-    const value = cortex?.[key];
+    if (key === 'editorial_briefs') return delivery.continuityBriefs.length;
+    if (key.startsWith('brief_')) {
+      const briefKey = key
+        .replace('brief_', '')
+        .replace('review', 'review_needed');
+      return brief?.horizons?.[briefKey]?.length ?? 0;
+    }
+    const value = (cortex as unknown as Record<string, unknown> | null)?.[key];
     return Number(
       cortex?.counts?.[key] ?? (Array.isArray(value) ? value.length : 0),
     );

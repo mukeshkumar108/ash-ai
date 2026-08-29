@@ -18,6 +18,7 @@ export type ContinuityDeliveryDiagnostics = {
   initiativeDecisions: Array<Record<string, unknown>>;
   cortexDeliveries: Array<Record<string, unknown>>;
   workerHeartbeats: Array<Record<string, unknown>>;
+  continuityBriefs: Array<Record<string, unknown>>;
 };
 
 /** Authenticated owner read model for dogfood inspection. */
@@ -25,8 +26,9 @@ export async function getContinuityDeliveryDiagnostics(
   userId: string,
 ): Promise<ContinuityDeliveryDiagnostics> {
   const now = new Date();
-  const [opportunities, initiatives, outbox, heartbeats] = await Promise.all([
-    sql()`
+  const [opportunities, initiatives, outbox, heartbeats, briefs] =
+    await Promise.all([
+      sql()`
       SELECT o.id, o.trigger, o.status, o."notBefore", o."createdAt",
         o."claimedAt", o."chatId", o.context,
         CASE
@@ -38,7 +40,7 @@ export async function getContinuityDeliveryDiagnostics(
       ORDER BY o."createdAt" DESC
       LIMIT 100
     `,
-    sql()`
+      sql()`
       SELECT i.id, i.trigger, i.status, i."candidateKind", i."topicKey",
         i.reason, i.evidence, i.guidance, i."createdAt", i."evaluationAt",
         i."decidedAt", i."sentAt", i."repliedAt", i."chatId"
@@ -47,7 +49,7 @@ export async function getContinuityDeliveryDiagnostics(
       ORDER BY i."createdAt" DESC
       LIMIT 100
     `,
-    sql()`
+      sql()`
       SELECT o.id, o.status, o.attempts,
         o."last_attempt_at" AS "lastAttemptAt",
         o."next_attempt_at" AS "nextAttemptAt",
@@ -64,7 +66,7 @@ export async function getContinuityDeliveryDiagnostics(
       ORDER BY o."created_at" DESC
       LIMIT 100
     `,
-    sql()`
+      sql()`
       SELECT worker, status, "lastStartedAt", "lastCompletedAt",
         "lastFailedAt", "lastDurationMs", "lastSummary", "lastError",
         "updatedAt",
@@ -76,7 +78,15 @@ export async function getContinuityDeliveryDiagnostics(
       FROM "RuntimeHeartbeat"
       ORDER BY worker ASC
     `,
-  ]);
+      sql()`
+      SELECT id, "userDay", daypart, status, editorial, "lastError",
+        "generatedAt", "createdAt", "updatedAt"
+      FROM "ContinuityBrief"
+      WHERE "userId" = ${userId}::uuid
+      ORDER BY "createdAt" DESC
+      LIMIT 30
+    `,
+    ]);
 
   return {
     generatedAt: now.toISOString(),
@@ -84,5 +94,6 @@ export async function getContinuityDeliveryDiagnostics(
     initiativeDecisions: initiatives,
     cortexDeliveries: outbox,
     workerHeartbeats: heartbeats,
+    continuityBriefs: briefs,
   };
 }
