@@ -35,7 +35,13 @@ const EXPLICIT_EVIDENCE_CLASSES = [
 ] as const;
 
 const interpreterActionSchema = z.object({
-  action: z.enum(['create_task', 'complete_task', 'cancel_task', 'snooze_task', 'reschedule_task']),
+  action: z.enum([
+    'create_task',
+    'complete_task',
+    'cancel_task',
+    'snooze_task',
+    'reschedule_task',
+  ]),
   evidence_class: z.enum(EXPLICIT_EVIDENCE_CLASSES),
   // Verbatim excerpt from the user's message supporting this action.
   evidence_verbatim: z.string().trim().min(3).max(500),
@@ -61,23 +67,40 @@ const interpreterActionSchema = z.object({
       }),
     )
     .max(3),
-  snooze_minutes: z.number().int().min(1).max(60 * 24 * 30).nullable(),
+  snooze_minutes: z
+    .number()
+    .int()
+    .min(1)
+    .max(60 * 24 * 30)
+    .nullable(),
 });
 
 const interpreterClarificationSchema = z.object({
-  intent: z.enum(['ambiguous_target', 'uncertain_commitment', 'uncertain_resolution']),
+  intent: z.enum([
+    'ambiguous_target',
+    'uncertain_commitment',
+    'uncertain_resolution',
+  ]),
   about: z.string().trim().min(1).max(280),
 });
 
 const interpreterOutputSchema = z.object({
   actions: z.array(interpreterActionSchema).max(MAX_ACTIONS_PER_TURN),
-  clarifications: z.array(interpreterClarificationSchema).max(MAX_CLARIFICATIONS_PER_TURN),
+  clarifications: z
+    .array(interpreterClarificationSchema)
+    .max(MAX_CLARIFICATIONS_PER_TURN),
 });
 
 export type InterpreterAction = z.infer<typeof interpreterActionSchema>;
-export type InterpreterClarification = z.infer<typeof interpreterClarificationSchema>;
+export type InterpreterClarification = z.infer<
+  typeof interpreterClarificationSchema
+>;
 
-export type InterpreterRosterEntry = { taskId: string; title: string; dueAt: Date | null };
+export type InterpreterRosterEntry = {
+  taskId: string;
+  title: string;
+  dueAt: Date | null;
+};
 
 export type CommittedFastAction = {
   action: InterpreterAction['action'];
@@ -117,9 +140,36 @@ function normalizeLexicon(value: string): string {
 }
 
 const TITLE_STOP_WORDS = new Set([
-  'the', 'a', 'an', 'and', 'or', 'to', 'for', 'my', 'your', 'our', 'at', 'on',
-  'in', 'today', 'tomorrow', 'friday', 'monday', 'weekend', 'next', 'this',
-  'that', 'it', 'me', 'i', 'do', 'did', 'done', 'now', 'then', 'about',
+  'the',
+  'a',
+  'an',
+  'and',
+  'or',
+  'to',
+  'for',
+  'my',
+  'your',
+  'our',
+  'at',
+  'on',
+  'in',
+  'today',
+  'tomorrow',
+  'friday',
+  'monday',
+  'weekend',
+  'next',
+  'this',
+  'that',
+  'it',
+  'me',
+  'i',
+  'do',
+  'did',
+  'done',
+  'now',
+  'then',
+  'about',
 ]);
 
 function distinctiveTitleWords(title: string): string[] {
@@ -183,9 +233,7 @@ export function resolveDestructiveBinding(params: {
   );
   if (!target) return { ok: false, reason: 'unresolved_target_binding' };
 
-  const uniqueBest = (
-    text: string,
-  ): string | null => {
+  const uniqueBest = (text: string): string | null => {
     const signals = roster.map((entry) => ({
       id: entry.taskId,
       s: titleReferenceSignal(text, entry.title),
@@ -255,7 +303,9 @@ export async function runCommitmentInterpreter(input: {
           abortSignal:
             input.signal ??
             AbortSignal.timeout(
-              Number(process.env.SOPHIE_COMMITMENT_INTERPRETER_TIMEOUT_MS ?? 8_000),
+              Number(
+                process.env.SOPHIE_COMMITMENT_INTERPRETER_TIMEOUT_MS ?? 8_000,
+              ),
             ),
           system: `You are the real-time commitment interpreter for Sophie's chat. The user's CURRENT turn may contain explicit commitment actions. Extract at most ${MAX_ACTIONS_PER_TURN} actions, each backed by a VERBATIM excerpt from the user's message.
 
@@ -349,7 +399,9 @@ export async function commitInterpreterActions(input: {
 }): Promise<InterpreterCommitted> {
   const { createTask, completeTask, cancelTask, snoozeTask, rescheduleTask } =
     await import('@/lib/tasks/domain');
-  const { listTurnActionsForMessage } = await import('@/lib/tasks/turn-actions');
+  const { listTurnActionsForMessage } = await import(
+    '@/lib/tasks/turn-actions'
+  );
 
   const committed: CommittedFastAction[] = [];
   const pushCommitted = (entry: CommittedFastAction) => {
@@ -409,8 +461,8 @@ export async function commitInterpreterActions(input: {
       evidenceText: action.evidence_verbatim,
     };
     const boundTarget = action.target_task_id
-      ? input.roster.find((entry) => entry.taskId === action.target_task_id) ??
-        null
+      ? (input.roster.find((entry) => entry.taskId === action.target_task_id) ??
+        null)
       : null;
 
     // Gate 1: verbatim evidence must exist in the user's raw text.
@@ -523,7 +575,9 @@ export async function commitInterpreterActions(input: {
     }
 
     const title =
-      action.title ?? boundTarget?.title ?? action.evidence_verbatim.slice(0, 80);
+      action.title ??
+      boundTarget?.title ??
+      action.evidence_verbatim.slice(0, 80);
     const windows = action.reminder_windows.map((window) => ({
       startAt: new Date(window.start_iso),
       endAt: window.end_iso ? new Date(window.end_iso) : null,
@@ -537,7 +591,10 @@ export async function commitInterpreterActions(input: {
           provenance,
         });
         if (!outcome.ok) {
-          rejected.push({ action, reason: outcome.reason ?? 'mutation_failed' });
+          rejected.push({
+            action,
+            reason: outcome.reason ?? 'mutation_failed',
+          });
           continue;
         }
         claimedKeys.add(claimKey);
@@ -555,7 +612,10 @@ export async function commitInterpreterActions(input: {
           provenance,
         });
         if (!outcome.ok) {
-          rejected.push({ action, reason: outcome.reason ?? 'mutation_failed' });
+          rejected.push({
+            action,
+            reason: outcome.reason ?? 'mutation_failed',
+          });
           continue;
         }
         claimedKeys.add(claimKey);
@@ -574,7 +634,10 @@ export async function commitInterpreterActions(input: {
           provenance,
         });
         if (!outcome.ok) {
-          rejected.push({ action, reason: outcome.reason ?? 'mutation_failed' });
+          rejected.push({
+            action,
+            reason: outcome.reason ?? 'mutation_failed',
+          });
           continue;
         }
         claimedKeys.add(claimKey);

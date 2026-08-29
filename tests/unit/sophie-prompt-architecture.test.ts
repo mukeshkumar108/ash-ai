@@ -10,6 +10,8 @@ import {
   sophieConversationalFreedom,
   sophieCoreIdentity,
   sophieHardInvariants,
+  sophieStandards,
+  sophieVoicePalette,
 } from '@/lib/ai/prompts';
 import type { ReentryContext } from '@/lib/agent/reentry';
 import type { CompanionEntryContext } from '@/lib/agent/entry-context';
@@ -27,7 +29,7 @@ const reentry: ReentryContext = {
 } as never;
 
 const entryContext: CompanionEntryContext = {
-  version: 2,
+  version: 3,
   timeZone: 'Europe/London',
   chronology: {
     temporalSession: 'new',
@@ -37,6 +39,10 @@ const entryContext: CompanionEntryContext = {
     gapMinutes: 600,
     sessionStartedAt: '2026-08-23T07:00:00.000Z',
     sessionsToday: 1,
+  },
+  entryStyle: {
+    band: 'new_day', opening: 'morning_welcome', energy: 'high',
+    acknowledgeReturn: true,
   },
   previousSessionSummary: null,
   recentSessionSummaries: [],
@@ -55,6 +61,31 @@ test('old large static personality is no longer compiled', () => {
   expect(prompt).not.toContain('Christian/LDS-shaped view');
   expect(prompt).not.toContain('[THIS TURN]');
   expect(prompt).not.toContain('[CONTEXT PRECEDENCE]');
+});
+
+test('late-night re-entry is concise and care-first rather than generically bright', () => {
+  const prompt = buildSophieReplySystemPrompt({
+    interactionMode: 'social',
+    now: new Date('2026-08-28T02:30:00.000Z'),
+    timeZone: 'Europe/London',
+    entryContext: {
+      ...entryContext,
+      chronology: {
+        ...entryContext.chronology,
+        daypart: 'night',
+        sessionStartedAt: '2026-08-28T02:30:00.000Z',
+      },
+      entryStyle: {
+        band: 'extended_return',
+        opening: 'relationship_welcome',
+        energy: 'high',
+        acknowledgeReturn: true,
+      },
+    },
+  });
+  expect(prompt).toContain('do not perform a bright generic welcome');
+  expect(prompt).toContain('one or two spoken-feeling sentences');
+  expect(prompt).toContain('explicit user correction');
 });
 
 test('core identity and hard invariants are always present', () => {
@@ -76,6 +107,32 @@ test('conversational freedom appears on ordinary social generation', () => {
   expect(social).toContain('[CONVERSATIONAL FREEDOM]');
   expect(social).toContain('participant in the conversation');
   expect(social).toContain('Questions are one conversational move');
+});
+
+test('plain kernel retains independence without the old floral cadence', () => {
+  const kernel = sophieCoreIdentity();
+  expect(kernel).toContain("You're beside this person as a peer");
+  expect(kernel).toContain('without automatically taking the side');
+  expect(kernel).toContain('Memory is useful evidence, not truth');
+  expect(kernel).not.toContain('literature scholar');
+  expect(kernel).not.toContain('sacred worth');
+  expect(kernel).not.toContain('Warmth over cleverness');
+});
+
+test('voice palette is conversational and standards remain judgment-gated', () => {
+  const social = buildSophieReplySystemPrompt({ interactionMode: 'social' });
+  const emotional = buildSophieReplySystemPrompt({ interactionMode: 'emotional' });
+  const practical = buildSophieReplySystemPrompt({ interactionMode: 'practical' });
+  const judgment = buildSophieReplySystemPrompt({ interactionMode: 'judgment' });
+  const safety = buildSophieReplySystemPrompt({ interactionMode: 'safety' });
+
+  expect(social).toContain(sophieVoicePalette());
+  expect(emotional).toContain(sophieVoicePalette());
+  expect(practical).not.toContain('[VOICE PALETTE — OPTIONAL]');
+  expect(practical).not.toContain('[STANDARDS — FRIEND, NOT COACH]');
+  expect(judgment).toContain(sophieStandards());
+  expect(safety).toContain(sophieStandards());
+  expect(social).not.toContain('[STANDARDS — FRIEND, NOT COACH]');
 });
 
 test('task and safety governance remain intact', () => {

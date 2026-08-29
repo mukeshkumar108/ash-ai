@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, Loader2, Mic, X } from 'lucide-react';
+import { Check, Loader2, Mic, RotateCcw, Trash2, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -8,6 +8,12 @@ import type { TranscriptReliability } from '@/lib/transcript-reliability';
 import { motion } from 'framer-motion';
 import { Button } from './ui/button';
 import { LiveWaveform } from './waveform';
+import {
+  deleteVoiceRecording,
+  latestVoiceRecordingForChat,
+  saveVoiceRecording,
+  type StoredVoiceRecording,
+} from '@/lib/voice-recording-store';
 
 const MAX_DURATION_SECONDS = 120;
 
@@ -50,6 +56,11 @@ export function VoiceRecorder({
   const [recording, setRecording] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
   const [seconds, setSeconds] = useState(0);
+  const [pendingRecording, setPendingRecording] =
+    useState<StoredVoiceRecording | null>(null);
+  const [transcriptionError, setTranscriptionError] = useState<string | null>(
+    null,
+  );
 
   const cleanupStream = () => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -62,6 +73,23 @@ export function VoiceRecorder({
   };
 
   useEffect(() => () => cleanupStream(), []);
+
+  useEffect(() => {
+    let active = true;
+    void latestVoiceRecordingForChat(chatId)
+      .then((recording) => {
+        if (!active || !recording) return;
+        setPendingRecording(recording);
+        setTranscriptionError('Your voice note is saved and ready to retry.');
+      })
+      .catch(() => {
+        // IndexedDB can be unavailable in private/locked-down browser modes.
+        // Recording still works for the current page lifetime.
+      });
+    return () => {
+      active = false;
+    };
+  }, [chatId]);
 
   const stopRecording = (cancel = false) => {
     const recorder = recorderRef.current;
@@ -115,7 +143,22 @@ export function VoiceRecorder({
           const blob = new Blob(chunks, {
             type: recorder.mimeType || chunks[0].type,
           });
-          void transcribe(blob);
+          const recording: StoredVoiceRecording = {
+            id: crypto.randomUUID(),
+            chatId,
+            blob,
+            durationMs: Math.max(1, Date.now() - startedAtRef.current),
+            createdAt: Date.now(),
+          };
+          setPendingRecording(recording);
+          setTranscriptionError(null);
+          void saveVoiceRecording(recording)
+            .catch(() => {
+              toast.warning(
+                'This recording could not be saved across a refresh. Keep this page open while it transcribes.',
+              );
+            })
+            .then(() => transcribe(recording));
         }
       };
       recorder.start(250);
@@ -132,20 +175,21 @@ export function VoiceRecorder({
     }
   };
 
-  const transcribe = async (blob: Blob) => {
+  const transcribe = async (recording: StoredVoiceRecording) => {
     setTranscribing(true);
+    setTranscriptionError(null);
     try {
       const body = new FormData();
       body.append(
         'file',
-        blob,
-        blob.type.includes('mp4') ? 'voice-note.m4a' : 'voice-note.webm',
+        recording.blob,
+        recording.blob.type.includes('mp4')
+          ? 'voice-note.m4a'
+          : 'voice-note.webm',
       );
-      body.append(
-        'durationMs',
-        String(Math.max(1, Date.now() - startedAtRef.current)),
-      );
+      body.append('durationMs', String(recording.durationMs));
       body.append('chatId', chatId);
+      body.append('recordingId', recording.id);
       const response = await fetch('/api/voice/transcribe', {
         method: 'POST',
         body,
@@ -157,16 +201,26 @@ export function VoiceRecorder({
         transcript: payload.transcript,
         reliability: payload.reliability,
       });
+      setPendingRecording(null);
+      await deleteVoiceRecording(recording.id).catch(() => {});
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : 'Transcription failed.',
-      );
+      const message =
+        error instanceof Error ? error.message : 'Transcription failed.';
+      setTranscriptionError(message);
+      toast.error(`${message} Your recording is saved—tap retry.`);
     } finally {
       setTranscribing(false);
     }
   };
 
-  if (recording || transcribing) {
+  const discardPendingRecording = async () => {
+    const recording = pendingRecording;
+    setPendingRecording(null);
+    setTranscriptionError(null);
+    if (recording) await deleteVoiceRecording(recording.id).catch(() => {});
+  };
+
+  if (recording || transcribing || pendingRecording) {
     const pill = (
       <motion.div
         initial={{ opacity: 0, y: 8 }}
@@ -208,10 +262,37 @@ export function VoiceRecorder({
               <Check size={18} />
             </Button>
           </>
-        ) : (
+        ) : transcribing ? (
           <div className="flex w-full items-center justify-center gap-2 py-1 text-sm text-muted-foreground">
             <Loader2 size={16} className="animate-spin" />
             Transcribing…
+          </div>
+        ) : (
+          <div className="flex w-full items-center gap-2 py-1">
+            <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+              {transcriptionError || 'Voice note saved.'}
+            </span>
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              className="size-8 shrink-0 rounded-full"
+              aria-label="Discard saved recording"
+              onClick={() => void discardPendingRecording()}
+            >
+              <Trash2 size={16} />
+            </Button>
+            <Button
+              type="button"
+              size="icon"
+              className="size-8 shrink-0 rounded-full"
+              aria-label="Retry transcription"
+              onClick={() => {
+                if (pendingRecording) void transcribe(pendingRecording);
+              }}
+            >
+              <RotateCcw size={16} />
+            </Button>
           </div>
         )}
       </motion.div>

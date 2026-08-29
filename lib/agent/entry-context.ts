@@ -28,7 +28,7 @@ export type BridgeCandidate = {
 };
 
 export type CompanionEntryContext = {
-  version: 2;
+  version: 3;
   timeZone: string;
   chronology: {
     temporalSession: 'same' | 'new';
@@ -39,11 +39,64 @@ export type CompanionEntryContext = {
     sessionStartedAt: string;
     sessionsToday: number;
   };
+  entryStyle: {
+    band: 'continuous' | 'brief_return' | 'return' | 'long_return' | 'extended_return' | 'new_day' | 'cold_start';
+    opening: 'none' | 'light_acknowledgement' | 'warm_welcome' | 'morning_welcome' | 'relationship_welcome';
+    energy: 'settled' | 'bright' | 'high';
+    acknowledgeReturn: boolean;
+  };
   previousSessionSummary: TemporalSessionSummary | null;
   recentSessionSummaries: TemporalSessionSummary[];
   bridgeCandidates: BridgeCandidate[];
   thread: null | { id: string; title: string | null; durableObjective: string | null };
 };
+
+export function deriveEntryStyle(
+  chronology: UserChronology,
+): CompanionEntryContext['entryStyle'] {
+  const gap = chronology.inactivityGapMinutes;
+  if (gap === null) {
+    return {
+      band: 'cold_start', opening: 'warm_welcome', energy: 'bright',
+      acknowledgeReturn: false,
+    };
+  }
+  if (chronology.isFirstContactUserDay) {
+    return {
+      band: 'new_day',
+      opening: chronology.daypart === 'morning' ? 'morning_welcome' : 'relationship_welcome',
+      energy: 'high', acknowledgeReturn: true,
+    };
+  }
+  if (gap < 60) {
+    return {
+      band: 'continuous', opening: 'none', energy: 'settled',
+      acknowledgeReturn: false,
+    };
+  }
+  if (gap < 3 * 60) {
+    return {
+      band: 'brief_return', opening: 'light_acknowledgement', energy: 'bright',
+      acknowledgeReturn: true,
+    };
+  }
+  if (gap < 6 * 60) {
+    return {
+      band: 'return', opening: 'warm_welcome', energy: 'bright',
+      acknowledgeReturn: true,
+    };
+  }
+  if (gap < 12 * 60) {
+    return {
+      band: 'long_return', opening: 'relationship_welcome', energy: 'high',
+      acknowledgeReturn: true,
+    };
+  }
+  return {
+    band: 'extended_return', opening: 'relationship_welcome', energy: 'high',
+    acknowledgeReturn: true,
+  };
+}
 
 function textFromParts(parts: unknown): string {
   if (!Array.isArray(parts)) return '';
@@ -149,7 +202,7 @@ export function buildCompanionEntryContext({
     });
   }
   return {
-    version: 2,
+    version: 3,
     timeZone,
     chronology: {
       temporalSession: chronology.newTemporalSession ? 'new' : 'same',
@@ -160,6 +213,7 @@ export function buildCompanionEntryContext({
       sessionStartedAt: chronology.currentTemporalSessionStartedAt.toISOString(),
       sessionsToday: chronology.temporalSessionsToday,
     },
+    entryStyle: deriveEntryStyle(chronology),
     previousSessionSummary,
     recentSessionSummaries,
     bridgeCandidates: bridgeCandidates.slice(0, 4),

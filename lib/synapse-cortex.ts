@@ -350,6 +350,7 @@ export async function fetchCortexContext(input: {
     const attentionQuery = new URLSearchParams({
       workspace_id: ids.workspaceId,
       session_id: ids.sessionId,
+      peer_id: ids.userPeerId,
       now,
       timezone: input.timeZone,
     });
@@ -370,6 +371,7 @@ export async function fetchCortexContext(input: {
         body: JSON.stringify({
           workspace_id: ids.workspaceId,
           session_id: ids.sessionId,
+          peer_id: ids.userPeerId,
           now,
           timezone: input.timeZone,
           last_interaction_time:
@@ -445,7 +447,9 @@ export type CommitmentCandidate = {
   createdAt: string;
 };
 
-function mapCommitmentCandidate(row: Record<string, unknown>): CommitmentCandidate | null {
+function mapCommitmentCandidate(
+  row: Record<string, unknown>,
+): CommitmentCandidate | null {
   const key = typeof row.candidate_key === 'string' ? row.candidate_key : '';
   const title = typeof row.title === 'string' ? row.title : '';
   if (!key || !title) return null;
@@ -463,7 +467,9 @@ function mapCommitmentCandidate(row: Record<string, unknown>): CommitmentCandida
     sourceMessageId:
       typeof row.source_message_id === 'string' ? row.source_message_id : null,
     createdAt:
-      typeof row.created_at === 'string' ? row.created_at : new Date().toISOString(),
+      typeof row.created_at === 'string'
+        ? row.created_at
+        : new Date().toISOString(),
   };
 }
 
@@ -488,13 +494,18 @@ export async function listCommitmentCandidates(input: {
       (raw as { candidates?: Array<Record<string, unknown>> }).candidates ?? [];
     const candidates = rows
       .map(mapCommitmentCandidate)
-      .filter((candidate): candidate is CommitmentCandidate => candidate !== null)
+      .filter(
+        (candidate): candidate is CommitmentCandidate => candidate !== null,
+      )
       .slice(0, 50);
     return { available: true, candidates };
   } catch (error) {
-    console.warn('[synapse-cortex] commitment candidates list failed (fail-open)', {
-      error: error instanceof Error ? error.message : 'Unknown error',
-    });
+    console.warn(
+      '[synapse-cortex] commitment candidates list failed (fail-open)',
+      {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      },
+    );
     return null;
   }
 }

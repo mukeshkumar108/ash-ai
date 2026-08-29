@@ -143,6 +143,27 @@ test.describe('audio transcript reliability', () => {
     expect(buildSophieReplySystemPrompt()).not.toContain('AUDIO INPUT SOURCE');
   });
 
+  test('explicit session-mode actions are bounded request metadata', () => {
+    const parsed = postRequestBodySchema.parse({
+      id: '11111111-1111-4111-8111-111111111111',
+      message: {
+        id: '22222222-2222-4222-8222-222222222222',
+        role: 'user',
+        parts: [{ type: 'text', text: "Let's properly meet." }],
+      },
+      selectedChatModel: 'chat-model',
+      selectedVisibilityType: 'private',
+      sessionModeAction: 'start_session_one',
+    });
+    expect(parsed.sessionModeAction).toBe('start_session_one');
+    expect(() =>
+      postRequestBodySchema.parse({
+        ...parsed,
+        sessionModeAction: 'silently_force_onboarding',
+      }),
+    ).toThrow();
+  });
+
   test('clean audio gives Sophie permission to notice fluent missed garbling', () => {
     const reliability = mechanicalTranscriptReliability({
       transcript:

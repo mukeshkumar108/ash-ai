@@ -20,6 +20,7 @@ import {
   generation,
   type RemixInputImage,
   type RemixState,
+  companionUserState,
 } from './schema';
 import type { ArtifactKind } from '@/components/artifact';
 import { generateUUID } from '../utils';
@@ -730,6 +731,92 @@ export async function updateChatSessionRouting({
       'bad_request:database',
       'Failed to update chat session routing',
     );
+  }
+}
+
+export async function getCompanionUserState({
+  userId,
+}: {
+  userId: string;
+}): Promise<Record<string, unknown>> {
+  try {
+    const [row] = await db
+      .select({ state: companionUserState.state })
+      .from(companionUserState)
+      .where(eq(companionUserState.userId, userId))
+      .limit(1);
+    return row?.state && typeof row.state === 'object'
+      ? (row.state as Record<string, unknown>)
+      : {};
+  } catch (error) {
+    logDatabaseError('get companion user state', error);
+    return {};
+  }
+}
+
+export async function updateUserLiveSituation({
+  userId,
+  liveSituation,
+}: {
+  userId: string;
+  liveSituation: Record<string, unknown>;
+}) {
+  const incoming = JSON.stringify(liveSituation);
+  try {
+    return await db
+      .insert(companionUserState)
+      .values({ userId, state: { liveSituation }, updatedAt: new Date() })
+      .onConflictDoUpdate({
+        target: companionUserState.userId,
+        set: {
+          state: sql<Record<string, unknown>>`
+            case
+              when coalesce(${companionUserState.state}->'liveSituation'->>'observedAt', '')
+                > coalesce((${incoming}::jsonb)->>'observedAt', '')
+              then ${companionUserState.state}
+              else (
+                ${companionUserState.state}::jsonb
+                || jsonb_build_object('liveSituation', ${incoming}::jsonb)
+              )::json
+            end
+          `,
+          updatedAt: new Date(),
+        },
+      });
+  } catch (error) {
+    logDatabaseError('update user live situation', error);
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to update companion user state',
+    );
+  }
+}
+
+export async function updateUserCorrections({
+  userId,
+  corrections,
+}: {
+  userId: string;
+  corrections: Array<Record<string, unknown>>;
+}) {
+  const incoming = JSON.stringify(corrections.slice(-8));
+  try {
+    return await db
+      .insert(companionUserState)
+      .values({ userId, state: { corrections }, updatedAt: new Date() })
+      .onConflictDoUpdate({
+        target: companionUserState.userId,
+        set: {
+          state: sql<Record<string, unknown>>`(
+            ${companionUserState.state}::jsonb
+            || jsonb_build_object('corrections', ${incoming}::jsonb)
+          )::json`,
+          updatedAt: new Date(),
+        },
+      });
+  } catch (error) {
+    logDatabaseError('update user corrections', error);
+    throw new ChatSDKError('bad_request:database', 'Failed to update user corrections');
   }
 }
 

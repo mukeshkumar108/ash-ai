@@ -422,6 +422,26 @@ function PureMultimodalInput({
     chatId,
   ]);
 
+  const triggerSessionMode = useCallback(
+    (action: 'start_session_one' | 'start_invited_discovery' | 'stop') => {
+      if (status !== 'ready') {
+        toast.error('Please wait for Sophie to finish first.');
+        return;
+      }
+      const text =
+        action === 'start_session_one'
+          ? "Let's properly meet."
+          : action === 'start_invited_discovery'
+            ? "Let's have a proper getting-to-know-each-other catch-up."
+            : "Let's stop the getting-to-know-each-other session here.";
+      void sendMessage(
+        { role: 'user', parts: [{ type: 'text', text }] },
+        { body: { sessionModeAction: action } },
+      );
+    },
+    [sendMessage, status],
+  );
+
   const { isAtBottom, scrollToBottom } = useScrollToBottom();
 
   useEffect(() => {
@@ -614,6 +634,24 @@ function PureMultimodalInput({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="min-w-44">
+            <DropdownMenuItem
+              data-testid="start-session-one-option"
+              onSelect={() => triggerSessionMode('start_session_one')}
+            >
+              Properly meet Sophie
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              data-testid="start-discovery-session-option"
+              onSelect={() => triggerSessionMode('start_invited_discovery')}
+            >
+              Get to know each other
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              data-testid="stop-session-mode-option"
+              onSelect={() => triggerSessionMode('stop')}
+            >
+              End getting-to-know-you mode
+            </DropdownMenuItem>
             <DropdownMenuItem
               data-testid="attach-image-option"
               onSelect={() => {

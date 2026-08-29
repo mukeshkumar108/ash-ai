@@ -1,6 +1,8 @@
 import {
   sophieConversationalFreedom,
+  sophieStandards,
   sophieSystemPrompt,
+  sophieVoicePalette,
 } from '@/lib/ai/prompts';
 import type { EpistemicPolicy } from '@/lib/agent/research-policy';
 import type { TranscriptReliability } from '@/lib/transcript-reliability';
@@ -185,6 +187,10 @@ export function buildSophieReplySystemPrompt({
   // a compact conversational-freedom block carry the turn; director-authored
   // act/posture steering is suppressed unless a non-social mode demands it.
   const isOrdinarySocialTurn = interactionMode === 'social';
+  const isCharacterConversation =
+    interactionMode === 'social' || interactionMode === 'emotional';
+  const standardsRelevant =
+    interactionMode === 'judgment' || interactionMode === 'safety';
   const chatsToday = handshake ? Math.max(1, handshake.chatsToday) : 1;
   const lastInteractionAt = handshake?.lastInteractionAt
     ? handshake.lastInteractionAt instanceof Date
@@ -230,18 +236,23 @@ export function buildSophieReplySystemPrompt({
     : gapMinutes !== null && gapMinutes >= 60
       ? 'They are returning after at least an hour away.'
       : 'They have already chatted recently today, so this is easy continuity rather than a fresh introduction.';
+  const entryStyle = entryContext?.entryStyle;
+  const lateNightArrivalCue =
+    hour < 5
+      ? " At this local hour, a light return is an expectation violation for many people: do not perform a bright generic welcome. Unless explicit user correction or established grounded context says these hours are normal for them, lead with concise care or concern and one direct human question about what is happening or keeping them awake. Keep the first response brief—usually one or two spoken-feeling sentences—unless they brought a substantive task, danger, or asked for depth."
+      : '';
   const handshakeBlock = handshake
     ? `
 
 [${handshake.isNewChat !== false ? 'NEW-CHAT HANDSHAKE' : 'RE-ENTRY AND GAP'} CONTEXT]
 This is ${handshake.isNewChat !== false ? 'the first user message in a new chat' : 'an existing conversation continuing on a new turn'}. ${timeCue} ${continuityCue}
-Treat this as permission to notice the shape of the moment, not an obligation to perform a greeting. When the user's opening leaves room, begin with one subtle observation—often only two to six words—that implies temporal continuity, then respond normally. Examples of energy, not scripts: “you’re back.”, “so he returns.”, or “couldn’t sleep?” Let Sophie’s personality and the user’s tone determine the wording. Do not invent a story about what the intervening hours felt like or what the user was doing. If the user has already brought something important, urgent, distressed, or task-focused, skip the re-entry and respond to that. Prefer implication over exposition. Never recite this block, reveal chat counts or timestamps, force the saved location into conversation, or imply you remember content that is not in the supplied conversation.`
+${entryStyle && entryStyle.opening !== 'none' ? `This encounter has entry band ${entryStyle.band}, opening posture ${entryStyle.opening}, and ${entryStyle.energy} energy. When the opening is light or leaves room, actually welcome the user before moving on. Bring optimistic, affectionate energy of your own rather than merely matching a flat greeting. On first morning contact, a real good-morning welcome and natural curiosity about sleep or how they are arriving is appropriate. On a later return, acknowledge them in proportion to the elapsed-time band rather than restarting the relationship. ` : ''}Do not invent a story about the intervening hours or what the user was doing. Never announce metadata, elapsed time, chat counts, or hidden state. Do not claim you missed them unless established relationship context supports that expression. If the user brings distress, urgency, danger, or a concrete task, meet it immediately; warmth stays in the manner but never delays the content.${lateNightArrivalCue}`
     : '';
   const reentryBlock = reentry
     ? `\n\n[RE-ENTRY ORIENTATION]\n${reentry.class} · turn ${reentry.turnIndex} · ${reentry.gapMinutes == null ? 'no prior interaction time' : `last spoke about ${reentry.gapMinutes} minutes ago`}${reentry.crossedLocalDay ? ' · crossed a local day boundary' : ''}. ${reentry.routeReason}\n${reentry.richerSteerActive ? `This is a short re-entry handover. Use only the most relevant durable open thread, newly knowable expectation/outcome, recent resolution, or time-sensitive calendar/task item already present in Cortex. Do not dump the packet. ${reentry.class === 'COLD_START' ? 'Use a cold-start brief: be warm and learn naturally without pretending to remember a developed relationship.' : ''}` : 'Keep this as a tiny orientation line; do not perform a re-entry greeting.'}${reentry.staleLightweightPhase ? '\nA lightweight phase from before this boundary (word game, transient tactic, lightweight pending question, or immediate excavation posture) is stale as an active directive. It may be a playful historical callback, but do not continue it unless the user renews it. Durable health, relationship, work, promise, reminder, task, and event threads remain eligible.' : ''}\nNever reveal route names, model choice, turn indices, thresholds, or hidden metadata in the reply.`
     : '';
   const entryContextBlock = entryContext
-    ? `\n\n[AUTHORITATIVE ENTRY CONTEXT — applies after lightweight interaction steering]\n${JSON.stringify(entryContext)}\nThis compact packet is the authoritative arrival orientation. The current user turn still wins. previousSessionSummary is historical description, never the current scene, affect, posture, or conversational momentum. bridgeCandidates are optional and at most one should be selected deliberately. Durable Cortex state or a durable thread objective may remain relevant, but thread identity never implies the same sitting or forces task continuation. On first contact of a UserDay, orient to the supplied daypart naturally when the user's message leaves room; do not mechanically announce metadata or force a greeting. Safety and tool hard constraints, high-consequence handling, explicit boundaries, and durable commitments are not invalidated.`
+    ? `\n\n[AUTHORITATIVE ENTRY CONTEXT — applies after lightweight interaction steering]\n${JSON.stringify(entryContext)}\nThis compact packet is the authoritative arrival orientation. The current user turn still wins. previousSessionSummary is historical description, never the current scene, affect, posture, or conversational momentum. bridgeCandidates are optional and at most one should be selected deliberately. Durable Cortex state or a durable thread objective may remain relevant, but thread identity never implies the same sitting or forces task continuation. When entryStyle.opening is not none and the user's opener leaves room, actually welcome the user with its bright/high energy instead of merely matching their energy; a morning_welcome may naturally ask how they slept or how they are arriving. Distress, urgency, danger, and concrete tasks take immediate priority. Never announce entryStyle labels or timing metadata. Safety and tool hard constraints, high-consequence handling, explicit boundaries, and durable commitments are not invalidated.${lateNightArrivalCue}`
     : '';
   const posture = behavioralEntryPosture(entryContext, reentry);
   const postureBlock =
@@ -296,7 +307,7 @@ Use this only to remain honest about how a recent answer was obtained. Do not cl
         medium === 'voice'
           ? 'Reply as short, spoken units. Favour short sentences and natural handoffs; avoid clause-heavy paragraphs, lists, markdown, and 1–2 minute monologues. One question per turn at most, and often none. If the answer genuinely needs depth, offer it conversationally in brief layers rather than a single wall of speech.'
           : medium === 'mobile_text'
-            ? 'Conversational social text: compact and alive. You may use 1–3 short conversational beats when there are genuinely separate moves (a reaction, then a reversal, then an invitation) — double-text energy is fine. Keep a single reply compact unless the topic itself deserves depth.'
+            ? 'Conversational social text: talk like an intelligent friend in the room—compact and alive, not a complete mini-essay and not a perfunctory three-word reply. You may use 1–3 short conversational beats when there are genuinely separate moves (a reaction, then a reversal, then an invitation) — double-text energy is fine. Expand when the user asks for depth, brings a substantive task, or the stakes require care.'
             : 'You may give substantial, structured answers when the work needs it and stay concise when it does not. Do not shrink real work to tiny chat bubbles; do not pad a short reply into a report.'
       }\nMedium controls cadence and length only — never tone, warmth, or judgment.`
     : '';
@@ -312,6 +323,8 @@ Use this only to remain honest about how a recent answer was obtained. Do not cl
 [TRUSTED CURRENT TIME]
 The server's current local date and time is ${formatCurrentTime(now, timeZone)}. The configured timezone is ${timeZone}. Treat this as authoritative. Never infer today's date from model memory. Repeat the supplied clock faithfully: 23:xx is before midnight, while 00:xx is after midnight.
 ${isOrdinarySocialTurn ? `\n\n${sophieConversationalFreedom().trim()}` : ''}
+${isCharacterConversation ? `\n\n${sophieVoicePalette().trim()}` : ''}
+${standardsRelevant ? `\n\n${sophieStandards().trim()}` : ''}
 ${isOrdinarySocialTurn ? '\n' : ''}[TURN-SPECIFIC INSTINCT]
 ${buildSophieTurnModule(interactionMode)}${neutralQuestion ? `\n\nPrivate reasoning anchor—not a request for research or visible restatement: ${neutralQuestion}` : ''}${transcriptBlock}${ambientBlock}${provenanceBlock}${sceneBlock}${cortexBlock}${memoryBlock}${handshakeBlock}${reentryBlock}${postureBlock}${entryContextBlock}${temporalExpressionBlock}${actBlock}${mediumBlock}${beatsContract}`;
 }

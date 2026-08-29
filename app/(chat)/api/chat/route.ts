@@ -53,16 +53,23 @@ import {
   getMessagesByChatId,
   getUserById,
   getUserChronologyTimeline,
+  getCompanionUserState,
   getTemporalSessionResidueRows,
   saveUserDefaultLocationIfMissing,
   saveChat,
   saveMessages,
   updateChatTitleById,
   updateChatSessionRouting,
+  updateUserLiveSituation,
+  updateUserCorrections,
   updateMessageParts,
   withQueryContext,
   db,
 } from '@/lib/db/queries';
+import {
+  extractBehaviorCorrection,
+  mergeBehaviorCorrections,
+} from '@/lib/agent/user-corrections';
 import { message as messageTable, user as userTable } from '@/lib/db/schema';
 import { convertToUIMessages, generateUUID } from '@/lib/utils';
 import { generateTitleFromUserMessage } from '../../actions';
@@ -258,12 +265,19 @@ export async function POST(request: Request) {
         selectedChatModel,
         selectedVisibilityType,
         developerModelOverride,
+        sessionModeAction,
+        targetedSceneSlots,
       }: {
         id: string;
         message: ChatMessage;
         selectedChatModel: ChatModel['id'];
         selectedVisibilityType: VisibilityType;
         developerModelOverride?: string;
+        sessionModeAction?:
+          | 'start_session_one'
+          | 'start_invited_discovery'
+          | 'stop';
+        targetedSceneSlots?: string[];
       } = requestBody;
 
       const session = await auth();
@@ -310,13 +324,15 @@ export async function POST(request: Request) {
       // Ensure the session user has a row so chat/message foreign keys hold.
       const userProfile = await getUserById(session.user.id);
       const timeZone = resolveUserTimeZone(userProfile?.timeZone);
-      const [messagesFromDb, crossChatHandshake] = await Promise.all([
+      const [messagesFromDb, crossChatHandshake, companionUserState] =
+        await Promise.all([
           getMessagesByChatId({ id }),
           getConversationHandshakeContext({
             userId: session.user.id,
             currentChatId: id,
             timeZone,
           }),
+          getCompanionUserState({ userId: session.user.id }),
         ]);
       if (!userProfile) {
         if (!isProductionEnvironment) {
@@ -354,15 +370,61 @@ export async function POST(request: Request) {
         string,
         unknown
       >;
+      const existingSessionMode =
+        currentSessionRouting.sessionMode &&
+        typeof currentSessionRouting.sessionMode === 'object' &&
+        !Array.isArray(currentSessionRouting.sessionMode)
+          ? (currentSessionRouting.sessionMode as Record<string, unknown>)
+          : {};
+      const requestedSessionMode = sessionModeAction
+        ? sessionModeAction === 'stop'
+          ? {
+              ...existingSessionMode,
+              active: false,
+              exitReason: 'explicit_user_action',
+            }
+          : {
+              active: true,
+              type:
+                sessionModeAction === 'start_session_one'
+                  ? 'session_one'
+                  : 'invited_discovery',
+              enteredAt: new Date().toISOString(),
+              turnCount: 0,
+              turnBudget: sessionModeAction === 'start_session_one' ? 20 : 8,
+              targetedSceneSlots: targetedSceneSlots ?? [],
+              exitReason: null,
+            }
+        : existingSessionMode;
       const sessionRoutingSeed = {
         ...currentSessionRouting,
+        sessionMode: requestedSessionMode,
+        userCorrections:
+          companionUserState.corrections ??
+          currentSessionRouting.userCorrections ??
+          [],
+        // Immediate-world state follows the authenticated user across chats.
+        // Per-chat state remains a backward-compatible fallback during rollout.
+        liveSituation:
+          companionUserState.liveSituation ??
+          currentSessionRouting.liveSituation ??
+          {},
         meaningfulSessionCount: crossChatHandshake.meaningfulSessionCount,
         relationship:
           currentSessionRouting.relationship ??
           crossChatHandshake.relationshipSeed ??
           null,
       };
-
+      // A button press is explicit user-owned authority state, not disposable
+      // request metadata. Persist it before generation so a provider failure or
+      // mobile reconnect cannot silently lose the selected mode.
+      if (sessionModeAction) {
+        await updateChatSessionRouting({
+          id,
+          userId: session.user.id,
+          sessionRouting: sessionRoutingSeed,
+        });
+      }
       const userCreatedAt = new Date();
       // A new user turn invalidates any continuation bubble they have not yet
       // seen. Persist cancellation so refresh/mobile reconnect cannot dump a
@@ -390,7 +452,10 @@ export async function POST(request: Request) {
       }
       const visibleCanonicalMessages = canonicalMessagesFromDb.map((entry) => ({
         ...entry,
-        parts: visibleMessagePartsAt(entry.parts, userCreatedAt) as typeof entry.parts,
+        parts: visibleMessagePartsAt(
+          entry.parts,
+          userCreatedAt,
+        ) as typeof entry.parts,
       }));
 
       // Apply input sanitization to user message before processing
@@ -439,7 +504,8 @@ export async function POST(request: Request) {
         manualModelOverride: allowedDeveloperOverride,
       });
       const residueRows =
-        chronology.newTemporalSession && chronology.previousTemporalSessionStartedAt
+        chronology.newTemporalSession &&
+        chronology.previousTemporalSessionStartedAt
           ? await getTemporalSessionResidueRows({
               userId: session.user.id,
               // Fetch a bounded historical pool so bridge candidates may come
@@ -504,6 +570,14 @@ export async function POST(request: Request) {
         .filter((part) => part.type === 'text')
         .map((part) => ('text' in part ? part.text : ''))
         .join('\n');
+      const behaviorCorrection = extractBehaviorCorrection({
+        text: currentUserText,
+        sourceTurnId: message.id,
+      });
+      const userCorrections = mergeBehaviorCorrections(
+        companionUserState.corrections,
+        behaviorCorrection,
+      );
       const transcriptReliabilityPart = sanitizedMessage.parts.find(
         (part) => part.type === 'data-transcriptReliability',
       );
@@ -796,6 +870,21 @@ export async function POST(request: Request) {
         ) {
           assistantId = legacyAssistantId;
         }
+        if (behaviorCorrection) {
+          after(async () => {
+            try {
+              await updateUserCorrections({
+                userId: session.user.id,
+                corrections: userCorrections,
+              });
+            } catch (error) {
+              console.warn('[chat] user correction update failed open', {
+                chatId: id,
+                error: error instanceof Error ? error.message : 'Unknown error',
+              });
+            }
+          });
+        }
       }
       const textPartId = generateUUID();
       let finalText = '';
@@ -845,10 +934,7 @@ export async function POST(request: Request) {
         } else if (runtimeCompleted) {
           finalText = runtimeCompleted.assistant_message;
           const beats = runtimeCompleted.beats;
-          finalBeats =
-            beats && beats.length >= 2
-              ? beats.slice(0, 3)
-              : [];
+          finalBeats = beats && beats.length >= 2 ? beats.slice(0, 3) : [];
           finalBeatDelivery = runtimeCompleted.beat_delivery ?? [];
           console.info(
             `[chat] companion_runtime reply model=${runtimeCompleted.model_used} provider=${runtimeCompleted.provider_used} fallback=${runtimeCompleted.used_fallback} finish_reason=${runtimeCompleted.finish_reason} chars=${finalText.length} beats=${finalBeats.length}`,
@@ -1130,7 +1216,10 @@ export async function POST(request: Request) {
         finalBeats.length >= 2
           ? finalBeats.flatMap((beat, beatIndex) => {
               const delivery = finalBeatDelivery[beatIndex] ?? {
-                kind: beatIndex === 0 ? 'immediate' as const : 'continuation' as const,
+                kind:
+                  beatIndex === 0
+                    ? ('immediate' as const)
+                    : ('continuation' as const),
                 available_after_ms: beatIndex * 10_000,
               };
               return [
@@ -1140,7 +1229,8 @@ export async function POST(request: Request) {
                     beatIndex,
                     kind: delivery.kind,
                     availableAt: new Date(
-                      assistantCreatedAt.getTime() + delivery.available_after_ms,
+                      assistantCreatedAt.getTime() +
+                        delivery.available_after_ms,
                     ).toISOString(),
                   },
                 },
@@ -1193,6 +1283,26 @@ export async function POST(request: Request) {
             });
           }
         });
+        const liveSituation = sessionRouting.liveSituation;
+        if (
+          liveSituation &&
+          typeof liveSituation === 'object' &&
+          !Array.isArray(liveSituation)
+        ) {
+          after(async () => {
+            try {
+              await updateUserLiveSituation({
+                userId: session.user.id,
+                liveSituation: liveSituation as Record<string, unknown>,
+              });
+            } catch (error) {
+              console.warn('[chat] user live-situation update failed open', {
+                chatId: id,
+                error: error instanceof Error ? error.message : 'Unknown error',
+              });
+            }
+          });
+        }
       }
 
       // Honcho is a derived, write-only memory mirror at this stage. Register
@@ -1216,8 +1326,7 @@ export async function POST(request: Request) {
               '[relationship] failed to schedule durable opportunity',
               {
                 chatId: id,
-                error:
-                  error instanceof Error ? error.message : 'Unknown error',
+                error: error instanceof Error ? error.message : 'Unknown error',
               },
             );
           });
@@ -1259,8 +1368,7 @@ export async function POST(request: Request) {
               recentContext: boundedEpistemicContext(uiMessages),
               signal: AbortSignal.timeout(
                 Number(
-                  process.env.SOPHIE_COMMITMENT_INTERPRETER_TIMEOUT_MS ??
-                    8_000,
+                  process.env.SOPHIE_COMMITMENT_INTERPRETER_TIMEOUT_MS ?? 8_000,
                 ) + 15_000,
               ),
             });
@@ -1286,8 +1394,7 @@ export async function POST(request: Request) {
             console.warn('[tasks] fast-path semantic commit failed open', {
               chatId: id,
               messageId: message.id,
-              error:
-                error instanceof Error ? error.message : 'Unknown error',
+              error: error instanceof Error ? error.message : 'Unknown error',
             });
           }
           await mirrorCompletedTurn(completedTurn);
@@ -1333,9 +1440,16 @@ export async function POST(request: Request) {
           // timing belongs to the client; the Vercel function must not block
           // between already-completed beats.
           if (finalBeats.length >= 2) {
-            for (let beatIndex = 0; beatIndex < finalBeats.length; beatIndex += 1) {
+            for (
+              let beatIndex = 0;
+              beatIndex < finalBeats.length;
+              beatIndex += 1
+            ) {
               const delivery = finalBeatDelivery[beatIndex] ?? {
-                kind: beatIndex === 0 ? 'immediate' as const : 'continuation' as const,
+                kind:
+                  beatIndex === 0
+                    ? ('immediate' as const)
+                    : ('continuation' as const),
                 available_after_ms: beatIndex * 10_000,
               };
               dataStream.write({
