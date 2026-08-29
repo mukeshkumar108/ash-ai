@@ -80,6 +80,24 @@ function isUniqueConstraintError(error: unknown): boolean {
   return code === '23505' || code === 23505;
 }
 
+/**
+ * The TurnAction row is the message-scoped idempotency claim. When a
+ * message-scoped action's ledger insert conflicts (no new row), the same
+ * logical (message, action, task) was ALREADY applied — the mutation must roll
+ * back instead of proceeding without a corresponding ledger row.
+ * Message-less (manual UI) actions keep the legacy no-op semantics: the
+ * partial unique index collapses them by (user, task), a documented
+ * under-specification that does not flow into fast/slow reconciliation.
+ */
+export class TaskActionAlreadyAppliedError extends Error {
+  readonly code = 'TASK_ACTION_ALREADY_APPLIED';
+
+  constructor(taskId: string) {
+    super(`task action already applied: ${taskId}`);
+    this.name = 'TaskActionAlreadyAppliedError';
+  }
+}
+
 function normalizeReminderWindows(
   reminders: ReminderWindowInput[] | undefined,
 ): Array<{ startAt: Date; endAt: Date | null; label: string | null }> {
@@ -371,7 +389,7 @@ export async function completeTask(
         ),
       );
     const provenance = options.provenance;
-    await recordTurnAction(
+    const claimed = await recordTurnAction(
       {
         userId,
         messageId: provenance?.originMessageId ?? null,
@@ -382,6 +400,9 @@ export async function completeTask(
       },
       tx,
     );
+    if (claimed === null && provenance?.originMessageId != null) {
+      throw new TaskActionAlreadyAppliedError(taskId);
+    }
     return changed;
   });
   if (!updated) return { ok: false, reason: 'invalid_state' };
@@ -446,7 +467,7 @@ export async function cancelTask(
         ),
       );
     const provenance = options.provenance;
-    await recordTurnAction(
+    const claimed = await recordTurnAction(
       {
         userId,
         messageId: provenance?.originMessageId ?? null,
@@ -457,6 +478,9 @@ export async function cancelTask(
       },
       tx,
     );
+    if (claimed === null && provenance?.originMessageId != null) {
+      throw new TaskActionAlreadyAppliedError(taskId);
+    }
     return changed;
   });
   if (!updated) return { ok: false, reason: 'invalid_state' };
@@ -554,7 +578,7 @@ export async function snoozeTask(
       })
       .where(eq(taskTable.id, taskId))
       .returning();
-    await recordTurnAction(
+    const claimed = await recordTurnAction(
       {
         userId,
         messageId: provenance?.originMessageId ?? null,
@@ -565,6 +589,9 @@ export async function snoozeTask(
       },
       tx,
     );
+    if (claimed === null && provenance?.originMessageId != null) {
+      throw new TaskActionAlreadyAppliedError(taskId);
+    }
     return changed;
   });
   const task = await getTaskWithReminders(userId, taskId);
@@ -643,7 +670,7 @@ export async function rescheduleTask(
         );
       }
     }
-    await recordTurnAction(
+    const claimed = await recordTurnAction(
       {
         userId,
         messageId: provenance?.originMessageId ?? null,
@@ -654,6 +681,9 @@ export async function rescheduleTask(
       },
       tx,
     );
+    if (claimed === null && provenance?.originMessageId != null) {
+      throw new TaskActionAlreadyAppliedError(taskId);
+    }
     return changed;
   });
   const task = await getTaskWithReminders(userId, taskId);
@@ -715,7 +745,7 @@ export async function editTask(
       .where(eq(taskTable.id, taskId))
       .returning();
     const provenance = input.provenance;
-    await recordTurnAction(
+    const claimed = await recordTurnAction(
       {
         userId,
         messageId: provenance?.originMessageId ?? null,
@@ -726,6 +756,9 @@ export async function editTask(
       },
       tx,
     );
+    if (claimed === null && provenance?.originMessageId != null) {
+      throw new TaskActionAlreadyAppliedError(taskId);
+    }
     return changed;
   });
   const task = await getTaskWithReminders(userId, taskId);

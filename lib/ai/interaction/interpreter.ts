@@ -365,17 +365,34 @@ export async function commitInterpreterActions(input: {
   const rejected: Array<{ action: InterpreterAction; reason: string }> = [];
   const clarifications = [...input.interpretation.clarifications];
 
-  // Message-scoped ledger idempotency: a retried/replayed turn must never
-  // re-commit. Every previously recorded action for this app message is
-  // treated as already done.
-  const existingLedgerKeys = new Set<string>();
+  // Canonical idempotency identity: proposal action -> TurnAction ledger action.
+  // This is the single mapping used for the pre-mutation claim check, so
+  // replay/duplicate detection compares like for like (snooze/reschedule/edit
+  // all materialize as 'updated').
+  const ledgerActionForProposal: Record<
+    InterpreterAction['action'],
+    'created' | 'updated' | 'completed' | 'cancelled'
+  > = {
+    create_task: 'created',
+    complete_task: 'completed',
+    cancel_task: 'cancelled',
+    snooze_task: 'updated',
+    reschedule_task: 'updated',
+  };
+
+  // Message-scoped ledger claims: a retried/replayed turn must never re-commit,
+  // and duplicate proposals within this same output must not double-mutate.
+  // The set is seeded from the durable ledger (authoritative across
+  // invocations) and extended after each successful commit (authoritative
+  // within this loop).
+  const claimedKeys = new Set<string>();
   if (input.originMessageId) {
     const rows = await listTurnActionsForMessage(
       input.userId,
       input.originMessageId,
     );
     for (const row of rows) {
-      existingLedgerKeys.add(`${row.action}:${row.taskId ?? ''}`);
+      claimedKeys.add(`${row.action}:${row.taskId ?? ''}`);
     }
   }
 
@@ -439,7 +456,9 @@ export async function commitInterpreterActions(input: {
           sourceMessageId: input.originMessageId,
           materializedCandidateKey: fastKey,
         });
-        if (!existingLedgerKeys.has(`created:${created.id}`)) {
+        const createdKey = `created:${created.id}`;
+        if (!claimedKeys.has(createdKey)) {
+          claimedKeys.add(createdKey);
           pushCommitted({
             action: action.action,
             taskId: created.id,
@@ -493,8 +512,13 @@ export async function commitInterpreterActions(input: {
       rejected.push({ action, reason: 'unresolved_target_binding' });
       continue;
     }
-    if (existingLedgerKeys.has(`${action.action}:${targetId}`)) {
-      // Already committed for this message (retry/replay) — never re-mutate.
+    // Authoritative pre-mutation idempotency: the same canonical (message,
+    // ledger action, task) claim must never mutate twice. Covers both a
+    // replayed turn (seed set from the durable ledger) and duplicate proposals
+    // earlier in this same output (extended after each successful commit).
+    const claimKey = `${ledgerActionForProposal[action.action]}:${targetId}`;
+    if (claimedKeys.has(claimKey)) {
+      rejected.push({ action, reason: 'already_applied' });
       continue;
     }
 
@@ -516,6 +540,7 @@ export async function commitInterpreterActions(input: {
           rejected.push({ action, reason: outcome.reason ?? 'mutation_failed' });
           continue;
         }
+        claimedKeys.add(claimKey);
         pushCommitted({
           action: action.action,
           taskId: targetId,
@@ -533,6 +558,7 @@ export async function commitInterpreterActions(input: {
           rejected.push({ action, reason: outcome.reason ?? 'mutation_failed' });
           continue;
         }
+        claimedKeys.add(claimKey);
         pushCommitted({
           action: action.action,
           taskId: targetId,
@@ -551,6 +577,7 @@ export async function commitInterpreterActions(input: {
           rejected.push({ action, reason: outcome.reason ?? 'mutation_failed' });
           continue;
         }
+        claimedKeys.add(claimKey);
         pushCommitted({
           action: action.action,
           taskId: targetId,
@@ -573,6 +600,7 @@ export async function commitInterpreterActions(input: {
         rejected.push({ action, reason: outcome.reason ?? 'mutation_failed' });
         continue;
       }
+      claimedKeys.add(claimKey);
       pushCommitted({
         action: action.action,
         taskId: targetId,
@@ -584,6 +612,18 @@ export async function commitInterpreterActions(input: {
         ),
       });
     } catch (error) {
+      // The domain aborts a message-scoped mutation whose ledger claim was
+      // already taken (concurrent worker or a boundary case the pre-check
+      // missed). Treat that as an already-applied action, not a failure to
+      // retry destructively.
+      if (
+        error &&
+        typeof error === 'object' &&
+        (error as { code?: string }).code === 'TASK_ACTION_ALREADY_APPLIED'
+      ) {
+        rejected.push({ action, reason: 'already_applied' });
+        continue;
+      }
       console.warn('[interpreter] action commit failed open', {
         action: action.action,
         error: error instanceof Error ? error.message : 'Unknown error',

@@ -28,7 +28,9 @@ import {
   createTask,
   getTaskWithReminders,
   listTasksForUser,
+  snoozeTask,
 } from '@/lib/tasks/domain';
+import { recordTurnAction } from '@/lib/tasks/turn-actions';
 import { commitTurnSemantics } from '@/lib/ai/interaction/commit-turn';
 import { createTaskSchema } from '@/lib/tasks/schemas';
 import type { InterpreterAction } from '@/lib/ai/interaction/interpreter';
@@ -395,6 +397,210 @@ async function main() {
         'M4 duplicate proposals -> one task, one chip',
         tasks.length === 1 && result.committed.length === 1,
         `tasks=${tasks.length} committed=${result.committed.length}`,
+      );
+    } finally {
+      await teardown(userId, chatId);
+    }
+  }
+
+  // ── P1: canonical idempotency identity (proposal action -> ledger action) ──
+
+  // A. Duplicate snooze proposals in ONE interpretation mutate canonical state
+  //    exactly once (due/reminders shift once, version +1, one ledger row, one
+  //    chip).
+  {
+    const { userId, chatId } = await setup();
+    try {
+      const baseDue = new Date(Date.now() + 3_600_000);
+      const task = await createTask({ userId, chatId, title: 'Snooze once', dueAt: baseDue });
+      const mid = randomUUID();
+      const snoozeAction: InterpreterAction = {
+        action: 'snooze_task',
+        evidence_class: 'explicit_modification',
+        evidence_verbatim: 'push it an hour',
+        target_task_id: task.id,
+        title: null, notes: null, due_iso: null, reminder_windows: [],
+        target_resolution: 'referential', requires_clarification: false,
+        snooze_minutes: 60,
+      };
+      const result = await turn(userId, chatId, mid, {
+        userText: 'push it an hour',
+        assistantText: 'pushed it an hour',
+        recentContext: '',
+        actions: [snoozeAction, snoozeAction],
+      });
+      const after = await getTaskWithReminders(userId, task.id);
+      const ledgerRows = await db
+        .select()
+        .from(turnActionTable)
+        .where(eq(turnActionTable.messageId, mid));
+      const shifted = (after?.dueAt?.getTime() ?? 0) - baseDue.getTime();
+      report(
+        'P1-A duplicate snooze proposals mutate once',
+        result.committed.length === 1 &&
+          after?.snoozeCount === 1 &&
+          after?.cortexVersion === 2 &&
+          shifted === 60 * 60_000 &&
+          ledgerRows.length === 1,
+        `committed=${result.committed.length} snooze=${after?.snoozeCount} version=${after?.cortexVersion} shiftMin=${shifted / 60_000} ledger=${ledgerRows.length}`,
+      );
+    } finally {
+      await teardown(userId, chatId);
+    }
+  }
+
+  // B. Replay the SAME message snooze -> no-op (no second mutation/version).
+  {
+    const { userId, chatId } = await setup();
+    try {
+      const baseDue = new Date(Date.now() + 3_600_000);
+      const task = await createTask({ userId, chatId, title: 'Replay snooze', dueAt: baseDue });
+      const mid = randomUUID();
+      const snoozeAction: InterpreterAction = {
+        action: 'snooze_task',
+        evidence_class: 'explicit_modification',
+        evidence_verbatim: 'push it an hour',
+        target_task_id: task.id,
+        title: null, notes: null, due_iso: null, reminder_windows: [],
+        target_resolution: 'referential', requires_clarification: false,
+        snooze_minutes: 60,
+      };
+      const first = await turn(userId, chatId, mid, {
+        userText: 'push it an hour', assistantText: 'pushed', recentContext: '',
+        actions: [snoozeAction],
+      });
+      const second = await turn(userId, chatId, mid, {
+        userText: 'push it an hour', assistantText: 'pushed', recentContext: '',
+        actions: [snoozeAction],
+      });
+      const after = await getTaskWithReminders(userId, task.id);
+      report(
+        'P1-B replayed same-message snooze is a no-op',
+        first.committed.length === 1 &&
+          second.committed.length === 0 &&
+          second.rejected.some((r) => r.reason === 'already_applied') &&
+          after?.snoozeCount === 1 &&
+          after?.cortexVersion === 2,
+        `commits=${first.committed.length}/${second.committed.length} snooze=${after?.snoozeCount} version=${after?.cortexVersion}`,
+      );
+    } finally {
+      await teardown(userId, chatId);
+    }
+  }
+
+  // C. Replay the SAME message reschedule -> no-op (due set once, version once).
+  {
+    const { userId, chatId } = await setup();
+    try {
+      const task = await createTask({ userId, chatId, title: 'Replay reschedule', dueAt: new Date(Date.now() + 3_600_000) });
+      const mid = randomUUID();
+      const fridayKey = new Date(Date.now() + 7 * 24 * 3_600_000).toISOString();
+      const resched: InterpreterAction = {
+        action: 'reschedule_task',
+        evidence_class: 'explicit_modification',
+        evidence_verbatim: 'move it to Friday',
+        target_task_id: task.id,
+        title: null, notes: null, due_iso: fridayKey, reminder_windows: [],
+        target_resolution: 'explicit', requires_clarification: false,
+        snooze_minutes: null,
+      };
+      const first = await turn(userId, chatId, mid, {
+        userText: 'move it to Friday', assistantText: 'moved', recentContext: '',
+        actions: [resched],
+      });
+      const second = await turn(userId, chatId, mid, {
+        userText: 'move it to Friday', assistantText: 'moved', recentContext: '',
+        actions: [resched],
+      });
+      const after = await getTaskWithReminders(userId, task.id);
+      report(
+        'P1-C replayed same-message reschedule is a no-op',
+        first.committed.length === 1 &&
+          second.committed.length === 0 &&
+          after?.dueAt?.getTime() === new Date(fridayKey).getTime() &&
+          after?.cortexVersion === 2,
+        `commits=${first.committed.length}/${second.committed.length} version=${after?.cortexVersion}`,
+      );
+    } finally {
+      await teardown(userId, chatId);
+    }
+  }
+
+  // D. complete retry remains a no-op (already covered state transition).
+  {
+    const { userId, chatId } = await setup();
+    try {
+      const task = await createTask({ userId, chatId, title: 'Replay complete', dueAt: new Date(Date.now() + 3_600_000) });
+      const mid = randomUUID();
+      const completeAction: InterpreterAction = {
+        action: 'complete_task',
+        evidence_class: 'explicit_resolution',
+        evidence_verbatim: 'I did it',
+        target_task_id: task.id,
+        title: null, notes: null, due_iso: null, reminder_windows: [],
+        target_resolution: 'referential', requires_clarification: false,
+        snooze_minutes: null,
+      };
+      const first = await turn(userId, chatId, mid, {
+        userText: 'I did it', assistantText: 'done', recentContext: '',
+        actions: [completeAction],
+      });
+      const second = await turn(userId, chatId, mid, {
+        userText: 'I did it', assistantText: 'done', recentContext: '',
+        actions: [completeAction],
+      });
+      const after = await getTaskWithReminders(userId, task.id);
+      report(
+        'P1-D replayed same-message complete is a no-op',
+        first.committed.length === 1 &&
+          second.committed.length === 0 &&
+          after?.status === 'completed',
+        `commits=${first.committed.length}/${second.committed.length} status=${after?.status}`,
+      );
+    } finally {
+      await teardown(userId, chatId);
+    }
+  }
+
+  // E. The ledger claim is authoritative: a pre-existing claim blocks the
+  //    mutation both through the interpreter (pre-check) AND through a direct
+  //    domain call (transaction abort).
+  {
+    const { userId, chatId } = await setup();
+    try {
+      const task = await createTask({ userId, chatId, title: 'Claim authority', dueAt: new Date(Date.now() + 3_600_000) });
+      const mid = randomUUID();
+      await recordTurnAction({ userId, messageId: mid, taskId: task.id, action: 'updated' });
+      const snoozeAction: InterpreterAction = {
+        action: 'snooze_task',
+        evidence_class: 'explicit_modification',
+        evidence_verbatim: 'push it an hour',
+        target_task_id: task.id,
+        title: null, notes: null, due_iso: null, reminder_windows: [],
+        target_resolution: 'referential', requires_clarification: false,
+        snooze_minutes: 60,
+      };
+      const result = await turn(userId, chatId, mid, {
+        userText: 'push it an hour', assistantText: 'pushed', recentContext: '',
+        actions: [snoozeAction],
+      });
+      let threw = false;
+      try {
+        await snoozeTask(userId, task.id, {
+          offsetMinutes: 60,
+          provenance: { originMessageId: mid },
+        });
+      } catch (error) {
+        threw =
+          typeof error === 'object' &&
+          error !== null &&
+          (error as { code?: string }).code === 'TASK_ACTION_ALREADY_APPLIED';
+      }
+      const after = await getTaskWithReminders(userId, task.id);
+      report(
+        'P1-E ledger claim is authoritative (interpreter + domain abort)',
+        result.committed.length === 0 && threw && after?.snoozeCount === 0,
+        `interpreterCommits=${result.committed.length} domainAbort=${threw} snooze=${after?.snoozeCount}`,
       );
     } finally {
       await teardown(userId, chatId);

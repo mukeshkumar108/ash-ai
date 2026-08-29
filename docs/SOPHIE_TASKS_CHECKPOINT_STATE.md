@@ -161,4 +161,17 @@ interpreter, and satisfies "model proposes, code commits."
   requires_clarification:false against a clarifying reply with a SINGLE pending
   task can still complete it — roster==1 is a positive basis; that residual is
   the model's contradiction, not code's (needs live traffic to measure).
+- P1 (post-audit): canonical idempotency identity repaired. The interpreter now
+  maps proposal actions to ledger actions (create_task->created,
+  complete_task->completed, cancel_task->cancelled, snooze/reschedule_task->
+  updated) and performs an authoritative pre-mutation claim check against a
+  mutable key set seeded from the durable ledger (cross-invocation replay) and
+  extended after each successful commit (same-loop duplicates). The domain
+  additionally aborts (TaskActionAlreadyAppliedError, rolled back) any
+  message-scoped mutation whose ledger insert loses the claim — a mutation can
+  never succeed merely because ledger insertion returned no new row.
+  Message-less (UI manual) actions keep legacy no-op semantics (documented
+  under-specification: their 'updated' rows collapse to one per user/task).
+  New regressions P1-A..E (duplicate snooze mutate-once, replay snooze/
+  reschedule/complete no-ops, ledger-claim authority).
 - NEXT: (external) blind independent audit against this state.
