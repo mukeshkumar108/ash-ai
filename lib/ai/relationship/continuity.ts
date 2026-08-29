@@ -16,8 +16,20 @@ export function hasPlausibleContinuityCandidate(
     context &&
       ((context.continuity?.length ?? 0) > 0 ||
         (context.open_threads?.length ?? 0) > 0 ||
-        (context.sophie_attention?.length ?? 0) > 0 ||
+        (proactiveAttention(context).length ?? 0) > 0 ||
+        Object.values(context.brief?.horizons ?? {}).some(
+          (items) => Array.isArray(items) && items.length > 0,
+        ) ||
         (context.recent_resolutions?.length ?? 0) > 0),
+  );
+}
+
+function proactiveAttention(context: CanonicalContinuityContext) {
+  return (context.sophie_attention ?? []).filter(
+    (item) =>
+      typeof item === 'object' &&
+      item !== null &&
+      typeof (item as { source_system?: unknown }).source_system === 'string',
   );
 }
 
@@ -54,6 +66,9 @@ export async function retrieveInitiativeContinuity(input: {
   if (!context) return null;
   return {
     ...context,
+    // Personal unfinished thoughts are valid backstage context for a user-led
+    // conversation, but cannot independently authorize proactive outreach.
+    sophie_attention: proactiveAttention(context),
     recently_addressed_topics: (input.recentlyAddressedTopics ?? [])
       .map((topic) => normalizeTopicKey(topic))
       .filter((topic): topic is string => topic !== null)

@@ -23,6 +23,14 @@ export type CortexContext = {
 
 export type CanonicalContinuityContext = {
   now?: { local_time?: string; timezone?: string; daypart?: string };
+  brief?: {
+    version?: string;
+    user_day?: string;
+    daypart?: string;
+    horizons?: Record<string, unknown[]>;
+    task_candidates?: unknown[];
+    constraints?: Record<string, unknown>;
+  };
   continuity?: unknown[];
   open_threads?: unknown[];
   sophie_attention?: unknown[];
@@ -544,6 +552,41 @@ export async function listCommitmentCandidates(input: {
     );
     return null;
   }
+}
+
+export async function proposeCommitmentCandidates(input: {
+  userId: string;
+  sourceMessageId: string;
+  candidates: Array<{
+    key: string;
+    title: string;
+    notes?: string | null;
+    evidenceVerbatim: string;
+    authority: 'act' | 'ask';
+    temporalPhrase?: string | null;
+  }>;
+}) {
+  const config = configuration();
+  if (!config.enabled || !config.baseURL) return null;
+  const ids = honchoIds(input.userId, 'continuity-brief');
+  return cortexFetch('/v1/cortex/commitment-candidates/propose', {
+    method: 'POST',
+    body: JSON.stringify({
+      workspace_id: ids.workspaceId,
+      session_id: ids.sessionId,
+      owner_peer_id: ids.userPeerId,
+      source_message_id: input.sourceMessageId,
+      candidates: input.candidates.map((item) => ({
+        key: item.key,
+        title: item.title,
+        notes: item.notes ?? null,
+        evidence_verbatim: item.evidenceVerbatim,
+        evidence_class: 'implicit_self_commitment',
+        authority: item.authority,
+        temporal_phrase: item.temporalPhrase ?? null,
+      })),
+    }),
+  });
 }
 
 export async function markCommitmentCandidate(input: {

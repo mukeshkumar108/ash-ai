@@ -13,6 +13,10 @@
     {
       "path": "/api/cron/object-sync",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/continuity-brief",
+      "schedule": "*/15 * * * *"
     }
   ]
 }
