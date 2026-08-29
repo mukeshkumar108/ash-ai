@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 
 import { getUserSyncAnchors, syncAllCalendars } from '@/lib/calendar/sync';
 import { sweepDirtyTaskProjections } from '@/lib/tasks/domain';
+import { withWorkerHeartbeat } from '@/lib/observability/worker-heartbeat';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300;
@@ -28,22 +29,24 @@ export async function GET(request: Request) {
   if (process.env.SYNAPSE_CORTEX_ENABLED === 'false') {
     return NextResponse.json({ ok: true, skipped: 'cortex_disabled' });
   }
-  const taskSweep = await sweepDirtyTaskProjections({ limit: 25 }).catch(
-    (error) => {
-      console.warn('[object-sync] task sweep failed open', error);
-      return { processed: 0, pushed: 0 };
-    },
-  );
-  const anchors = await getUserSyncAnchors().catch((error) => {
-    console.warn('[object-sync] anchor resolution failed open', error);
-    return [];
+  const result = await withWorkerHeartbeat('object-sync', async () => {
+    const taskSweep = await sweepDirtyTaskProjections({ limit: 25 }).catch(
+      (error) => {
+        console.warn('[object-sync] task sweep failed open', error);
+        return { processed: 0, pushed: 0 };
+      },
+    );
+    const anchors = await getUserSyncAnchors().catch((error) => {
+      console.warn('[object-sync] anchor resolution failed open', error);
+      return [];
+    });
+    const calendar = await syncAllCalendars(anchors).catch((error) => {
+      console.warn('[object-sync] calendar sync failed open', error);
+      return [];
+    });
+    return { ok: true, taskSweep, calendar };
   });
-  const calendar = await syncAllCalendars(anchors).catch((error) => {
-    console.warn('[object-sync] calendar sync failed open', error);
-    return [];
+  return NextResponse.json(result, {
+    headers: { 'cache-control': 'no-store' },
   });
-  return NextResponse.json(
-    { ok: true, taskSweep, calendar },
-    { headers: { 'cache-control': 'no-store' } },
-  );
 }
