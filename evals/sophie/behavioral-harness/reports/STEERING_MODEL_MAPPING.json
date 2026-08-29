@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-08-24T02:12:17.057Z",
+  "modelCandidateMap": {
+    "openai/gpt-5.6-sol": "Model Candidate A",
+    "anthropic/claude-haiku-4.5": "Model Candidate B",
+    "anthropic/claude-sonnet-5": "Model Candidate C"
+  }
+}

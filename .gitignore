@@ -44,3 +44,8 @@ _backup.env.local
 /playwright-report/
 /blob-report/
 /playwright/*
+
+# Python caches (compiled eval artifacts must never be committed)
+__pycache__/
+*.py[cod]
+*.egg-info/

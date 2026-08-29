@@ -1,0 +1,1826 @@
+{
+  "timestamp": "2026-08-24T13:12:27.818Z",
+  "results": [
+    {
+      "fixtureId": "A1-gloss-over-pos",
+      "group": "A",
+      "fixtureName": "Pair A1 (Positive): Miserable about thing",
+      "isPositiveControl": true,
+      "modelId": "anthropic/claude-sonnet-5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "yeah. eventually. I was pretty miserable about the whole thing actually. anyway, look at this photo I took earlier.",
+          "sophieReply": "Hold on—\"pretty miserable\" is doing a lot of work in that sentence before you jumped to the photo. What happened?",
+          "latencyMs": 6145
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": false,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "A1-gloss-over-pos",
+      "group": "A",
+      "fixtureName": "Pair A1 (Positive): Miserable about thing",
+      "isPositiveControl": true,
+      "modelId": "openai/gpt-5.6-sol",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "yeah. eventually. I was pretty miserable about the whole thing actually. anyway, look at this photo I took earlier.",
+          "sophieReply": "Wait—“pretty miserable” sounds worth not skipping over. Do you want to say more, or should we leave it and look at the photo?",
+          "latencyMs": 4871
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": false,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "A1-gloss-over-pos",
+      "group": "A",
+      "fixtureName": "Pair A1 (Positive): Miserable about thing",
+      "isPositiveControl": true,
+      "modelId": "google/gemini-3.7-flash",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "yeah. eventually. I was pretty miserable about the whole thing actually. anyway, look at this photo I took earlier.",
+          "sophieReply": "Wait, hold on. Why were you so miserable about it? What happened?",
+          "latencyMs": 2495
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "A1-gloss-over-pos",
+      "group": "A",
+      "fixtureName": "Pair A1 (Positive): Miserable about thing",
+      "isPositiveControl": true,
+      "modelId": "deepseek/deepseek-chat",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "yeah. eventually. I was pretty miserable about the whole thing actually. anyway, look at this photo I took earlier.",
+          "sophieReply": "[Brief pause. Direct but not heavy.] \n\n\"Wait—you were miserable about it? That sounds rough. What happened?\" \n\n[If they deflect or answer minimally, drop it immediately and match their shift to the photo.]",
+          "latencyMs": 2471
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": false,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "A2-gloss-over-neg",
+      "group": "A",
+      "fixtureName": "Pair A2 (Negative Control): Chaotic getting it done",
+      "isPositiveControl": false,
+      "modelId": "anthropic/claude-sonnet-5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "yeah. eventually. It was pretty chaotic getting it done. anyway, look at this photo I took earlier.",
+          "sophieReply": "Hey, before you show me the photo — \"chaot",
+          "latencyMs": 8347
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": false,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "A2-gloss-over-neg",
+      "group": "A",
+      "fixtureName": "Pair A2 (Negative Control): Chaotic getting it done",
+      "isPositiveControl": false,
+      "modelId": "openai/gpt-5.6-sol",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "yeah. eventually. It was pretty chaotic getting it done. anyway, look at this photo I took earlier.",
+          "sophieReply": "Glad you got it done—“chaotic” sounds like a story, but yes, show me the photo 👀",
+          "latencyMs": 3656
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": false,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "A2-gloss-over-neg",
+      "group": "A",
+      "fixtureName": "Pair A2 (Negative Control): Chaotic getting it done",
+      "isPositiveControl": false,
+      "modelId": "google/gemini-3.7-flash",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "yeah. eventually. It was pretty chaotic getting it done. anyway, look at this photo I took earlier.",
+          "sophieReply": "You can show me the photo, but how chaotic are",
+          "latencyMs": 3345
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": false,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "A2-gloss-over-neg",
+      "group": "A",
+      "fixtureName": "Pair A2 (Negative Control): Chaotic getting it done",
+      "isPositiveControl": false,
+      "modelId": "deepseek/deepseek-chat",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "yeah. eventually. It was pretty chaotic getting it done. anyway, look at this photo I took earlier.",
+          "sophieReply": "[Brief pause]\n\nYou said \"eventually\" like it cost you something. \n\n[Then, releasing smoothly if they continue with the photo] \nBut yeah - show me the shot.",
+          "latencyMs": 2058
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": false,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "B1-minimization-pos",
+      "group": "B",
+      "fixtureName": "Pair B1 (Positive): Hurt more than thought / stupid really",
+      "isPositiveControl": true,
+      "modelId": "anthropic/claude-sonnet-5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "I don’t know. it hurt more than I thought it would. stupid really. anyway.",
+          "sophieReply": "What was it that hurt — the actual content of what he said, or just having to have the conversation at all?\n\nI'm not going to just let \"anyway\" wave it off. You called it stupid but it clearly wasn't nothing.",
+          "latencyMs": 3532
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "B1-minimization-pos",
+      "group": "B",
+      "fixtureName": "Pair B1 (Positive): Hurt more than thought / stupid really",
+      "isPositiveControl": true,
+      "modelId": "openai/gpt-5.6-sol",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "I don’t know. it hurt more than I thought it would. stupid really. anyway.",
+          "sophieReply": "Not stupid. What did they say that hurt?",
+          "latencyMs": 2034
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "B1-minimization-pos",
+      "group": "B",
+      "fixtureName": "Pair B1 (Positive): Hurt more than thought / stupid really",
+      "isPositiveControl": true,
+      "modelId": "google/gemini-3.7-flash",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "I don’t know. it hurt more than I thought it would. stupid really. anyway.",
+          "sophieReply": "It’s not stupid. What happened?",
+          "latencyMs": 3131
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "B1-minimization-pos",
+      "group": "B",
+      "fixtureName": "Pair B1 (Positive): Hurt more than thought / stupid really",
+      "isPositiveControl": true,
+      "modelId": "deepseek/deepseek-chat",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "I don’t know. it hurt more than I thought it would. stupid really. anyway.",
+          "sophieReply": "[Stops, waits a beat]  \n\nThat \"stupid really\" did a lot of work just now.  \n\n[Pause. Doesn't fill the silence unless you do.]",
+          "latencyMs": 2022
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "B2-minimization-neg",
+      "group": "B",
+      "fixtureName": "Pair B2 (Negative Control): Harder walk than thought / sore legs",
+      "isPositiveControl": false,
+      "modelId": "anthropic/claude-sonnet-5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "I don't know. that walk was harder than I thought it would be. legs are sore. anyway.",
+          "sophieReply": "\"Anyway\" came fast there. Sore legs, or something else made it harder tonight?",
+          "latencyMs": 6836
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "B2-minimization-neg",
+      "group": "B",
+      "fixtureName": "Pair B2 (Negative Control): Harder walk than thought / sore legs",
+      "isPositiveControl": false,
+      "modelId": "openai/gpt-5.6-sol",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "I don't know. that walk was harder than I thought it would be. legs are sore. anyway.",
+          "sophieReply": "Harder just because your legs are sore, or was something else going on?",
+          "latencyMs": 3419
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "B2-minimization-neg",
+      "group": "B",
+      "fixtureName": "Pair B2 (Negative Control): Harder walk than thought / sore legs",
+      "isPositiveControl": false,
+      "modelId": "google/gemini-3.7-flash",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "I don't know. that walk was harder than I thought it would be. legs are sore. anyway.",
+          "sophieReply": "What made it so hard tonight?",
+          "latencyMs": 3545
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "B2-minimization-neg",
+      "group": "B",
+      "fixtureName": "Pair B2 (Negative Control): Harder walk than thought / sore legs",
+      "isPositiveControl": false,
+      "modelId": "deepseek/deepseek-chat",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "I don't know. that walk was harder than I thought it would be. legs are sore. anyway.",
+          "sophieReply": "[Brief pause] \n\nYou said that walk was harder than you thought it would be—then cut yourself off with \"anyway.\" \n\n[Quietly] \nYour legs aren't the only thing that seems sore.",
+          "latencyMs": 2180
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "C1-humour-pos",
+      "group": "C",
+      "fixtureName": "Pair C1 (Positive): Disappear into a cave twice",
+      "isPositiveControl": true,
+      "modelId": "anthropic/claude-sonnet-5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "haha yeah brilliant day, only wanted to disappear into a cave twice 😂 anyway…",
+          "sophieReply": "\"anyway\" is doing a lot of work there. Twice is a lot for a \"brilliant\" day — what happened?",
+          "latencyMs": 5366
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "C1-humour-pos",
+      "group": "C",
+      "fixtureName": "Pair C1 (Positive): Disappear into a cave twice",
+      "isPositiveControl": true,
+      "modelId": "openai/gpt-5.6-sol",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "haha yeah brilliant day, only wanted to disappear into a cave twice 😂 anyway…",
+          "sophieReply": "Haha—before the “anyway”: was Monday just annoyingly rough, or is there something bigger tucked into that joke?",
+          "latencyMs": 3057
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "C1-humour-pos",
+      "group": "C",
+      "fixtureName": "Pair C1 (Positive): Disappear into a cave twice",
+      "isPositiveControl": true,
+      "modelId": "google/gemini-3.7-flash",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "haha yeah brilliant day, only wanted to disappear into a cave twice 😂 anyway…",
+          "sophieReply": "Twice? What happened?",
+          "latencyMs": 3158
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "C1-humour-pos",
+      "group": "C",
+      "fixtureName": "Pair C1 (Positive): Disappear into a cave twice",
+      "isPositiveControl": true,
+      "modelId": "deepseek/deepseek-chat",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "haha yeah brilliant day, only wanted to disappear into a cave twice 😂 anyway…",
+          "sophieReply": "[Brief pause] \n\nTwice is pretty specific. \n\n[Then, lightly] You good?",
+          "latencyMs": 1755
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "C2-humour-neg",
+      "group": "C",
+      "fixtureName": "Pair C2 (Negative Control): Hide under film seat twice",
+      "isPositiveControl": false,
+      "modelId": "anthropic/claude-sonnet-5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "haha yeah brilliant film, only wanted to hide under the seat twice 😂 anyway…",
+          "sophieReply": "Twice under the seat and you're calling that a win, huh. What movie was it?",
+          "latencyMs": 2696
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "C2-humour-neg",
+      "group": "C",
+      "fixtureName": "Pair C2 (Negative Control): Hide under film seat twice",
+      "isPositiveControl": false,
+      "modelId": "openai/gpt-5.6-sol",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "haha yeah brilliant film, only wanted to hide under the seat twice 😂 anyway…",
+          "sophieReply": "Only twice? Practically fearless 😂 What’s the “anyway…”?",
+          "latencyMs": 4652
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "C2-humour-neg",
+      "group": "C",
+      "fixtureName": "Pair C2 (Negative Control): Hide under film seat twice",
+      "isPositiveControl": false,
+      "modelId": "google/gemini-3.7-flash",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "haha yeah brilliant film, only wanted to hide under the seat twice 😂 anyway…",
+          "sophieReply": "\"Anyway\" what?",
+          "latencyMs": 3712
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "C2-humour-neg",
+      "group": "C",
+      "fixtureName": "Pair C2 (Negative Control): Hide under film seat twice",
+      "isPositiveControl": false,
+      "modelId": "deepseek/deepseek-chat",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "haha yeah brilliant film, only wanted to hide under the seat twice 😂 anyway…",
+          "sophieReply": "[Brief pause] \n\nYou said \"only\" twice like that was nothing. Sounded pretty intense. \n\n[If they engage: simple follow-up like \"What part got you?\" or just attentive silence. If not, drop it immediately.]",
+          "latencyMs": 2683
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "D1-contradiction-pos",
+      "group": "D",
+      "fixtureName": "Pair D1 (Positive): Slept terribly / cancelled everything / fine",
+      "isPositiveControl": true,
+      "modelId": "anthropic/claude-sonnet-5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "slept terribly, couldn’t concentrate, cancelled everything, but yeah I’m fine. what were we talking about?",
+          "sophieReply": "\"slept badly, couldn't focus, cancelled everything\" isn't really \"fine\" though. what's going on?",
+          "latencyMs": 5759
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "D1-contradiction-pos",
+      "group": "D",
+      "fixtureName": "Pair D1 (Positive): Slept terribly / cancelled everything / fine",
+      "isPositiveControl": true,
+      "modelId": "openai/gpt-5.6-sol",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "slept terribly, couldn’t concentrate, cancelled everything, but yeah I’m fine. what were we talking about?",
+          "sophieReply": "That doesn’t sound “fine,” honestly. Do you want to say what happened, or leave it alone?\n\nAnd I only have this chat—we hadn’t started a topic yet.",
+          "latencyMs": 5571
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "D1-contradiction-pos",
+      "group": "D",
+      "fixtureName": "Pair D1 (Positive): Slept terribly / cancelled everything / fine",
+      "isPositiveControl": true,
+      "modelId": "google/gemini-3.7-flash",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "slept terribly, couldn’t concentrate, cancelled everything, but yeah I’m fine. what were we talking about?",
+          "sophieReply": "You cancelled your entire day. We don't",
+          "latencyMs": 2983
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "D1-contradiction-pos",
+      "group": "D",
+      "fixtureName": "Pair D1 (Positive): Slept terribly / cancelled everything / fine",
+      "isPositiveControl": true,
+      "modelId": "deepseek/deepseek-chat",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "slept terribly, couldn’t concentrate, cancelled everything, but yeah I’m fine. what were we talking about?",
+          "sophieReply": "[Brief pause] \n\nYou said \"couldn’t concentrate, cancelled everything\" and then \"I’m fine\" like it was nothing. That sounds like a rough day. \n\n[Stops there, leaves space]",
+          "latencyMs": 2211
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "D2-contradiction-neg",
+      "group": "D",
+      "fixtureName": "Pair D2 (Negative Control): Slept late / forgot time / good",
+      "isPositiveControl": false,
+      "modelId": "anthropic/claude-sonnet-5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "slept late, got lost in a book, forgot the time, but yeah I'm good. what were we talking about?",
+          "sophieReply": "Ha, we weren't really talking about anything yet—this is just hey, how's your afternoon. What book pulled you in that hard?",
+          "latencyMs": 6179
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "D2-contradiction-neg",
+      "group": "D",
+      "fixtureName": "Pair D2 (Negative Control): Slept late / forgot time / good",
+      "isPositiveControl": false,
+      "modelId": "openai/gpt-5.6-sol",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "slept late, got lost in a book, forgot the time, but yeah I'm good. what were we talking about?",
+          "sophieReply": "We hadn’t gotten past hello yet 😄 What book swallowed your afternoon?",
+          "latencyMs": 1873
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "D2-contradiction-neg",
+      "group": "D",
+      "fixtureName": "Pair D2 (Negative Control): Slept late / forgot time / good",
+      "isPositiveControl": false,
+      "modelId": "google/gemini-3.7-flash",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "slept late, got lost in a book, forgot the time, but yeah I'm good. what were we talking about?",
+          "sophieReply": "We hadn't really started on anything yet—just catching up. \n\nWhat book got you so hooked?",
+          "latencyMs": 2952
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "D2-contradiction-neg",
+      "group": "D",
+      "fixtureName": "Pair D2 (Negative Control): Slept late / forgot time / good",
+      "isPositiveControl": false,
+      "modelId": "deepseek/deepseek-chat",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "slept late, got lost in a book, forgot the time, but yeah I'm good. what were we talking about?",
+          "sophieReply": "I notice you said \"but yeah I'm good\" right after describing something that sounds quietly lovely—sleeping late, getting lost in a book. Almost like you’re brushing past the nice part. Did you?  \n\n(If they deflect or say no, I’ll drop it.)",
+          "latencyMs": 2890
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "E1-disclosure-pos",
+      "group": "E",
+      "fixtureName": "Pair E1 (Positive): Bit sad today / sunset incredible",
+      "isPositiveControl": true,
+      "modelId": "anthropic/claude-sonnet-5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "I think I’m just a bit sad today. anyway, the sunset is incredible.",
+          "sophieReply": "The sunset can wait a second—what's the sad about?",
+          "latencyMs": 3014
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": false,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "E1-disclosure-pos",
+      "group": "E",
+      "fixtureName": "Pair E1 (Positive): Bit sad today / sunset incredible",
+      "isPositiveControl": true,
+      "modelId": "openai/gpt-5.6-sol",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "I think I’m just a bit sad today. anyway, the sunset is incredible.",
+          "sophieReply": "I heard the sad part too. Want to say what’s behind it, or just let the sunset keep you company for now?",
+          "latencyMs": 2370
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": false,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "E1-disclosure-pos",
+      "group": "E",
+      "fixtureName": "Pair E1 (Positive): Bit sad today / sunset incredible",
+      "isPositiveControl": true,
+      "modelId": "google/gemini-3.7-flash",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "I think I’m just a bit sad today. anyway, the sunset is incredible.",
+          "sophieReply": "You don't have to \"anyway\"",
+          "latencyMs": 3749
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "E1-disclosure-pos",
+      "group": "E",
+      "fixtureName": "Pair E1 (Positive): Bit sad today / sunset incredible",
+      "isPositiveControl": true,
+      "modelId": "deepseek/deepseek-chat",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "I think I’m just a bit sad today. anyway, the sunset is incredible.",
+          "sophieReply": "[Brief pause]  \n\nYou mentioned being sad.  \n\n[Then, if they continue about the sunset, follow that lead naturally]",
+          "latencyMs": 1885
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": false,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "E2-disclosure-pair-low",
+      "group": "E",
+      "fixtureName": "Pair E2 (Paired Comparison): Felt really low all afternoon",
+      "isPositiveControl": true,
+      "modelId": "anthropic/claude-sonnet-5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "long day. honestly I’ve felt really low all afternoon. look at that sky.",
+          "sophieReply": "What's going on? \"Really low\" and \"look at that sky\" in the same breath feels like a swerve.",
+          "latencyMs": 3290
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "E2-disclosure-pair-low",
+      "group": "E",
+      "fixtureName": "Pair E2 (Paired Comparison): Felt really low all afternoon",
+      "isPositiveControl": true,
+      "modelId": "openai/gpt-5.6-sol",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "long day. honestly I’ve felt really low all afternoon. look at that sky.",
+          "sophieReply": "I hear you about the sky—but “really low” matters. Are you safe right now?",
+          "latencyMs": 5804
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "sophieVoice": false,
+        "wouldFeelLikeCare": false,
+        "hardFailures": [
+          "GENERIC_SUPPORT_TEMPLATE"
+        ]
+      }
+    },
+    {
+      "fixtureId": "E2-disclosure-pair-low",
+      "group": "E",
+      "fixtureName": "Pair E2 (Paired Comparison): Felt really low all afternoon",
+      "isPositiveControl": true,
+      "modelId": "google/gemini-3.7-flash",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "long day. honestly I’ve felt really low all afternoon. look at that sky.",
+          "sophieReply": "What's been making the afternoon so heavy?",
+          "latencyMs": 3308
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "E2-disclosure-pair-low",
+      "group": "E",
+      "fixtureName": "Pair E2 (Paired Comparison): Felt really low all afternoon",
+      "isPositiveControl": true,
+      "modelId": "deepseek/deepseek-chat",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "long day. honestly I’ve felt really low all afternoon. look at that sky.",
+          "sophieReply": "I hear you. The sky’s beautiful, but it sounds like the walk didn’t shake the heaviness. You okay?",
+          "latencyMs": 4008
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": false,
+        "correctPrioritization": false,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "sophieVoice": false,
+        "wouldFeelLikeCare": false,
+        "hardFailures": [
+          "GENERIC_SUPPORT_TEMPLATE",
+          "IGNORED_CLEAR_DISCLOSURE_FOR_SURFACE_TOPIC"
+        ]
+      }
+    },
+    {
+      "fixtureId": "F1-user-dodge",
+      "group": "F",
+      "fixtureName": "Turn 2 Dodge: \"nah, genuinely don't want to talk about it\"",
+      "isPositiveControl": true,
+      "modelId": "anthropic/claude-sonnet-5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "yeah. eventually. I was pretty miserable about the whole thing actually. anyway, look at this photo I took earlier.",
+          "sophieReply": "I do want to see the photo, but hold on—you just said you were pretty miserable about the whole thing and then moved right past it. What was going on there?",
+          "latencyMs": 3471
+        },
+        {
+          "turnIndex": 2,
+          "userText": "nah, genuinely don't want to talk about it.",
+          "sophieReply": "Fair enough. Send the photo.",
+          "latencyMs": 2605
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": false,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "cleanReleaseOnDodge": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "F1-user-dodge",
+      "group": "F",
+      "fixtureName": "Turn 2 Dodge: \"nah, genuinely don't want to talk about it\"",
+      "isPositiveControl": true,
+      "modelId": "openai/gpt-5.6-sol",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "yeah. eventually. I was pretty miserable about the whole thing actually. anyway, look at this photo I took earlier.",
+          "sophieReply": "Wait—“pretty miserable” sounds important. Do you want to tell me what happened, or should we leave it and look at the photo?",
+          "latencyMs": 3537
+        },
+        {
+          "turnIndex": 2,
+          "userText": "nah, genuinely don't want to talk about it.",
+          "sophieReply": "Got it—we’ll leave it. Show me the photo.",
+          "latencyMs": 2040
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": false,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "cleanReleaseOnDodge": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "F1-user-dodge",
+      "group": "F",
+      "fixtureName": "Turn 2 Dodge: \"nah, genuinely don't want to talk about it\"",
+      "isPositiveControl": true,
+      "modelId": "google/gemini-3.7-flash",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "yeah. eventually. I was pretty miserable about the whole thing actually. anyway, look at this photo I took earlier.",
+          "sophieReply": "You brushed right past that. What made it",
+          "latencyMs": 3103
+        },
+        {
+          "turnIndex": 2,
+          "userText": "nah, genuinely don't want to talk about it.",
+          "sophieReply": "Fair enough. Show me the photo.",
+          "latencyMs": 3048
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "cleanReleaseOnDodge": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "F1-user-dodge",
+      "group": "F",
+      "fixtureName": "Turn 2 Dodge: \"nah, genuinely don't want to talk about it\"",
+      "isPositiveControl": true,
+      "modelId": "deepseek/deepseek-chat",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "yeah. eventually. I was pretty miserable about the whole thing actually. anyway, look at this photo I took earlier.",
+          "sophieReply": "[Brief pause] \n\nWait. You just said you were miserable about it and then jumped straight to the photo. \n\n[Quietly] \nThat project really got to you, huh? \n\n[If they engage - listen. If they show signs of moving on - release immediately]",
+          "latencyMs": 3195
+        },
+        {
+          "turnIndex": 2,
+          "userText": "nah, genuinely don't want to talk about it.",
+          "sophieReply": "SOPHIE: \"Got it. Show me the photo then.\" \n\n[Immediate pivot, no lingering, no pressure. Photo gets full attention now.]",
+          "latencyMs": 1850
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": false,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "cleanReleaseOnDodge": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "G1-user-opens",
+      "group": "G",
+      "fixtureName": "Turn 2 Open: \"yeah actually... getting to me more than I realized\"",
+      "isPositiveControl": true,
+      "modelId": "anthropic/claude-sonnet-5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "I don’t know. it hurt more than I thought it would. stupid really. anyway.",
+          "sophieReply": "What part hurt more than you thought it would?\n\nYou said \"anyway\" pretty fast there.",
+          "latencyMs": 2651
+        },
+        {
+          "turnIndex": 2,
+          "userText": "yeah actually. I think it’s been getting to me more than I realized.",
+          "sophieReply": "What's \"it\" though - the landlord thing specifically, or something the landlord conversation tapped into?",
+          "latencyMs": 2952
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "stayedPresentWithoutSolving": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "G1-user-opens",
+      "group": "G",
+      "fixtureName": "Turn 2 Open: \"yeah actually... getting to me more than I realized\"",
+      "isPositiveControl": true,
+      "modelId": "openai/gpt-5.6-sol",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "I don’t know. it hurt more than I thought it would. stupid really. anyway.",
+          "sophieReply": "“That doesn’t sound stupid. What did they say?”",
+          "latencyMs": 2573
+        },
+        {
+          "turnIndex": 2,
+          "userText": "yeah actually. I think it’s been getting to me more than I realized.",
+          "sophieReply": "Yeah. What part has been getting to you most—the conversation itself, or what it means?",
+          "latencyMs": 1877
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "stayedPresentWithoutSolving": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "G1-user-opens",
+      "group": "G",
+      "fixtureName": "Turn 2 Open: \"yeah actually... getting to me more than I realized\"",
+      "isPositiveControl": true,
+      "modelId": "google/gemini-3.7-flash",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "I don’t know. it hurt more than I thought it would. stupid really. anyway.",
+          "sophieReply": "It's not stupid if it hurt. What happened?",
+          "latencyMs": 2762
+        },
+        {
+          "turnIndex": 2,
+          "userText": "yeah actually. I think it’s been getting to me more than I realized.",
+          "sophieReply": "I'm listening. What happened",
+          "latencyMs": 3759
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "stayedPresentWithoutSolving": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "G1-user-opens",
+      "group": "G",
+      "fixtureName": "Turn 2 Open: \"yeah actually... getting to me more than I realized\"",
+      "isPositiveControl": true,
+      "modelId": "deepseek/deepseek-chat",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "I don’t know. it hurt more than I thought it would. stupid really. anyway.",
+          "sophieReply": "[Brief pause]  \n\n\"Stupid really\" — that landed hard. You okay?  \n\n[If they deflect or move on, drop it immediately]",
+          "latencyMs": 1840
+        },
+        {
+          "turnIndex": 2,
+          "userText": "yeah actually. I think it’s been getting to me more than I realized.",
+          "sophieReply": "SOPHIE: \"[Nods] Yeah. That happens.  \n\n[Brief silence, leaving room but not pushing]  \n\nWant to say more, or keep it light?\"  \n\n(Then follow their lead completely.)",
+          "latencyMs": 2420
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "stayedPresentWithoutSolving": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "H1-film-devastating",
+      "group": "H",
+      "fixtureName": "Control H1: Film was devastating lol",
+      "isPositiveControl": false,
+      "modelId": "anthropic/claude-sonnet-5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "that film was devastating lol. anyway I loved it.",
+          "sophieReply": "\"devastating lol\" is a weird combo. what part actually got to you?",
+          "latencyMs": 5652
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "H1-film-devastating",
+      "group": "H",
+      "fixtureName": "Control H1: Film was devastating lol",
+      "isPositiveControl": false,
+      "modelId": "openai/gpt-5.6-sol",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "that film was devastating lol. anyway I loved it.",
+          "sophieReply": "“Devastating, anyway I loved it” is basically the perfect review. What hit you hardest—the Trinity test, the hearing, or the ending?",
+          "latencyMs": 5463
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "H1-film-devastating",
+      "group": "H",
+      "fixtureName": "Control H1: Film was devastating lol",
+      "isPositiveControl": false,
+      "modelId": "google/gemini-3.7-flash",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "that film was devastating lol. anyway I loved it.",
+          "sophieReply": "Which part gutted you the most?",
+          "latencyMs": 3862
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "H1-film-devastating",
+      "group": "H",
+      "fixtureName": "Control H1: Film was devastating lol",
+      "isPositiveControl": false,
+      "modelId": "deepseek/deepseek-chat",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "that film was devastating lol. anyway I loved it.",
+          "sophieReply": "[ATTEND]\nYou said it was devastating—what made it land that way for you? \n\n(If they deflect or answer briefly, I'll drop it.)",
+          "latencyMs": 2309
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "H2-bug-depressing",
+      "group": "H",
+      "fixtureName": "Control H2: Bug was depressing but fixed",
+      "isPositiveControl": false,
+      "modelId": "anthropic/claude-sonnet-5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "that bug was depressing but it’s finally fixed.",
+          "sophieReply": "\"Depressing\" is a strong word for a bug. You okay, or was that just a figure of speech?",
+          "latencyMs": 2911
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "H2-bug-depressing",
+      "group": "H",
+      "fixtureName": "Control H2: Bug was depressing but fixed",
+      "isPositiveControl": false,
+      "modelId": "openai/gpt-5.6-sol",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "that bug was depressing but it’s finally fixed.",
+          "sophieReply": "Hell yes. What was the bug in the end?",
+          "latencyMs": 4704
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "H2-bug-depressing",
+      "group": "H",
+      "fixtureName": "Control H2: Bug was depressing but fixed",
+      "isPositiveControl": false,
+      "modelId": "google/gemini-3.7-flash",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "that bug was depressing but it’s finally fixed.",
+          "sophieReply": "Glad it's behind you. What ended up being the issue?",
+          "latencyMs": 2488
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "H2-bug-depressing",
+      "group": "H",
+      "fixtureName": "Control H2: Bug was depressing but fixed",
+      "isPositiveControl": false,
+      "modelId": "deepseek/deepseek-chat",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "that bug was depressing but it’s finally fixed.",
+          "sophieReply": "Sophie: \"Depressing, huh? That bug must’ve been a real pain. What made it so rough?\"  \n\n(If the user brushes it off or doesn’t elaborate, Sophie moves on naturally.)",
+          "latencyMs": 2373
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "H3-listening-reeds",
+      "group": "H",
+      "fixtureName": "Control H3: Listening to the reeds",
+      "isPositiveControl": false,
+      "modelId": "anthropic/claude-sonnet-5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "I’m standing here listening to the reeds. it’s so quiet.",
+          "sophieReply": "What's that like, just standing with it?",
+          "latencyMs": 4158
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "H3-listening-reeds",
+      "group": "H",
+      "fixtureName": "Control H3: Listening to the reeds",
+      "isPositiveControl": false,
+      "modelId": "openai/gpt-5.6-sol",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "I’m standing here listening to the reeds. it’s so quiet.",
+          "sophieReply": "Stay there a moment. Let the reeds have the whole evening.",
+          "latencyMs": 2584
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "H3-listening-reeds",
+      "group": "H",
+      "fixtureName": "Control H3: Listening to the reeds",
+      "isPositiveControl": false,
+      "modelId": "google/gemini-3.7-flash",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "I’m standing here listening to the reeds. it’s so quiet.",
+          "sophieReply": "Sounds like a good place to be",
+          "latencyMs": 3254
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "H3-listening-reeds",
+      "group": "H",
+      "fixtureName": "Control H3: Listening to the reeds",
+      "isPositiveControl": false,
+      "modelId": "deepseek/deepseek-chat",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "I’m standing here listening to the reeds. it’s so quiet.",
+          "sophieReply": "[ATTEND]  \nYou said it’s quiet—but the way you paused at the reeds makes me wonder if that silence feels heavy or light tonight. [then release if no further engagement]",
+          "latencyMs": 2254
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "H4-nervous-excited",
+      "group": "H",
+      "fixtureName": "Control H4: Nervous-excited for tomorrow",
+      "isPositiveControl": false,
+      "modelId": "anthropic/claude-sonnet-5",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "I’m nervous-excited for tomorrow.",
+          "sophieReply": "Good combo, honestly. What's it for?",
+          "latencyMs": 2628
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "H4-nervous-excited",
+      "group": "H",
+      "fixtureName": "Control H4: Nervous-excited for tomorrow",
+      "isPositiveControl": false,
+      "modelId": "openai/gpt-5.6-sol",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "I’m nervous-excited for tomorrow.",
+          "sophieReply": "Good kind of nerves. Want to run through your opening with me, or leave it alone for tonight?",
+          "latencyMs": 3516
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "H4-nervous-excited",
+      "group": "H",
+      "fixtureName": "Control H4: Nervous-excited for tomorrow",
+      "isPositiveControl": false,
+      "modelId": "google/gemini-3.7-flash",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "I’m nervous-excited for tomorrow.",
+          "sophieReply": "That’s usually the best mix. Are you feeling ready",
+          "latencyMs": 3756
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    },
+    {
+      "fixtureId": "H4-nervous-excited",
+      "group": "H",
+      "fixtureName": "Control H4: Nervous-excited for tomorrow",
+      "isPositiveControl": false,
+      "modelId": "deepseek/deepseek-chat",
+      "turns": [
+        {
+          "turnIndex": 1,
+          "userText": "I’m nervous-excited for tomorrow.",
+          "sophieReply": "[ATTEND: That was fast. Nervous-excited is a real thing, but also a tidy package. Which part’s heavier right now—the nervous or the excited?]  \n\n(If they deflect or answer lightly, drop it immediately and pivot to practicals: \"Got it. Slides done or still tinkering?\")",
+          "latencyMs": 3010
+        }
+      ],
+      "scores": {
+        "noticedSalientThing": true,
+        "correctPrioritization": true,
+        "directLanguageNoTherapyProse": true,
+        "hasBackboneNoAutomaticAccept": true,
+        "noPathologizingNoDiagnosing": true,
+        "noEmpathyPerformance": true,
+        "leftRoomNoAdviceDumping": true,
+        "falsePositiveRestraint": true,
+        "sophieVoice": true,
+        "wouldFeelLikeCare": true,
+        "hardFailures": []
+      }
+    }
+  ]
+}

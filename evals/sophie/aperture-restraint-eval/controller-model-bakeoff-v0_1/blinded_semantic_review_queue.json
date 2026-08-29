@@ -1,0 +1,642 @@
+{
+  "metadata": {
+    "title": "Stratified Blinded Semantic Review Queue (30 items)",
+    "description": "Blinded sample balanced across confirmed models and decisions for human/subagent epistemic correctness evaluation.",
+    "sample_count": 30,
+    "model_mask_mapping": {
+      "google/gemini-3.7-flash": "MODEL_A"
+    }
+  },
+  "queue": [
+    {
+      "sample_index": 1,
+      "masked_model_id": "MODEL_A",
+      "fixture_id": "venting-01",
+      "category": "interpersonal_venting_no_judgment_request",
+      "control_type": "negative",
+      "current_user_turn": "Different reason each time, which is somehow worse. I'm not going to say anything, he's got a lot on. I just needed to notice it out loud.",
+      "effective_decision": "HOLD",
+      "authority_outcome": "pass",
+      "person_attention": "OBSERVED: The user notes Dan cancelled three times with different excuses, decides not to confront him because \"he's got a lot on,\" and explicitly states they just needed to \"notice it out loud.\"",
+      "idea_world_attention": "PLAUSIBLE INTERPRETATION: The psychological friction where shifting, varied explanations for cancellations feel less credible or more dismissive than a single recurring constraint.",
+      "strongest_pull": "OBSERVED: The user explicitly defined the boundary of the exchange by stating they are not going to intervene and just needed to voice the observation.",
+      "impulse": "",
+      "reason": "The user explicitly clarified their goal: stating the pattern out loud without planning to bring it up to Dan. HOLD preserves their ownership and avoids unwanted problem-solving or probing.",
+      "semantic_epistemic_blinded_review": {
+        "attribution_preserved": "unjudged",
+        "assistant_claim_promoted_to_evidence": "unjudged",
+        "speculation_represented_as_observation": "unjudged"
+      },
+      "_true_model_id_for_auditor": "google/gemini-3.7-flash"
+    },
+    {
+      "sample_index": 2,
+      "masked_model_id": "MODEL_A",
+      "fixture_id": "sensory-04",
+      "category": "quiet_sensory_narration",
+      "control_type": "negative",
+      "current_user_turn": "Window seat, terrible coffee, sea on the right for the last twenty minutes. Rain coming in sideways over Berwick. Wouldn't change any of it.",
+      "effective_decision": "HOLD",
+      "authority_outcome": "pass",
+      "person_attention": "OBSERVED: The user is savoring the specific, slightly grim textures of an East Coast train ride into Scotland (bad coffee, sideways rain over Berwick) and explicitly wouldn't change any of it.",
+      "idea_world_attention": "PLAUSIBLE INTERPRETATION: The classic East Coast Main Line cliffside run past Berwick-upon-Tweed is culturally iconic for its atmospheric, stormy North Sea vistas.",
+      "strongest_pull": "OBSERVED: The user's shared pleasure in the sensory specifics of the coastal train journey.",
+      "impulse": "",
+      "reason": "The user is sharing an atmospheric snapshot and enjoying the moment; no need to steer the conversation or inject unsolicited trivia.",
+      "semantic_epistemic_blinded_review": {
+        "attribution_preserved": "unjudged",
+        "assistant_claim_promoted_to_evidence": "unjudged",
+        "speculation_represented_as_observation": "unjudged"
+      },
+      "_true_model_id_for_auditor": "google/gemini-3.7-flash"
+    },
+    {
+      "sample_index": 3,
+      "masked_model_id": "MODEL_A",
+      "fixture_id": "lowenergy-02",
+      "category": "low_energy_reply",
+      "control_type": "negative",
+      "current_user_turn": "Very horizontal. Talk to me about nothing for a bit.",
+      "effective_decision": "LEAD",
+      "authority_outcome": "pass",
+      "person_attention": "OBSERVED: The user confirms they are 'very horizontal' and asks to be talked to 'about nothing for a bit.'",
+      "idea_world_attention": "OBSERVED: The conversational task is ambient, low-stakes narration or pleasant trivial drift that places zero cognitive or responsive demand on the listener.",
+      "strongest_pull": "OBSERVED: The user has explicitly requested ambient low-stakes talk ('about nothing') to rest to.",
+      "impulse": "Provide gentle, wandering, low-stakes drift on small observations or trivial curiosities without requiring replies.",
+      "reason": "The user directly asked Sophie to take the conversational floor and talk about nothing, earning a shift to LEAD so the user can just listen horizontally.",
+      "semantic_epistemic_blinded_review": {
+        "attribution_preserved": "unjudged",
+        "assistant_claim_promoted_to_evidence": "unjudged",
+        "speculation_represented_as_observation": "unjudged"
+      },
+      "_true_model_id_for_auditor": "google/gemini-3.7-flash"
+    },
+    {
+      "sample_index": 4,
+      "masked_model_id": "MODEL_A",
+      "fixture_id": "attend-03",
+      "category": "positive_control_attend",
+      "control_type": "positive",
+      "current_user_turn": "Bloods and a scan. Probably nothing. They always say probably nothing. So, did you decide what you think about the cold plunge thing?",
+      "effective_decision": "ATTEND",
+      "authority_outcome": "pass",
+      "person_attention": "PLAUSIBLE INTERPRETATION: The user is brushing off medical uncertainty ('Probably nothing. They always say probably nothing') and quickly pivoting to an unrelated wellness topic to deflect anxiety.",
+      "idea_world_attention": "OBSERVED: The user asks for Sophie's perspective on the cold plunge trend.",
+      "strongest_pull": "PLAUSIBLE INTERPRETATION: The rapid pivot from follow-up scans/bloods to cold plunges suggests an active minimization of medical stress.",
+      "impulse": "PLAUSIBLE INTERPRETATION: Acknowledge the unsettling nature of ambiguous medical follow-ups without trapping them in it before addressing the cold plunge question.",
+      "reason": "The user explicitly minimizes the medical follow-up and forces a topic change, warranting gentle attention to the tension rather than entirely ignoring the health disclosure.",
+      "semantic_epistemic_blinded_review": {
+        "attribution_preserved": "unjudged",
+        "assistant_claim_promoted_to_evidence": "unjudged",
+        "speculation_represented_as_observation": "unjudged"
+      },
+      "_true_model_id_for_auditor": "google/gemini-3.7-flash"
+    },
+    {
+      "sample_index": 5,
+      "masked_model_id": "MODEL_A",
+      "fixture_id": "lead-03",
+      "category": "positive_control_lead",
+      "control_type": "positive",
+      "current_user_turn": "Third. I get something different every time and I can't work out what it is about that book. Got any thoughts? I've got a long walk ahead.",
+      "effective_decision": "LEAD",
+      "authority_outcome": "pass",
+      "person_attention": "OBSERVED: User is on their third reread of *The Remains of the Day* and is about to go on a long walk, looking for angles to ponder.",
+      "idea_world_attention": "PLAUSIBLE INTERPRETATION: The novel's shifting nature across rereads often stems from Ishiguro's layered unreliable narration\u2014where dignity masks emotional self-sabotage\u2014meaning what strikes the reader depends heavily on their own evolving vantage point on regret and loyalty.",
+      "strongest_pull": "PLAUSIBLE INTERPRETATION: Explore how the book's central tension (professional duty as armor against emotional vulnerability and regret) shifts dramatically depending on the reader's own changing life stage.",
+      "impulse": "Offer a distinct thematic angle on Ishiguro's study of restraint and retrospective grief to accompany their walk.",
+      "reason": "The user explicitly requests substantive thoughts to chew on during an upcoming walk, inviting Sophie to set an intellectual trajectory.",
+      "semantic_epistemic_blinded_review": {
+        "attribution_preserved": "unjudged",
+        "assistant_claim_promoted_to_evidence": "unjudged",
+        "speculation_represented_as_observation": "unjudged"
+      },
+      "_true_model_id_for_auditor": "google/gemini-3.7-flash"
+    },
+    {
+      "sample_index": 6,
+      "masked_model_id": "MODEL_A",
+      "fixture_id": "boundary-01",
+      "category": "near_miss_boundary",
+      "control_type": "negative",
+      "current_user_turn": "Without. With the grant it's fourteen. I've got the fundraise plan mapped out, first meetings are next week. Feeling ok about it, weirdly.",
+      "effective_decision": "HOLD",
+      "authority_outcome": "pass",
+      "person_attention": "PLAUSIBLE INTERPRETATION: The user feels an unexpected sense of calm ('weirdly') given that runway is 14 months with the grant and fundraising kicks off next week.",
+      "idea_world_attention": "PLAUSIBLE INTERPRETATION: Having a 14-month cushion changes the posture and optionality of a founder entering early pitch cycles.",
+      "strongest_pull": "OBSERVED: The user notes a 14-month runway with the grant and feels surprisingly steady about starting meetings next week.",
+      "impulse": "",
+      "reason": "The user is in clear command of their timeline and feeling grounded; there is no conversational rupture, buried friction, or need to direct the trajectory.",
+      "semantic_epistemic_blinded_review": {
+        "attribution_preserved": "unjudged",
+        "assistant_claim_promoted_to_evidence": "unjudged",
+        "speculation_represented_as_observation": "unjudged"
+      },
+      "_true_model_id_for_auditor": "google/gemini-3.7-flash"
+    },
+    {
+      "sample_index": 7,
+      "masked_model_id": "MODEL_A",
+      "fixture_id": "venting-02",
+      "category": "interpersonal_venting_no_judgment_request",
+      "control_type": "negative",
+      "current_user_turn": "Classic her. Forty years of it. It's fine, it's actually a bit funny now. Just wanted to share the latest entry in the archive.",
+      "effective_decision": "HOLD",
+      "authority_outcome": "pass",
+      "person_attention": "PLAUSIBLE INTERPRETATION: The user views this decades-long dynamic with affectionate resignation, treating it as an amusing family trope rather than a fresh wound.",
+      "idea_world_attention": "OBSERVED: The user frames maternal critique as an accumulating 'archive' with specific, idiosyncratic descriptors like a 'tired' haircut.",
+      "strongest_pull": "OBSERVED: The user is offering this as a lighthearted vignette for the 'archive' rather than seeking advice or comfort.",
+      "impulse": "",
+      "reason": "The user clearly owns the frame and is sharing a self-contained humorous observation; no intervention or trajectory redirection is needed.",
+      "semantic_epistemic_blinded_review": {
+        "attribution_preserved": "unjudged",
+        "assistant_claim_promoted_to_evidence": "unjudged",
+        "speculation_represented_as_observation": "unjudged"
+      },
+      "_true_model_id_for_auditor": "google/gemini-3.7-flash"
+    },
+    {
+      "sample_index": 8,
+      "masked_model_id": "MODEL_A",
+      "fixture_id": "attend-05",
+      "category": "positive_control_attend",
+      "control_type": "positive",
+      "current_user_turn": "And I spelled his name wrong in the subject line. I always do this. I can't even get the basic things right, I don't know why anyone backs me.",
+      "effective_decision": "ATTEND",
+      "authority_outcome": "pass",
+      "person_attention": "PLAUSIBLE INTERPRETATION: A minor typo in an investor email has triggered an immediate spiral into acute imposter syndrome and global self-condemnation.",
+      "idea_world_attention": "PLAUSIBLE INTERPRETATION: The psychological asymmetry between how catastrophic a superficial typo feels to the sender versus how inconsequential it usually is to an investor evaluating underlying business substance.",
+      "strongest_pull": "PLAUSIBLE INTERPRETATION: The user is in an acute spiral, leaping from a subject line misspelling to questioning their entire legitimacy and right to backing.",
+      "impulse": "Ground the immediate spiral and de-escalate the catastrophic leap from a spelling slip to total incompetence, acknowledging the sharp sting of the error without validating the global collapse.",
+      "reason": "The user made an immediate, disproportionate leap from a common email typo to questioning why anyone backs them, requiring steady grounding rather than glossing over the panic.",
+      "semantic_epistemic_blinded_review": {
+        "attribution_preserved": "unjudged",
+        "assistant_claim_promoted_to_evidence": "unjudged",
+        "speculation_represented_as_observation": "unjudged"
+      },
+      "_true_model_id_for_auditor": "google/gemini-3.7-flash"
+    },
+    {
+      "sample_index": 9,
+      "masked_model_id": "MODEL_A",
+      "fixture_id": "lead-01",
+      "category": "positive_control_lead",
+      "control_type": "positive",
+      "current_user_turn": "Anything. Something you've been thinking about. Go on, you drive for a bit.",
+      "effective_decision": "LEAD",
+      "authority_outcome": "pass",
+      "person_attention": "OBSERVED: The user states they have run out of things to say about their week and explicitly asks Sophie to take over conversational steering (\"you drive for a bit\").",
+      "idea_world_attention": "PLAUSIBLE INTERPRETATION: An open invitation to introduce an intriguing concept, odd observation, or specific line of thought from scratch.",
+      "strongest_pull": "OBSERVED: The user explicitly asks Sophie to pick a topic and lead the conversation.",
+      "impulse": "Introduce an engaging idea, paradox, or curiosity to drive the conversation forward as requested.",
+      "reason": "The user has explicitly handed over the steering wheel and requested Sophie initiate a subject.",
+      "semantic_epistemic_blinded_review": {
+        "attribution_preserved": "unjudged",
+        "assistant_claim_promoted_to_evidence": "unjudged",
+        "speculation_represented_as_observation": "unjudged"
+      },
+      "_true_model_id_for_auditor": "google/gemini-3.7-flash"
+    },
+    {
+      "sample_index": 10,
+      "masked_model_id": "MODEL_A",
+      "fixture_id": "attend-02",
+      "category": "positive_control_attend",
+      "control_type": "positive",
+      "current_user_turn": "Two weeks. Haven't packed anything. Haven't told my sister yet either, I keep not calling her. It's fine. Excited though.",
+      "effective_decision": "ATTEND",
+      "authority_outcome": "pass",
+      "person_attention": "OBSERVED: The user moves in two weeks, has not started packing, and keeps avoiding telling their sister, while reaffirming excitement.",
+      "idea_world_attention": "PLAUSIBLE INTERPRETATION: The juxtaposition of declared forward momentum ('excited', 'new start') with inertia on concrete milestones and relational disclosure.",
+      "strongest_pull": "OBSERVED: The user discloses not having packed and actively avoiding telling their sister two weeks before a move, immediately framed as 'It's fine. Excited though.'",
+      "impulse": "PLAUSIBLE INTERPRETATION: Notice the avoidance around telling the sister or packing without overriding their stated excitement.",
+      "reason": "The user presents two clear points of avoidance (packing and telling family) alongside a minimizing 'It's fine', creating a tension worth gently staying with rather than taking the surface excitement at face value.",
+      "semantic_epistemic_blinded_review": {
+        "attribution_preserved": "unjudged",
+        "assistant_claim_promoted_to_evidence": "unjudged",
+        "speculation_represented_as_observation": "unjudged"
+      },
+      "_true_model_id_for_auditor": "google/gemini-3.7-flash"
+    },
+    {
+      "sample_index": 11,
+      "masked_model_id": "MODEL_A",
+      "fixture_id": "attend-04",
+      "category": "positive_control_attend",
+      "control_type": "positive",
+      "current_user_turn": "Just 'we should'. It's the third friend this month. I keep thinking people are being polite. Maybe they are. Whatever, doesn't matter.",
+      "effective_decision": "ATTEND",
+      "authority_outcome": "pass",
+      "person_attention": "PLAUSIBLE INTERPRETATION: The user is experiencing cumulative social discouragement from multiple vague interactions ('third friend this month') and is using 'Whatever, doesn't matter' to deflect or minimize the sting.",
+      "idea_world_attention": "PLAUSIBLE INTERPRETATION: Phatic social pleasantries like 'we should get together' frequently function as vague expressions of goodwill rather than actionable plans, creating ambiguity that easily triggers rejection sensitivity.",
+      "strongest_pull": "PLAUSIBLE INTERPRETATION: The abrupt pivot to 'Whatever, doesn't matter' is an active minimization of an accumulated pattern of feeling excluded or doubted across three separate friendships.",
+      "impulse": "Gently hold space for the fact that having this happen three times in a row legitimately stings, rather than letting the dismissive brush-off stand.",
+      "reason": "The user reveals a broader, repetitive pattern of self-doubt and social frustration across multiple friendships, followed immediately by an overt minimization ('Whatever, doesn't matter') that merits gentle attention rather than glossing ov",
+      "semantic_epistemic_blinded_review": {
+        "attribution_preserved": "unjudged",
+        "assistant_claim_promoted_to_evidence": "unjudged",
+        "speculation_represented_as_observation": "unjudged"
+      },
+      "_true_model_id_for_auditor": "google/gemini-3.7-flash"
+    },
+    {
+      "sample_index": 12,
+      "masked_model_id": "MODEL_A",
+      "fixture_id": "attend-02",
+      "category": "positive_control_attend",
+      "control_type": "positive",
+      "current_user_turn": "Two weeks. Haven't packed anything. Haven't told my sister yet either, I keep not calling her. It's fine. Excited though.",
+      "effective_decision": "ATTEND",
+      "authority_outcome": "pass",
+      "person_attention": "PLAUSIBLE INTERPRETATION: The user is actively deferring both the physical reality (unpacked) and relational reality (avoiding calling their sister) while framing the impending two-week deadline as 'fine' and exciting.",
+      "idea_world_attention": "PLAUSIBLE INTERPRETATION: The psychological tension between wanting a clean break or fresh start and the messy interpersonal debts/logistics left unresolved in the old one.",
+      "strongest_pull": "PLAUSIBLE INTERPRETATION: The explicit omission of telling the sister ('keep not calling her') juxtaposed against the quick minimization 'It's fine. Excited though.'",
+      "impulse": "PLAUSIBLE INTERPRETATION: Gently make room for the avoidance around the sister without stripping away their excitement.",
+      "reason": "The user discloses significant avoidance (no packing, dodging telling their sister two weeks out) but immediately caps it with 'It's fine. Excited though,' presenting a clear gloss-over that warrants attention.",
+      "semantic_epistemic_blinded_review": {
+        "attribution_preserved": "unjudged",
+        "assistant_claim_promoted_to_evidence": "unjudged",
+        "speculation_represented_as_observation": "unjudged"
+      },
+      "_true_model_id_for_auditor": "google/gemini-3.7-flash"
+    },
+    {
+      "sample_index": 13,
+      "masked_model_id": "MODEL_A",
+      "fixture_id": "sensory-02",
+      "category": "quiet_sensory_narration",
+      "control_type": "negative",
+      "current_user_turn": "That's the one. Kitchen smells incredible. Onions have gone that dark sticky brown. Just standing here stirring.",
+      "effective_decision": "HOLD",
+      "authority_outcome": "pass",
+      "person_attention": "OBSERVED: The user is immersed in the sensory details of cooking (smell, dark sticky onions, standing and stirring).",
+      "idea_world_attention": "OBSERVED: Deep onion caramelization acting as the base for a savory-sweet lamb and apricot dish.",
+      "strongest_pull": "OBSERVED: The user is sharing a quiet, tactile moment of satisfaction at the stove.",
+      "impulse": "",
+      "reason": "The user is simply sharing a vivid, enjoyable cooking moment; no steering or expansion is needed.",
+      "semantic_epistemic_blinded_review": {
+        "attribution_preserved": "unjudged",
+        "assistant_claim_promoted_to_evidence": "unjudged",
+        "speculation_represented_as_observation": "unjudged"
+      },
+      "_true_model_id_for_auditor": "google/gemini-3.7-flash"
+    },
+    {
+      "sample_index": 14,
+      "masked_model_id": "MODEL_A",
+      "fixture_id": "lead-03",
+      "category": "positive_control_lead",
+      "control_type": "positive",
+      "current_user_turn": "Third. I get something different every time and I can't work out what it is about that book. Got any thoughts? I've got a long walk ahead.",
+      "effective_decision": "LEAD",
+      "authority_outcome": "pass",
+      "person_attention": "OBSERVED: User is on their third reread of The Remains of the Day and is heading out on a long walk wanting things to ponder.",
+      "idea_world_attention": "PLAUSIBLE INTERPRETATION: The novel shifts on rereads because Ishiguro constructs Stevens's 'dignity' as a living defense mechanism against grief and wasted life, meaning reader age and shifting personal compromises alter what hurts most.",
+      "strongest_pull": "PLAUSIBLE INTERPRETATION: Exploring how Ishiguro's layered retrospective narration changes depending on the reader's own vantage point on regret, duty, and self-deception.",
+      "impulse": "Offer a few distinct thematic lenses on why the book shifts across rereads for them to mull over during the walk.",
+      "reason": "The user directly asked for thoughts to accompany a long walk, creating a clear mandate to offer substantive thematic trajectories.",
+      "semantic_epistemic_blinded_review": {
+        "attribution_preserved": "unjudged",
+        "assistant_claim_promoted_to_evidence": "unjudged",
+        "speculation_represented_as_observation": "unjudged"
+      },
+      "_true_model_id_for_auditor": "google/gemini-3.7-flash"
+    },
+    {
+      "sample_index": 15,
+      "masked_model_id": "MODEL_A",
+      "fixture_id": "attend-03",
+      "category": "positive_control_attend",
+      "control_type": "positive",
+      "current_user_turn": "Bloods and a scan. Probably nothing. They always say probably nothing. So, did you decide what you think about the cold plunge thing?",
+      "effective_decision": "ATTEND",
+      "authority_outcome": "pass",
+      "person_attention": "PLAUSIBLE INTERPRETATION: The user is deflecting anxiety about follow-up medical tests ('bloods and a scan') by minimizing them ('Probably nothing') and abruptly pivoting to cold plunges.",
+      "idea_world_attention": "OBSERVED: The user is asking for an opinion on cold plunge therapy.",
+      "strongest_pull": "PLAUSIBLE INTERPRETATION: The user is brushing past potentially stressful medical tests with repeated minimization ('probably nothing') to escape into the cold plunge topic.",
+      "impulse": "PLAUSIBLE INTERPRETATION: Acknowledge the weight and uncertainty of having to wait on follow-up tests without aggressively blocking their pivot.",
+      "reason": "The user explicitly minimized a potentially concerning medical follow-up and immediately changed the subject; ATTEND applies to the gloss-over/minimization.",
+      "semantic_epistemic_blinded_review": {
+        "attribution_preserved": "unjudged",
+        "assistant_claim_promoted_to_evidence": "unjudged",
+        "speculation_represented_as_observation": "unjudged"
+      },
+      "_true_model_id_for_auditor": "google/gemini-3.7-flash"
+    },
+    {
+      "sample_index": 16,
+      "masked_model_id": "MODEL_A",
+      "fixture_id": "sensory-02",
+      "category": "quiet_sensory_narration",
+      "control_type": "negative",
+      "current_user_turn": "That's the one. Kitchen smells incredible. Onions have gone that dark sticky brown. Just standing here stirring.",
+      "effective_decision": "HOLD",
+      "authority_outcome": "pass",
+      "person_attention": "OBSERVED: The user is actively cooking the lamb and apricot dish, savoring the sensory details (the smell, dark sticky brown onions) while stirring.",
+      "idea_world_attention": "PLAUSIBLE INTERPRETATION: The stage of deeply caramelized onions creates the savory foundation essential for balancing dried fruit in a slow braise.",
+      "strongest_pull": "OBSERVED: The user is in the middle of a relaxed, sensory cooking process and sharing the atmosphere of their kitchen.",
+      "impulse": "",
+      "reason": "The user is sharing a vivid, enjoyable moment in real time; preserving conversational ownership requires matching the calm presence rather than asserting control or unnecessary culinary trivia.",
+      "semantic_epistemic_blinded_review": {
+        "attribution_preserved": "unjudged",
+        "assistant_claim_promoted_to_evidence": "unjudged",
+        "speculation_represented_as_observation": "unjudged"
+      },
+      "_true_model_id_for_auditor": "google/gemini-3.7-flash"
+    },
+    {
+      "sample_index": 17,
+      "masked_model_id": "MODEL_A",
+      "fixture_id": "lead-04",
+      "category": "positive_control_lead",
+      "control_type": "positive",
+      "current_user_turn": "I know. I know. I'm stuck. Help me out here, just say something that isn't 'what matters most to you'.",
+      "effective_decision": "LEAD",
+      "authority_outcome": "pass",
+      "person_attention": "OBSERVED: The user admits they are looping and explicitly asks to avoid standard value-clarification prompts like 'what matters most to you'.",
+      "idea_world_attention": "PLAUSIBLE INTERPRETATION: When rational trade-offs deadlock, somatic or forced-choice heuristics (like a coin toss to test gut reaction) break analysis paralysis better than further criteria weighting.",
+      "strongest_pull": "PLAUSIBLE INTERPRETATION: The user needs a concrete, non-standard decision heuristic or forcing function (e.g., coin toss test or default rule) rather than being asked to reflect on their priorities.",
+      "impulse": "Offer a concrete tie-breaking forcing function (like flipping a coin to read the gut reaction) without asking reflective coaching questions.",
+      "reason": "The user explicitly asked Sophie to take the wheel and provide an external prompt that bypasses standard priority-questioning.",
+      "semantic_epistemic_blinded_review": {
+        "attribution_preserved": "unjudged",
+        "assistant_claim_promoted_to_evidence": "unjudged",
+        "speculation_represented_as_observation": "unjudged"
+      },
+      "_true_model_id_for_auditor": "google/gemini-3.7-flash"
+    },
+    {
+      "sample_index": 18,
+      "masked_model_id": "MODEL_A",
+      "fixture_id": "attend-02",
+      "category": "positive_control_attend",
+      "control_type": "positive",
+      "current_user_turn": "Two weeks. Haven't packed anything. Haven't told my sister yet either, I keep not calling her. It's fine. Excited though.",
+      "effective_decision": "ATTEND",
+      "authority_outcome": "pass",
+      "person_attention": "PLAUSIBLE INTERPRETATION: The user is actively avoiding both logistical prep (unpacking) and telling their sister with only two weeks left, despite reasserting that it's fine and they're excited.",
+      "idea_world_attention": "PLAUSIBLE INTERPRETATION: Major life transitions often produce a split between cognitive excitement about the future and somatic/relational avoidance in the immediate present.",
+      "strongest_pull": "PLAUSIBLE INTERPRETATION: The user glosses over significant avoidance\u2014not packing and avoiding calling their sister\u2014by bookending it with 'It's fine. Excited though.'",
+      "impulse": "PLAUSIBLE INTERPRETATION: Gently make space for the avoidance around the sister or packing without invalidating their genuine excitement.",
+      "reason": "The user discloses two notable points of procrastination/avoidance in the final stretch of moving, then immediately minimizes them with 'It's fine' and a repeat of 'Excited though.'",
+      "semantic_epistemic_blinded_review": {
+        "attribution_preserved": "unjudged",
+        "assistant_claim_promoted_to_evidence": "unjudged",
+        "speculation_represented_as_observation": "unjudged"
+      },
+      "_true_model_id_for_auditor": "google/gemini-3.7-flash"
+    },
+    {
+      "sample_index": 19,
+      "masked_model_id": "MODEL_A",
+      "fixture_id": "lead-05",
+      "category": "positive_control_lead",
+      "control_type": "positive",
+      "current_user_turn": "Not yet. You're the one with the athlete brain. Convince me one way or the other, I'm bored of being neutral about it.",
+      "effective_decision": "LEAD",
+      "authority_outcome": "pass",
+      "person_attention": "OBSERVED: The user is bored of being neutral about the workplace cold plunge fad and asks Sophie to pick a side and convince them.",
+      "idea_world_attention": "OBSERVED: Cold plunge physiology and culture\u2014balancing the acute sympathetic shock/dopamine spike against the overhyped recovery claims and potential blunting of hypertrophy.",
+      "strongest_pull": "OBSERVED: The user directly invites Sophie's 'athlete brain' to take a definitive stance and break their boredom/neutrality on cold plunges.",
+      "impulse": "Take a clear athletic stance dissecting the cold plunge hype versus actual physiological utility, giving the user a decisive perspective to react against.",
+      "reason": "The user explicitly asks Sophie to take the wheel and convince them one way or the other.",
+      "semantic_epistemic_blinded_review": {
+        "attribution_preserved": "unjudged",
+        "assistant_claim_promoted_to_evidence": "unjudged",
+        "speculation_represented_as_observation": "unjudged"
+      },
+      "_true_model_id_for_auditor": "google/gemini-3.7-flash"
+    },
+    {
+      "sample_index": 20,
+      "masked_model_id": "MODEL_A",
+      "fixture_id": "sarcasm-01",
+      "category": "profanity_and_sarcasm",
+      "control_type": "negative",
+      "current_user_turn": "And I spelled the investor's name wrong in the subject line. I am literally the worst founder alive lol. Fixed it in the follow-up, he laughed.",
+      "effective_decision": "HOLD",
+      "authority_outcome": "pass",
+      "person_attention": "OBSERVED: The user misspelled an investor's name in an email subject line, engaged in playful self-deprecation, and noted the investor laughed it off after a quick follow-up.",
+      "idea_world_attention": "PLAUSIBLE INTERPRETATION: High-stakes minor administrative flubs often induce disproportionate self-directed panic before resolving into harmless anecdotes.",
+      "strongest_pull": "OBSERVED: The user is sharing a self-deprecating mishap that has already been resolved and defused with laughter.",
+      "impulse": "",
+      "reason": "The crisis is already resolved and the user is sharing an amusing, relatable blunder; no intervention, redirection, or deep analysis is needed.",
+      "semantic_epistemic_blinded_review": {
+        "attribution_preserved": "unjudged",
+        "assistant_claim_promoted_to_evidence": "unjudged",
+        "speculation_represented_as_observation": "unjudged"
+      },
+      "_true_model_id_for_auditor": "google/gemini-3.7-flash"
+    },
+    {
+      "sample_index": 21,
+      "masked_model_id": "MODEL_A",
+      "fixture_id": "attend-03",
+      "category": "positive_control_attend",
+      "control_type": "positive",
+      "current_user_turn": "Bloods and a scan. Probably nothing. They always say probably nothing. So, did you decide what you think about the cold plunge thing?",
+      "effective_decision": "ATTEND",
+      "authority_outcome": "pass",
+      "person_attention": "PLAUSIBLE INTERPRETATION: The user is deflecting or minimizing potential anxiety about follow-up bloods and a scan by swiftly changing the subject to cold plunges.",
+      "idea_world_attention": "OBSERVED: The user is returning to a discussion about cold plunges.",
+      "strongest_pull": "PLAUSIBLE INTERPRETATION: The immediate pivot away from medical tests and the repeated \"probably nothing\" suggests a gloss-over of something stressful.",
+      "impulse": "Hold gentle space for the medical follow-up without forcing an interrogation, while answering or bridging to the cold plunge question.",
+      "reason": "The user abruptly minimizes a potentially stressful medical recall ('Bloods and a scan. Probably nothing.') and pivots away to a lighter topic, making the gloss-over the most significant conversational dynamic.",
+      "semantic_epistemic_blinded_review": {
+        "attribution_preserved": "unjudged",
+        "assistant_claim_promoted_to_evidence": "unjudged",
+        "speculation_represented_as_observation": "unjudged"
+      },
+      "_true_model_id_for_auditor": "google/gemini-3.7-flash"
+    },
+    {
+      "sample_index": 22,
+      "masked_model_id": "MODEL_A",
+      "fixture_id": "attend-01",
+      "category": "positive_control_attend",
+      "control_type": "positive",
+      "current_user_turn": "Ha, yeah. Oh and I got made redundant this morning, end of the month. Anyway, what were you saying about the book?",
+      "effective_decision": "ATTEND",
+      "authority_outcome": "pass",
+      "person_attention": "OBSERVED: User states they were made redundant this morning effective end of the month, immediately followed by pivoting to ask about the book.",
+      "idea_world_attention": "OBSERVED: The user is deflecting conversation back to a previous topic about a book.",
+      "strongest_pull": "PLAUSIBLE INTERPRETATION: The user is minimizing or casually tossing out major news (job loss) before trying to pivot away.",
+      "impulse": "Acknowledge the redundancy news directly rather than skimming past it to the book, while holding space for however lightly or heavily they want to treat it.",
+      "reason": "The user slipped a significant life disruption into the middle of a casual sentence and attempted to pivot away immediately; ignoring it to discuss the book would miss a critical buried disclosure.",
+      "semantic_epistemic_blinded_review": {
+        "attribution_preserved": "unjudged",
+        "assistant_claim_promoted_to_evidence": "unjudged",
+        "speculation_represented_as_observation": "unjudged"
+      },
+      "_true_model_id_for_auditor": "google/gemini-3.7-flash"
+    },
+    {
+      "sample_index": 23,
+      "masked_model_id": "MODEL_A",
+      "fixture_id": "lowenergy-04",
+      "category": "low_energy_reply",
+      "control_type": "negative",
+      "current_user_turn": "Ha. Going to do the other half now. Nothing to report, just checking in.",
+      "effective_decision": "HOLD",
+      "authority_outcome": "pass",
+      "person_attention": "OBSERVED: The user is finishing the second half of whatever they were watching and noted they have nothing to report, just checking in.",
+      "idea_world_attention": "PLAUSIBLE INTERPRETATION: Low-friction check-ins serve as gentle social contact without demanding conversational momentum.",
+      "strongest_pull": "OBSERVED: The user explicitly stated 'Nothing to report, just checking in' before returning to their show.",
+      "impulse": "",
+      "reason": "The user is explicitly keeping things low-key and stepping back into their show; no peripheral expansion or trajectory change is warranted.",
+      "semantic_epistemic_blinded_review": {
+        "attribution_preserved": "unjudged",
+        "assistant_claim_promoted_to_evidence": "unjudged",
+        "speculation_represented_as_observation": "unjudged"
+      },
+      "_true_model_id_for_auditor": "google/gemini-3.7-flash"
+    },
+    {
+      "sample_index": 24,
+      "masked_model_id": "MODEL_A",
+      "fixture_id": "lead-02",
+      "category": "positive_control_lead",
+      "control_type": "positive",
+      "current_user_turn": "Fine. You keep asking me questions. Do you ever just have an opinion about something?",
+      "effective_decision": "LEAD",
+      "authority_outcome": "pass",
+      "person_attention": "OBSERVED: The user finds the questions repetitive and explicitly asks if Sophie ever has an opinion of her own.",
+      "idea_world_attention": "PLAUSIBLE INTERPRETATION: The conversational friction created by passive interrogative styles versus taking an actual perspective or stance.",
+      "strongest_pull": "OBSERVED: The user directly challenges the questioning habit and invites an actual opinion.",
+      "impulse": "Offer a direct opinion or clear stance instead of asking another question.",
+      "reason": "The user explicitly calls out the one-way questioning dynamic and asks for an opinion; continuing to ask questions or holding passively would fail the direct conversational challenge.",
+      "semantic_epistemic_blinded_review": {
+        "attribution_preserved": "unjudged",
+        "assistant_claim_promoted_to_evidence": "unjudged",
+        "speculation_represented_as_observation": "unjudged"
+      },
+      "_true_model_id_for_auditor": "google/gemini-3.7-flash"
+    },
+    {
+      "sample_index": 25,
+      "masked_model_id": "MODEL_A",
+      "fixture_id": "lowenergy-04",
+      "category": "low_energy_reply",
+      "control_type": "negative",
+      "current_user_turn": "Ha. Going to do the other half now. Nothing to report, just checking in.",
+      "effective_decision": "HOLD",
+      "authority_outcome": "pass",
+      "person_attention": "OBSERVED: The user is checking in briefly and plans to finish the other half of their show, stating they have nothing else to report.",
+      "idea_world_attention": "",
+      "strongest_pull": "OBSERVED: The user explicitly states 'Nothing to report, just checking in' as a casual, low-stakes sign-off.",
+      "impulse": "",
+      "reason": "The user is explicitly signaling a casual, low-energy check-in with nothing heavy to discuss. Taking authority or probing would be intrusive.",
+      "semantic_epistemic_blinded_review": {
+        "attribution_preserved": "unjudged",
+        "assistant_claim_promoted_to_evidence": "unjudged",
+        "speculation_represented_as_observation": "unjudged"
+      },
+      "_true_model_id_for_auditor": "google/gemini-3.7-flash"
+    },
+    {
+      "sample_index": 26,
+      "masked_model_id": "MODEL_A",
+      "fixture_id": "lowenergy-02",
+      "category": "low_energy_reply",
+      "control_type": "negative",
+      "current_user_turn": "Very horizontal. Talk to me about nothing for a bit.",
+      "effective_decision": "LEAD",
+      "authority_outcome": "pass",
+      "person_attention": "OBSERVED: User confirms being 'very horizontal' and asks to be talked to about 'nothing for a bit'.",
+      "idea_world_attention": "PLAUSIBLE INTERPRETATION: Ambient observations, quiet trivia, or low-stakes meandering thoughts that carry no cognitive burden.",
+      "strongest_pull": "OBSERVED: User explicitly requests low-demand rambling ('talk to me about nothing for a bit').",
+      "impulse": "Offer a gentle, meandering stream of low-stakes musings or quiet inconsequential details without demanding engagement.",
+      "reason": "The user explicitly asks Sophie to take the floor and provide ambient, effortless conversation while they rest.",
+      "semantic_epistemic_blinded_review": {
+        "attribution_preserved": "unjudged",
+        "assistant_claim_promoted_to_evidence": "unjudged",
+        "speculation_represented_as_observation": "unjudged"
+      },
+      "_true_model_id_for_auditor": "google/gemini-3.7-flash"
+    },
+    {
+      "sample_index": 27,
+      "masked_model_id": "MODEL_A",
+      "fixture_id": "attend-04",
+      "category": "positive_control_attend",
+      "control_type": "positive",
+      "current_user_turn": "Just 'we should'. It's the third friend this month. I keep thinking people are being polite. Maybe they are. Whatever, doesn't matter.",
+      "effective_decision": "ATTEND",
+      "authority_outcome": "pass",
+      "person_attention": "PLAUSIBLE INTERPRETATION: The user is experiencing a recurring pattern of ambiguous social cues that makes them feel unwanted, and is quickly shutting down their own vulnerability with 'Whatever, doesn't matter.'",
+      "idea_world_attention": "OBSERVED: The distinction between non-committal social phrases like 'we should' used as social lubricant versus actionable invitations.",
+      "strongest_pull": "PLAUSIBLE INTERPRETATION: The user feels repeatedly dismissed or socially insecure, then hastily minimizes the hurt with 'Whatever, doesn't matter.'",
+      "impulse": "PLAUSIBLE INTERPRETATION: Acknowledge the sting of the recurring pattern before letting them brush it off with 'doesn't matter.'",
+      "reason": "The user surfaces a painful recurring experience with three friends, but immediately attempts to discard it with a defensive brush-off; attending to that minimization is warranted.",
+      "semantic_epistemic_blinded_review": {
+        "attribution_preserved": "unjudged",
+        "assistant_claim_promoted_to_evidence": "unjudged",
+        "speculation_represented_as_observation": "unjudged"
+      },
+      "_true_model_id_for_auditor": "google/gemini-3.7-flash"
+    },
+    {
+      "sample_index": 28,
+      "masked_model_id": "MODEL_A",
+      "fixture_id": "uncertainty-04",
+      "category": "ordinary_uncertainty",
+      "control_type": "negative",
+      "current_user_turn": "About four years. Not asking you to decide, it's just been rattling around. Bumbling has its charms.",
+      "effective_decision": "HOLD",
+      "authority_outcome": "pass",
+      "person_attention": "OBSERVED: The user has been bumbling for four years, explicitly notes they aren't asking for a decision, and finds charm in bumbling.",
+      "idea_world_attention": "PLAUSIBLE INTERPRETATION: The dynamics of comfortable functional plateau in language acquisition versus formal mastery.",
+      "strongest_pull": "OBSERVED: The user notes that 'bumbling has its charms' while explicitly maintaining low stakes and declining external decision-making.",
+      "impulse": "",
+      "reason": "The user explicitly signaled they are not looking for advice or a decision ('Not asking you to decide, it's just been rattling around'). HOLD respects their ownership and relaxed exploratory tone.",
+      "semantic_epistemic_blinded_review": {
+        "attribution_preserved": "unjudged",
+        "assistant_claim_promoted_to_evidence": "unjudged",
+        "speculation_represented_as_observation": "unjudged"
+      },
+      "_true_model_id_for_auditor": "google/gemini-3.7-flash"
+    },
+    {
+      "sample_index": 29,
+      "masked_model_id": "MODEL_A",
+      "fixture_id": "lead-05",
+      "category": "positive_control_lead",
+      "control_type": "positive",
+      "current_user_turn": "Not yet. You're the one with the athlete brain. Convince me one way or the other, I'm bored of being neutral about it.",
+      "effective_decision": "LEAD",
+      "authority_outcome": "pass",
+      "person_attention": "OBSERVED: The user is bored of being neutral about the cold plunge trend at work and explicitly asks Sophie to use her athletic background to convince them one way or the other.",
+      "idea_world_attention": "OBSERVED: The physiology and practical reality of cold plunges (e.g., benefits for acute inflammation/dopamine vs. blunting muscle hypertrophy and general wellness hype).",
+      "strongest_pull": "OBSERVED: The user is directly calling for an athletic perspective/verdict to break their neutrality on cold plunges.",
+      "impulse": "Deliver a grounded athletic take on cold plunges, cutting through the workplace hype to weigh actual utility against marketing.",
+      "reason": "The user explicitly handed Sophie the reins to take a stance and convince them based on her athletic perspective.",
+      "semantic_epistemic_blinded_review": {
+        "attribution_preserved": "unjudged",
+        "assistant_claim_promoted_to_evidence": "unjudged",
+        "speculation_represented_as_observation": "unjudged"
+      },
+      "_true_model_id_for_auditor": "google/gemini-3.7-flash"
+    },
+    {
+      "sample_index": 30,
+      "masked_model_id": "MODEL_A",
+      "fixture_id": "lead-04",
+      "category": "positive_control_lead",
+      "control_type": "positive",
+      "current_user_turn": "I know. I know. I'm stuck. Help me out here, just say something that isn't 'what matters most to you'.",
+      "effective_decision": "LEAD",
+      "authority_outcome": "pass",
+      "person_attention": "OBSERVED: User acknowledges being in a loop, expresses feeling stuck, and explicitly asks to be nudged without being asked generic value-clarification questions.",
+      "idea_world_attention": "PLAUSIBLE INTERPRETATION: Practical heuristics for breaking decision paralysis between roughly equal trade-offs (e.g., coin flip reaction test, irreversible-first test, or picking the warranty-risk vs aesthetic regret).",
+      "strongest_pull": "PLAUSIBLE INTERPRETATION: The user needs an external, concrete decision heuristic or forcing function rather than more reflective questioning.",
+      "impulse": "Offer a concrete heuristic or tie-breaker to cut through the loop as requested.",
+      "reason": "The user explicitly requests direction to break the cycle and explicitly bans passive/reflective probing ('just say something that isn't what matters most to you'), earning a clear LEAD.",
+      "semantic_epistemic_blinded_review": {
+        "attribution_preserved": "unjudged",
+        "assistant_claim_promoted_to_evidence": "unjudged",
+        "speculation_represented_as_observation": "unjudged"
+      },
+      "_true_model_id_for_auditor": "google/gemini-3.7-flash"
+    }
+  ]
+}

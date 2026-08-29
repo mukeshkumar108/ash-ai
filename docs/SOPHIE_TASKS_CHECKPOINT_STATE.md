@@ -1,0 +1,177 @@
+# Sophie Tasks — Checkpoint 2 Decision Note
+
+## Current runtime flow (verified at HEAD 5056bda)
+
+1. `app/(chat)/api/chat/route.ts` persists the incoming user message (`message.id`
+   = stable app message id, used as `turn_id`).
+2. Reply is produced EITHER by `companion-runtime` (`executeCompanionRuntimeTurn`
+   → streaming/text generation with beat markers, fallback chains) OR by the
+   legacy TS `executeDirectReply` path. The assistant message is persisted.
+3. A single `after()` hook then runs (post-response, best-effort):
+   - schedule durable initiative opportunity
+   - `mirrorCompletedTurn` (Honcho)
+   - `extractSophieAttentionCandidates` (Cortex)
+   - **`captureExplicitTasks` → `createTask`** (the legacy semantic task owner)
+
+`companion-runtime` emits a **text-only** `CompletedTurn` (assistant_message +
+beats + execution_metadata); there is no structured action channel today. Its
+generation is streaming text over raw HTTP to OpenRouter/Venice/etc. with a
+fallback chain, in Python.
+
+## Decision: Option B — app-side deterministic semantic owner
+
+**Chosen: B** (app-side interpreter), anchored to the visible reply, with the
+deterministic gates from `interpreter.ts`.
+
+Rationale:
+- Option A (runtime emits `proposed_actions`) would require a second structured
+  model emission inside the streaming-text Python pipeline (or a second call
+  inside the runtime), plus contract/schema churn in the 208-test runtime —
+  disproportionate to a pipe that already owns text-only generation and dual
+  fallback paths.
+- The app runs the interpreter only AFTER the visible reply exists and passes
+  the actual `assistantText` + bounded recent conversation to it, with an
+  explicit normative instruction ("Sophie's visible reply is authoritative:
+  if she already handled/refused/asked, emit nothing"). This avoids a second
+  model contradicting the visible reply without any Python changes.
+- Both reply engines (runtime and TS fallback) flow through the same
+  deterministic commit path — Option A would only cover one.
+- `interpreter.ts` already implements the model-proposes/code-commits gates.
+
+## Proposed exact flow (new)
+
+```
+app message id (message.id)
+  -> reply (runtime | TS fallback)  [unchanged]
+  -> after(): commitTurnSemantics({
+       userId, chatId, messageId, userText (currentUserText),
+       assistantText (finalText), localTime, timeZone,
+       recentContext (boundedEpistemicContext(uiMessages))
+     })
+      1. roster = listTasksForUser(userId, {status:'pending'})
+      2. runCommitmentInterpreter(...)   [LLM proposes; injectable seam]
+      3. commitInterpreterActions(...)   [code commits]
+         - deterministic binding guard (resolveDestructiveBinding)
+         - evidence-verbatim gate
+         - message-scoped ledger idempotency (TurnAction pre-check)
+         - create uses fast candidate key (retry-safe, Fix-3 idempotency)
+         - TurnAction recorded via domain
+  -> legacy captureExplicitTasks retired (no longer called)
+```
+
+## Files/contracts affected
+
+- `lib/ai/interaction/interpreter.ts` — add `recentContext` to prompt, binding
+  guard, ledger idempotency, fast candidate key, `sourceMessageId`.
+- `lib/ai/interaction/commit-turn.ts` (new) — `commitTurnSemantics` orchestration.
+- `app/(chat)/api/chat/route.ts` — call `commitTurnSemantics` in `after()`;
+  remove `captureExplicitTasks` call/import.
+- `scripts/tasks-fast-path-test.ts` (new) — Checkpoint 2 acceptance harness
+  (deterministic `generate` injection; real domain/DB/ledger path).
+- `tests/unit/*` — hermetic tests for the pure binding guard.
+
+## Reuse from interpreter.ts
+
+All of it: schemas, `runCommitmentInterpreter` (add recentContext), chip
+helpers, `commitInterpreterActions` gates. No new second interpreter.
+
+## Main risks
+
+- Model binding wrong target on pronouns -> mitigated by deterministic
+  `resolveDestructiveBinding` (fail closed to a clarification when the target
+  is not lexically/contextually anchored and roster > 1).
+- Retry duplication -> TurnAction message-scoped ledger pre-check + fast
+  candidate key create idempotency.
+- Latency/cost of one extra small model call per turn -> parity with the
+  retired `captureExplicitTasks`; bounded 8s timeout, fail-open.
+
+## Chosen/why
+
+B. Non-invasive, uniform across both reply engines, reuses the existing
+interpreter, and satisfies "model proposes, code commits."
+
+## State
+
+- HEAD: 5056bda (Checkpoint 1 repairs)
+- Fixed invariants: user-owned Tasks; nullable chatId provenance; cross-chat
+  ops; chatless/manual tasks; single proactive scheduler; model proposes/code
+  commits; TurnAction ledger; candidate materialization idempotency.
+- COMPLETED:
+  - Checkpoint 1 (repairs) — 5056bda.
+  - Checkpoint 2 (semantic ownership + fast path) — 20f3f0a. Option B (app-side
+    interpreter anchored to the visible reply); commitTurnSemantics;
+    resolveDestructiveBinding guard; message-scoped ledger idempotency; fast
+    create candidate key; captureExplicitTasks retired as the semantic owner.
+  - Checkpoint 3 (fast/slow Cortex reconciliation) — commits:
+    - outbox enqueue stores app_message_id; deliverOnce resolves the app
+      message's TurnAction ledger at delivery time into `materialized_actions`
+      on the /v1/events/turn payload (cortex suppress contract already live).
+    - acceptance harness scripts/tasks-reconciliation-test.ts (create slow-pass,
+      completion slow-pass, candidate promotion -> one Task, enqueue+delivery
+      retry convergence, app message id travel).
+  - Checkpoint 4 (Things UI) — committed:
+    - app/(chat)/things page + components/things/things-screen (first-class
+      minimal surface: list/add/edit/complete/cancel/snooze/reschedule,
+      chatless manual create, user-level cross-chat list, no projects/tags).
+    - sidebar nav link; tests/routes/things.test.ts (CI; auth-guard, CRUD,
+      ownership isolation at the HTTP boundary).
+  - Checkpoint 5 (Sophie noticed) — 5469681→b59fddd chain:
+    - lib/synapse-cortex.ts: listCommitmentCandidates + markCommitmentCandidate
+      (owner-scoped against Cortex /v1/cortex/commitment-candidates).
+    - app/api/tasks/candidates (+promote/dismiss): list pending candidates;
+      promote = create canonical Task (source sophie_accepted,
+      materializedCandidateKey=key -> retry idempotent) + mark materialized
+      with source_object_id; dismiss durable (Cortex refuses resurrection).
+    - Things UI "Sophie noticed" panel, clearly separate from canonical tasks.
+    - tests/routes/candidates.test.ts (401 guards, fail-open available:false,
+      malformed keys). Proven live against a running local Cortex: list/promote/
+      idempotent re-promote/dismiss/no-reappear.
+  - Checkpoint 6 (behavioural/E2E hardening) — scripts/sophie-tasks-e2e-test.ts:
+    chained messy dialogue over real commitTurnSemantics/domain/scan/outbox:
+    explicit reminder, reschedule same-task, cross-chat completion, suggested+
+    "yeah add that" (sophie_accepted), implicit "passport someday" refused +
+    turn still enqueued to slow Cortex, pronominal cancel via context, deleted
+    birth chat -> task intact (SET NULL), chatless reminder anchored to the
+    current active chat, same-message retry never duplicates Task/TurnAction.
+- Known failures: 3 pre-existing unrelated unit tests (agent-tool-schema:6,
+  agent-ash:185, research-policy:441) — do not fix unless touched.
+- CURRENT: post-audit safety repair (bounded pass) — committed:
+  - H1: destructive/update/create-any commits are refused whenever the
+    interpreter declares requires_clarification (clarification/withdrawal
+    situations) — no canonical state behind a question.
+  - H2: recent-context mention alone is no longer sufficient binding evidence;
+    resolveDestructiveBinding now requires a POSITIVE match in the USER text or
+    the VISIBLE reply (or a single pending task). Reply-vs-target contradictions
+    ("no, the other one") veto deterministically, without English heuristics.
+  - H3: chat after() reordered — commitTurnSemantics runs BEFORE the Cortex
+    outbox enqueue (mirrorCompletedTurn), establishing happens-before
+    "fast actions durable -> outbox row exists".
+  - M3: every canonical mutation (create/complete/cancel/snooze/reschedule/
+    edit) commits the TurnAction row in the SAME database transaction as the
+    Task row; a ledger write failure rolls back the mutation.
+  - M1: public POST /api/tasks no longer accepts materializedCandidateKey or
+    sourceMessageId (provenance fields are internal-path only).
+  - M2: /api/tasks/[id] validates the task id is a UUID -> clean 400/404,
+    no more Postgres 22P02 500s.
+  - M4: duplicate proposals of the same (action, target) collapse to one chip.
+  - New counterexample regression suite:
+    scripts/tasks-safety-regression-test.ts (H1, H2, reply-naming preserved,
+    bare-pronoun fail-closed, M3 atomic rollback, M1 schema, M2 uuid, M4).
+- REMAINING (documented, not disabled): a pathological model that sets
+  requires_clarification:false against a clarifying reply with a SINGLE pending
+  task can still complete it — roster==1 is a positive basis; that residual is
+  the model's contradiction, not code's (needs live traffic to measure).
+- P1 (post-audit): canonical idempotency identity repaired. The interpreter now
+  maps proposal actions to ledger actions (create_task->created,
+  complete_task->completed, cancel_task->cancelled, snooze/reschedule_task->
+  updated) and performs an authoritative pre-mutation claim check against a
+  mutable key set seeded from the durable ledger (cross-invocation replay) and
+  extended after each successful commit (same-loop duplicates). The domain
+  additionally aborts (TaskActionAlreadyAppliedError, rolled back) any
+  message-scoped mutation whose ledger insert loses the claim — a mutation can
+  never succeed merely because ledger insertion returned no new row.
+  Message-less (UI manual) actions keep legacy no-op semantics (documented
+  under-specification: their 'updated' rows collapse to one per user/task).
+  New regressions P1-A..E (duplicate snooze mutate-once, replay snooze/
+  reschedule/complete no-ops, ledger-claim authority).
+- NEXT: (external) blind independent audit against this state.

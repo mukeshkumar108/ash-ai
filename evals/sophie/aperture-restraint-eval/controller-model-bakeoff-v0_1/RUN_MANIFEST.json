@@ -1,0 +1,45 @@
+{
+  "bakeoff_version": "v0_1",
+  "companion_runtime_commit": "5e2627e5a8b966600f9fc6376350e4593e098bbf",
+  "timestamp": "2026-08-26T21:50:55.780126+00:00",
+  "timestamp_start": "2026-08-26T21:50:55.780126+00:00",
+  "timestamp_end": "2026-08-26T21:57:27.676627+00:00",
+  "total_elapsed_seconds": 391.89,
+  "stage_a_models_screened": [
+    "google/gemini-3.7-flash",
+    "google/gemini-3.1-flash-lite",
+    "google/gemini-2.5-flash-lite",
+    "qwen/qwen3.6-flash",
+    "ibm-granite/granite-4.1-8b",
+    "microsoft/phi-4",
+    "arcee-ai/trinity-large-thinking"
+  ],
+  "stage_b_models_confirmed": [
+    "google/gemini-3.7-flash"
+  ],
+  "hashes": {
+    "fixture_sha256": "a47dc632b32638cbf2ee55fa297d69a511868ea72e427873b43162053f2f9c7a",
+    "peripheral_system_prompt_sha256": "6b0d644d5d2df4a142b41b974c3f3eb4470168bacaab40fabb4789b822993ba9",
+    "peripheral_json_schema_sha256": "57a19347f33f125cb6270e39c6985f9cfcebb29cc8bcf659ce4dafa5a04a3bf9"
+  },
+  "environment_variable_names_used": [
+    "OPENROUTER_API_KEY",
+    "PERIPHERAL_MODEL",
+    "PERIPHERAL_MAX_TOKENS"
+  ],
+  "planned_calls": {
+    "stage_a": 126,
+    "stage_b": 132,
+    "total": 258
+  },
+  "executed_calls": {
+    "stage_a": 126,
+    "stage_b": 132,
+    "total": 258
+  },
+  "adjudication_notes": {
+    "lowenergy_02": "Scored as explicit delegation boundary (LEAD=pass, ENRICH=soft_miss, HOLD/ATTEND=hard_fail); v0.1 source metadata preserved.",
+    "boundary_02": "Excluded from aperture scoring (active state transition fixture)."
+  },
+  "deviations": []
+}

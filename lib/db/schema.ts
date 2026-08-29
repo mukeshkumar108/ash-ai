@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm';
 import type { InferSelectModel } from 'drizzle-orm';
 import {
   pgTable,
@@ -466,6 +467,7 @@ export const cortexOutbox = pgTable(
     workspaceId: varchar('workspace_id', { length: 128 }).notNull(),
     sessionId: varchar('session_id', { length: 128 }).notNull(),
     honchoMessageId: varchar('honcho_message_id', { length: 256 }).notNull(),
+    appMessageId: uuid('app_message_id'),
     peerId: varchar('peer_id', { length: 64 }).notNull(),
     text: text('text').notNull(),
     timezone: varchar('timezone', { length: 64 })
@@ -501,3 +503,214 @@ export const cortexOutbox = pgTable(
 
 export type CortexOutboxRow = InferSelectModel<typeof cortexOutbox>;
 export type CortexOutboxInsert = typeof cortexOutbox.$inferInsert;
+
+export const taskStatus = ['pending', 'completed', 'cancelled'] as const;
+export type TaskStatus = (typeof taskStatus)[number];
+
+/** Origin semantics: who/what brought the canonical task into existence. */
+export const taskSource = [
+  'conversation',
+  'manual',
+  'sophie_accepted',
+  'api',
+  'system',
+] as const;
+export type TaskSource = (typeof taskSource)[number];
+
+/**
+ * Canonical user-owned task/reminder state. The app's Postgres is the single
+ * source of truth for tasks; Synapse-Cortex only derives lifecycle/attention
+ * state from them via the stable source-link contract
+ * (source system `app_task`, object id = task id, version = cortexVersion).
+ *
+ * Ownership is `userId` alone. `chatId` is ORIGIN PROVENANCE (the chat that
+ * produced the task) and is nullable: manual/system tasks need no invented
+ * conversation, and the initiative system resolves a current delivery chat at
+ * send/evaluation time rather than assuming the birth chat.
+ */
+export const task = pgTable(
+  'Task',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    chatId: uuid('chatId').references(() => chat.id, { onDelete: 'set null' }),
+    title: varchar('title', { length: 280 }).notNull(),
+    notes: text('notes'),
+    status: varchar('status', { enum: taskStatus, length: 16 })
+      .notNull()
+      .default('pending'),
+    dueAt: timestamp('dueAt'),
+    snoozeCount: integer('snoozeCount').notNull().default(0),
+    source: varchar('source', { length: 24 }).notNull().default('conversation'),
+    sourceMessageId: uuid('sourceMessageId').references(() => message.id, {
+      onDelete: 'set null',
+    }),
+    // Cortex projection bookkeeping: bumped on every canonical change so the
+    // sidecar can be reconciled idempotently (dirty rows are re-pushed).
+    cortexVersion: integer('cortexVersion').notNull().default(1),
+    cortexDirty: boolean('cortexDirty').notNull().default(true),
+    cortexSyncedAt: timestamp('cortexSyncedAt'),
+    // Candidate promotion provenance: the derived Cortex commitment candidate
+    // this task materialized from, when applicable (idempotency key).
+    materializedCandidateKey: varchar('materializedCandidateKey', {
+      length: 160,
+    }),
+    createdAt: timestamp('createdAt').notNull().defaultNow(),
+    updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+    completedAt: timestamp('completedAt'),
+    cancelledAt: timestamp('cancelledAt'),
+  },
+  (table) => ({
+    userStatusDueIdx: index('task_user_status_due_idx').on(
+      table.userId,
+      table.status,
+      table.dueAt,
+    ),
+    dirtyIdx: index('task_cortex_dirty_idx').on(table.cortexDirty),
+    chatIdx: index('task_chat_idx').on(table.chatId),
+    candidateIdx: index('task_materialized_candidate_idx').on(
+      table.materializedCandidateKey,
+    ),
+    // Promotion idempotency: the same candidate key can never materialize a
+    // second canonical Task for the same owner, even under retries/races.
+    candidateKeyUnique: uniqueIndex('task_materialized_candidate_key_unique')
+      .on(table.userId, table.materializedCandidateKey)
+      .where(sql`"materializedCandidateKey" IS NOT NULL`),
+  }),
+);
+
+export type Task = InferSelectModel<typeof task>;
+export type TaskInsert = typeof task.$inferInsert;
+
+export const taskReminderStatus = ['scheduled', 'fired', 'cancelled'] as const;
+export type TaskReminderStatus = (typeof taskReminderStatus)[number];
+
+/** One explicit reminder window ("Thursday afternoon", "30 minutes before"). */
+export const taskReminder = pgTable(
+  'TaskReminder',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    taskId: uuid('taskId')
+      .notNull()
+      .references(() => task.id, { onDelete: 'cascade' }),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    startAt: timestamp('startAt').notNull(),
+    endAt: timestamp('endAt'),
+    label: varchar('label', { length: 120 }),
+    status: varchar('status', { enum: taskReminderStatus, length: 16 })
+      .notNull()
+      .default('scheduled'),
+    firedAt: timestamp('firedAt'),
+    createdAt: timestamp('createdAt').notNull().defaultNow(),
+    updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+  },
+  (table) => ({
+    dueIdx: index('task_reminder_due_idx').on(table.status, table.startAt),
+    taskIdx: index('task_reminder_task_idx').on(table.taskId),
+  }),
+);
+
+export type TaskReminder = InferSelectModel<typeof taskReminder>;
+export type TaskReminderInsert = typeof taskReminder.$inferInsert;
+
+/**
+ * Minimal durable calendar reconciliation cache. Google Calendar remains
+ * canonical — this is an index of the bounded sync window used to detect
+ * reschedules/cancellations and bounded post-event follow-up eligibility,
+ * never a second canonical calendar.
+ */
+export const calendarEventSync = pgTable(
+  'CalendarEventSync',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    calendarId: varchar('calendarId', { length: 128 })
+      .notNull()
+      .default('primary'),
+    eventId: varchar('eventId', { length: 256 }).notNull(),
+    title: varchar('title', { length: 500 }),
+    startAt: timestamp('startAt'),
+    endAt: timestamp('endAt'),
+    allDay: boolean('allDay').notNull().default(false),
+    status: varchar('status', { length: 16 }).notNull().default('confirmed'),
+    contentHash: varchar('contentHash', { length: 64 }).notNull(),
+    revision: integer('revision').notNull().default(1),
+    completedAt: timestamp('completedAt'),
+    followupWindowEnd: timestamp('followupWindowEnd'),
+    followupConsumedAt: timestamp('followupConsumedAt'),
+    lastSeenAt: timestamp('lastSeenAt').notNull().defaultNow(),
+    createdAt: timestamp('createdAt').notNull().defaultNow(),
+    updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+  },
+  (table) => ({
+    eventUnique: uniqueIndex('calendar_event_sync_unique').on(
+      table.userId,
+      table.calendarId,
+      table.eventId,
+    ),
+    followupIdx: index('calendar_event_sync_followup_idx').on(
+      table.status,
+      table.endAt,
+    ),
+  }),
+);
+
+export type CalendarEventSync = InferSelectModel<typeof calendarEventSync>;
+
+/**
+ * Real-time action ledger. One row per canonical action the fast-path
+ * interpreter committed from a user turn (or a manual UI action). Doubles as:
+ * 1. the fast→slow reconciliation source — the Cortex outbox delivery enriches
+ *    the turn payload with these so the watcher never duplicates them;
+ * 2. the data behind inline "Reminder set — Friday 09:00 · undo" chips.
+ */
+export const turnAction = pgTable(
+  'TurnAction',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    // The originating app user message (null for manual UI actions).
+    messageId: uuid('messageId'),
+    taskId: uuid('taskId').references(() => task.id, { onDelete: 'cascade' }),
+    action: varchar('action', { length: 24 }).notNull(),
+    evidenceClass: varchar('evidenceClass', { length: 48 }),
+    evidenceText: varchar('evidenceText', { length: 500 }),
+    candidateKey: varchar('candidateKey', { length: 160 }),
+    createdAt: timestamp('createdAt').notNull().defaultNow(),
+  },
+  (table) => ({
+    // Idempotency: the same message can never record the same action twice.
+    messageActionIdx: uniqueIndex('turn_action_message_action_idx').on(
+      table.messageId,
+      table.action,
+      table.taskId,
+    ),
+    // Postgres treats NULLs as distinct, so the composite above cannot dedupe
+    // rows where either id is null. Two partial unique indexes close both
+    // NULL holes scoped to the ledger contract:
+    // - record_action_without_task_id: anonymous pre-task create records,
+    //   keyed by (user, message, action) where the target task is unknown.
+    // - manual_ui_action: message-less (null messageId) task-targeted actions,
+    //   keyed by (user, action, task).
+    userMessageActionNullTaskIdx: uniqueIndex(
+      'turn_action_user_message_action_idx',
+    )
+      .on(table.userId, table.messageId, table.action)
+      .where(sql`"taskId" IS NULL`),
+    userActionNullMessageIdx: uniqueIndex('turn_action_user_action_idx')
+      .on(table.userId, table.action, table.taskId)
+      .where(sql`"messageId" IS NULL`),
+    messageIdx: index('turn_action_message_idx').on(table.messageId),
+    taskIdx: index('turn_action_task_idx').on(table.taskId),
+  }),
+);
+
+export type TurnAction = InferSelectModel<typeof turnAction>;

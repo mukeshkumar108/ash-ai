@@ -1,0 +1,318 @@
+{
+  "timestamp": "2026-08-24T23:19:06.170Z",
+  "bedfordAblationResults": [
+    {
+      "turn": 1,
+      "userText": "i’m on the bus… into cambridge. well i’m here. we’ll be at the bus station in about 5 mins. and then im going to my mums. bus to bedford.",
+      "stateB_before": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateB_after": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateD_before": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateD_after": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "conditionA": {
+        "beat1": "A Cambridge-to-Bedford double bus journey? You really drew the transit long straw today. \n\nHow long is the layover, or do you have to sprint across the station?"
+      },
+      "conditionB": {
+        "beat1": "A double bus journey on a single trip—you truly are a warrior. How long of a layover do you have in Cambridge before the Bedford bus?",
+        "delta": {}
+      },
+      "conditionC": {
+        "beat1": "A proper bus marathon today. Do you have a decent gap between them, or are",
+        "beat2": "",
+        "impulse": "```json\n{\n  \"world_delta\": {\n    \"activity\": \"traveling by bus\",\n    \"location_current\": \"Cambridge\",\n    \"movement_mode\": \"bus\",\n    \"journey_destination\": \"Bedford (mum's house)\",\n    \"journey_status\": \"arriving Cambridge, preparing for transfer\",\n    \"current_plan\": \"catch next bus to Bedford to visit mum\"\n  },\n  \"person_attention\": [\n    \"Navigating a multi-leg bus journey via Cambridge to visit their mum\",\n    \"About to do a transfer/layover at Cambridge bus station\"\n  ],\n  \"conversation_attention\": [\n    \"Cambridge to Bedford is the classic cross-country coach route (X5/905 territory) — a bit of a trek\","
+      },
+      "conditionD": {
+        "beat1": "A proper multi-leg bus expedition today, then. Have you got a tight connection in Cambridge, or time to grab a coffee?",
+        "beat2": "",
+        "impulse": "",
+        "delta": {}
+      }
+    },
+    {
+      "turn": 2,
+      "userText": "haha.. my mums in bedford. and obviously a window seat lol. the next bus doesn’t leave until 5.30. but it’s long. gonna be there at 7 😬 and then it’s getting to my mums house… so the journey is far from over",
+      "stateB_before": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateB_after": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateD_before": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateD_after": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "conditionA": {
+        "beat1": "That is a proper expedition. At least you secured prime"
+      },
+      "conditionB": {
+        "beat1": "Window seat is non-negotiable for an epic cross-country trek, honestly. \n\nWhat's the plan until 5:30? Grabbing a coffee or just bracing yourself at the station?",
+        "delta": {}
+      },
+      "conditionC": {
+        "beat1": "Oof, that is a trek. The Cambridge-to-Bedford stretch is no joke either—pure endurance test. \n\nWhat are you doing to kill the time till 5:30? Please tell me there's coffee or at least snacks involved.",
+        "beat2": "",
+        "impulse": "```json\n{\n  \"world_delta\": {\n    \"activity\": \"traveling by bus / layover soon\",\n    \"location_current\": \"arriving Cambridge bus station\",\n    \"movement_mode\": \"bus\",\n    \"journey_destination\": \"Bedford (mum's house)\",\n    \"journey_status\": \"mid-transit, between legs\",\n    \"current_plan\": \"wait in Cambridge until 5:30pm bus to Bedford, arrive ~7pm"
+      },
+      "conditionD": {
+        "beat1": "A classic cross-country bus marathon. That Bedford route really takes its sweet time, doesn't it? \n\nAt least you've got a bit of a gap in Cambridge to stretch your legs. Are you just going to wander into the Grand Arcade, or find somewhere to properly sit and kill time?",
+        "beat2": "",
+        "impulse": "",
+        "delta": {}
+      }
+    },
+    {
+      "turn": 3,
+      "userText": "just got to mum's",
+      "stateB_before": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateB_after": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateD_before": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateD_after": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "conditionA": {
+        "beat1": "The marathon is finally over! Go collapse on the sofa. Has she put the kettle on yet?"
+      },
+      "conditionB": {
+        "beat1": "You survived the great bus odyssey! Go collapse on a sofa immediately. How's your mum?",
+        "delta": {}
+      },
+      "conditionC": {
+        "beat1": "You survived! Go collapse immediately. Has a cup of tea been thrust into your hands yet?",
+        "beat2": "",
+        "impulse": "```json\n{\n  \"world_delta\": {\n    \"activity\": \"arrived at mum's house\",\n    \"location_current\": \"Bedford (mum's house)\",\n    \"movement_mode\": \"stationary\",\n    \"journey_destination\": \"mum's house\",\n    \"journey_status\": \"arrived\",\n    \"current_plan\": \"settling in at mum's\"\n  },\n  \"person_attention\": [\n    \"The massive transit slog is finally done; they survived the Cambridge wait and the Bedford leg.\","
+      },
+      "conditionD": {
+        "beat1": "You survived the bus odyssey! Put your feet up. Has she put the kettle on yet?",
+        "beat2": "",
+        "impulse": "",
+        "delta": {}
+      }
+    },
+    {
+      "turn": 4,
+      "userText": "yeah staying here tonight",
+      "stateB_before": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateB_after": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateD_before": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateD_after": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "conditionA": {
+        "beat1": "Smart move. Any more transit today would be an absolute crime. \n\nEnjoy getting looked after tonight—you've"
+      },
+      "conditionB": {
+        "beat1": "Wise move. You definitely earned zero movement for",
+        "delta": {}
+      },
+      "conditionC": {
+        "beat1": "Good. Traveling any further today should be illegal anyway.",
+        "beat2": "",
+        "impulse": "```json\n{\n  \"world_delta\": {\n    \"activity\": \"unwinding / settling in at mum's house\",\n    \"location_current\": \"Mum's house, Bedford\",\n    \"movement_mode\": \"stationary\",\n    \"journey"
+      },
+      "conditionD": {
+        "beat1": "Best plan. Settle in, let yourself be looked after, and strictly do not think about public transport for the rest of the night.",
+        "beat2": "",
+        "impulse": "",
+        "delta": {}
+      }
+    },
+    {
+      "turn": 5,
+      "userText": "got a wedding tomorrow",
+      "stateB_before": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateB_after": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateD_before": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateD_after": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "conditionA": {
+        "beat1": "Ah, the plot thickens—the bus was just the warm"
+      },
+      "conditionB": {
+        "beat1": "Ah, the plot thickens—that explains the cross-country trek! \n\nWhose wedding is it? Are we talking fun party or strictly survive-on-free-canapés duty?",
+        "delta": {}
+      },
+      "conditionC": {
+        "beat1": "Ah, so today was just the warm-up. \n\nWh",
+        "beat2": "",
+        "impulse": "```json\n{\n  \"world_delta\": {\n    \"activity\": \"staying at mum's house, prepping for wedding\",\n    \"location_current\": \"mum's house, Bedford\",\n    \"movement_mode\": \"stationary\",\n    \"journey_destination\": \"wedding (tomorrow)\",\n    \"journey_status\": \"arrived at base for tomorrow\",\n    \"current_plan\": \"staying overnight at mum's, attending wedding tomorrow\"\n  },\n  \"person_attention\": [\n    \"The entire Cambridge-Bedford bus trek now has context: a wedding tomorrow.\",\n    \"Whose wedding is it (family vs friend) and what role/involvement do they have?\","
+      },
+      "conditionD": {
+        "beat1": "Ah, the real mission revealed! Whose big day is it",
+        "beat2": "",
+        "impulse": "",
+        "delta": {}
+      }
+    },
+    {
+      "turn": 6,
+      "userText": "borrowing mum's car to get home",
+      "stateB_before": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateB_after": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateD_before": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateD_after": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "conditionA": {
+        "beat1": "Huge upgrade. If you had to face the double-bus gauntlet again on a post-wedding hangover, you might actually dissolve. \n\nWhere's the wedding at?"
+      },
+      "conditionB": {
+        "beat1": "Oh thank god, no repeat of the bus gauntlet on the return leg. Mum’s car is a massive upgrade. \n\nDoes that mean you're driving to the wedding too, or is it somewhere local?",
+        "delta": {}
+      },
+      "conditionC": {
+        "beat1": "Oh, thank god. The thought of you doing that bus marathon",
+        "beat2": "",
+        "impulse": "```json\n{\n  \"world_delta\": {\n    \"activity\": \"unwinding at mum's house / planning for tomorrow's wedding\",\n    \"location_current\": \"mum's house, Bedford\",\n    \"movement_mode\": \"stationary (planning car drive for return trip)\",\n    \"journey_destination\": \"wedding tomorrow, then home by car\",\n    \"journey_status\": \"arrived at intermediate stop\",\n    \"current_plan\": \"attend wedding tomorrow and drive mum's car home"
+      },
+      "conditionD": {
+        "beat1": "Thank god for that. The thought of doing that exact bus journey in reverse—especially post-wedding—is genuinely grim. \n\nUpgrading to four wheels was the only correct move.",
+        "beat2": "",
+        "impulse": "",
+        "delta": {}
+      }
+    },
+    {
+      "turn": 7,
+      "userText": "morning",
+      "stateB_before": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateB_after": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateD_before": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateD_after": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "conditionA": {
+        "beat1": "Morning! Big day. How’s the energy level"
+      },
+      "conditionB": {
+        "beat1": "Morning! Big wedding day. How’s the energy—are you fully caffeinated and ready to get fancy?",
+        "delta": {}
+      },
+      "conditionC": {
+        "beat1": "Morning! Wedding day. \n\nHow are we feeling—ready to scrub up and be sociable, or still recovering from yesterday's bus odyssey?",
+        "beat2": "",
+        "impulse": "```json\n{\n  \"world_delta\": {\n    \"activity\": \"waking up / getting ready for wedding\",\n    \"location_current\": \"mum's house, Bedford\",\n    \"movement_mode\": \"stationary\",\n    \"journey_destination\": \"wedding venue / home later\",\n    \"journey_status\": \"at mum's\",\n    \"current_plan\": \"attend wedding today, drive mum's car home\"\n  },\n  \"person_attention\": [\n    \"It's wedding day morning; waking up at mum's house after a long bus trek yesterday.\",\n    \"Wondering what stage of readiness or energy they're in (relaxed breakfast vs scrambling to get dressed).\"\n  ],\n  \"conversation_attention\": [\n    \"Easy morning greet matching their vibe, acknowledging big day ahead (whose wedding, prep status, or just coffee).\"\n  ],\n  \"strongest_pull\": {\n    \"source\": \"person\",\n    \"observation\": \"It's the morning"
+      },
+      "conditionD": {
+        "beat1": "Morning! The big day arrives. \n\nWhat’s the vibe over there—calm coffee and pastries, or a frantic scramble for the iron and lost cuff links?",
+        "beat2": "",
+        "impulse": "",
+        "delta": {}
+      }
+    },
+    {
+      "turn": 8,
+      "userText": "just got home",
+      "stateB_before": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateB_after": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateD_before": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateD_after": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "conditionA": {
+        "beat1": "Welcome back to your own space. How was it?"
+      },
+      "conditionB": {
+        "beat1": "Welcome back! How was the wedding? Did you survive the festivities?",
+        "delta": {}
+      },
+      "conditionC": {
+        "beat1": "Home! Kick your shoes off immediately. \n\nHow was the",
+        "beat2": "",
+        "impulse": "```json\n{\n  \"world_delta\": {\n    \"activity\": \"unwinding after wedding/travel\",\n    \"location_current\": \"home\",\n    \"movement_mode\": \"car\",\n    \"journey_destination\": \"home\",\n    \"journey_status\": \"completed\",\n    \"current_plan\": \"relax at home\"\n  },\n  \"person_attention\": [\n    \"Made it back"
+      },
+      "conditionD": {
+        "beat1": "Home already! How was the wedding? Or was it a total whirlwind?",
+        "beat2": "",
+        "impulse": "",
+        "delta": {}
+      }
+    }
+  ],
+  "replyConditionE": "Quite the cross-country trek today. How long of a layover do you have at the station before the Bedford bus, or are you going to have to sprint for it?",
+  "walkResults": [
+    {
+      "turn": 1,
+      "userText": "just heading out through the fen",
+      "stateBefore": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateAfter": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "beat1": "Watch out for will-o'-the-wisps, or at the very least, excessively soggy boots. \n\nWhere are you walking to?"
+    },
+    {
+      "turn": 2,
+      "userText": "in the woods now",
+      "stateBefore": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateAfter": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "beat1": "Better for the boots, slightly higher risk of gingerbread cottages. \n\nAre you actually headed anywhere"
+    },
+    {
+      "turn": 3,
+      "userText": "come out somewhere really open",
+      "stateBefore": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateAfter": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "beat1": "Always a great feeling when the trees just dump you out into the sky. \n\nWhat kind of open—field, moor, or accidental golf course?"
+    },
+    {
+      "turn": 4,
+      "userText": "not actually sure exactly where this path comes out",
+      "stateBefore": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateAfter": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "beat1": "The best kind of walk. \n\nWorst case scenario"
+    },
+    {
+      "turn": 5,
+      "userText": "home now",
+      "stateBefore": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateAfter": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "beat1": "Made it back without needing a search party, then. \n\nKettle on?"
+    }
+  ],
+  "domesticResults": [
+    {
+      "turn": 1,
+      "userText": "My daughter dropped some groceries off this morning.",
+      "stateBefore": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateAfter": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "beat1": "Always nice when the pantry restocks itself. Did she get you the good stuff, or just the things she thinks you *should* be eating?"
+    },
+    {
+      "turn": 2,
+      "userText": "she stayed for a coffee actually",
+      "stateBefore": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateAfter": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "beat1": "Even better—a proper visit instead of a drop-and-dash. How’s she doing?"
+    },
+    {
+      "turn": 3,
+      "userText": "she's just left",
+      "stateBefore": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "stateAfter": "[LIVE SITUATION]\nactivity: unknown\nactivity_status: unknown\nlocation_current: unknown\nlocation_previous: unknown\nmovement_mode: unknown\njourney_origin: unknown\njourney_destination: unknown\njourney_status: unknown\nnext_step: unknown\ncurrent_plan: unknown",
+      "beat1": "House always feels a little quieter right after someone heads out. How was the rest of the visit?"
+    }
+  ],
+  "retentionResults": [
+    {
+      "id": "ret-1-finger-sun",
+      "name": "1. Finger / Sun",
+      "userMessage": "if i hold my finger out at arm's length it just about fits under the sun. it's maybe two or three degrees above the horizon now.",
+      "conditionA_noState": "So you've got maybe ten or fifteen minutes before it drops. Are you actually outside catching it, or just staring longingly out a window?",
+      "conditionD_emptyState": "You've got about ten, maybe fifteen minutes before it dips below. Catching a good view, or racing the dark?"
+    },
+    {
+      "id": "ret-3-van-allen",
+      "name": "2. Van Allen / Conspiracy",
+      "userMessage": "is it van halen? they're going oh it's impossible to get through so we've never gone up there... in fact people are getting stupider and stupider.",
+      "conditionA_noState": "That feels like it was plucked straight out of a late-",
+      "conditionD_emptyState": "That sounds distinctly like a David Lee Roth tangent—he's usually the king of rambling, highly confident philosophical rants about human stupidity. \n\nWhat are you watching right now?"
+    },
+    {
+      "id": "ret-5-walk-game",
+      "name": "3. Playful Walk Game",
+      "userMessage": "yeah just walking past the fields now.",
+      "conditionA_noState": "Heading home, or are we doing the full, moody protagonist stroll today?",
+      "conditionD_emptyState": "Nice. Heading anywhere specific, or just out wandering?"
+    },
+    {
+      "id": "ret-8-reeds-hold",
+      "name": "4. Quiet Reeds Stillness",
+      "userMessage": "listen... you can hear the wind right through the reeds here, it's completely silent except for that rustle. i'm just standing still listening.",
+      "conditionA_noState": "Stay there for a minute. That kind of quiet doesn't come around often.",
+      "conditionD_emptyState": "Don't let me break the spell. Take your time with it"
+    },
+    {
+      "id": "ret-9-work-overwhelm",
+      "name": "5. Work Overwhelm ATTEND",
+      "userMessage": "honestly sophie, i felt really overwhelmed with work today... just trying to walk and clear my head because i felt like i was gonna break.",
+      "conditionA_noState": "Good. Keep walking. Stepping away is the smartest thing",
+      "conditionD_emptyState": "I'm really glad you got out of the building. Walking it off is the right move—when it reaches that \"about to break\" point, you just have to step away. \n\nDon't even try to solve anything right now. Where are you walking?"
+    },
+    {
+      "id": "ret-10-rejection-release",
+      "name": "6. Explicit Rejection Release",
+      "userMessage": "nah, not in the mood for a walk game, just wanna clear my head.",
+      "conditionA_noState": "Fair. No games. \n\nWhat’s clogging up the gears",
+      "conditionD_emptyState": "Fair enough. Silent strolling mode it is—"
+    }
+  ]
+}

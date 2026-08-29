@@ -42,6 +42,7 @@ import {
   persistSophieAttention,
 } from '@/lib/synapse-cortex';
 import { extractSophieAttentionCandidates } from '@/lib/ai/interaction/attention';
+import { commitTurnSemantics } from '@/lib/ai/interaction/commit-turn';
 import {
   createStreamId,
   deleteChatById,
@@ -65,7 +66,10 @@ import {
   withQueryContext,
   db,
 } from '@/lib/db/queries';
-import { extractBehaviorCorrection, mergeBehaviorCorrections } from '@/lib/agent/user-corrections';
+import {
+  extractBehaviorCorrection,
+  mergeBehaviorCorrections,
+} from '@/lib/agent/user-corrections';
 import { message as messageTable, user as userTable } from '@/lib/db/schema';
 import { convertToUIMessages, generateUUID } from '@/lib/utils';
 import { generateTitleFromUserMessage } from '../../actions';
@@ -269,7 +273,10 @@ export async function POST(request: Request) {
         selectedChatModel: ChatModel['id'];
         selectedVisibilityType: VisibilityType;
         developerModelOverride?: string;
-        sessionModeAction?: 'start_session_one' | 'start_invited_discovery' | 'stop';
+        sessionModeAction?:
+          | 'start_session_one'
+          | 'start_invited_discovery'
+          | 'stop';
         targetedSceneSlots?: string[];
       } = requestBody;
 
@@ -317,7 +324,8 @@ export async function POST(request: Request) {
       // Ensure the session user has a row so chat/message foreign keys hold.
       const userProfile = await getUserById(session.user.id);
       const timeZone = resolveUserTimeZone(userProfile?.timeZone);
-      const [messagesFromDb, crossChatHandshake, companionUserState] = await Promise.all([
+      const [messagesFromDb, crossChatHandshake, companionUserState] =
+        await Promise.all([
           getMessagesByChatId({ id }),
           getConversationHandshakeContext({
             userId: session.user.id,
@@ -383,8 +391,7 @@ export async function POST(request: Request) {
                   : 'invited_discovery',
               enteredAt: new Date().toISOString(),
               turnCount: 0,
-              turnBudget:
-                sessionModeAction === 'start_session_one' ? 20 : 8,
+              turnBudget: sessionModeAction === 'start_session_one' ? 20 : 8,
               targetedSceneSlots: targetedSceneSlots ?? [],
               exitReason: null,
             }
@@ -392,7 +399,10 @@ export async function POST(request: Request) {
       const sessionRoutingSeed = {
         ...currentSessionRouting,
         sessionMode: requestedSessionMode,
-        userCorrections: companionUserState.corrections ?? currentSessionRouting.userCorrections ?? [],
+        userCorrections:
+          companionUserState.corrections ??
+          currentSessionRouting.userCorrections ??
+          [],
         // Immediate-world state follows the authenticated user across chats.
         // Per-chat state remains a backward-compatible fallback during rollout.
         liveSituation:
@@ -442,7 +452,10 @@ export async function POST(request: Request) {
       }
       const visibleCanonicalMessages = canonicalMessagesFromDb.map((entry) => ({
         ...entry,
-        parts: visibleMessagePartsAt(entry.parts, userCreatedAt) as typeof entry.parts,
+        parts: visibleMessagePartsAt(
+          entry.parts,
+          userCreatedAt,
+        ) as typeof entry.parts,
       }));
 
       // Apply input sanitization to user message before processing
@@ -491,7 +504,8 @@ export async function POST(request: Request) {
         manualModelOverride: allowedDeveloperOverride,
       });
       const residueRows =
-        chronology.newTemporalSession && chronology.previousTemporalSessionStartedAt
+        chronology.newTemporalSession &&
+        chronology.previousTemporalSessionStartedAt
           ? await getTemporalSessionResidueRows({
               userId: session.user.id,
               // Fetch a bounded historical pool so bridge candidates may come
@@ -859,7 +873,10 @@ export async function POST(request: Request) {
         if (behaviorCorrection) {
           after(async () => {
             try {
-              await updateUserCorrections({ userId: session.user.id, corrections: userCorrections });
+              await updateUserCorrections({
+                userId: session.user.id,
+                corrections: userCorrections,
+              });
             } catch (error) {
               console.warn('[chat] user correction update failed open', {
                 chatId: id,
@@ -917,10 +934,7 @@ export async function POST(request: Request) {
         } else if (runtimeCompleted) {
           finalText = runtimeCompleted.assistant_message;
           const beats = runtimeCompleted.beats;
-          finalBeats =
-            beats && beats.length >= 2
-              ? beats.slice(0, 3)
-              : [];
+          finalBeats = beats && beats.length >= 2 ? beats.slice(0, 3) : [];
           finalBeatDelivery = runtimeCompleted.beat_delivery ?? [];
           console.info(
             `[chat] companion_runtime reply model=${runtimeCompleted.model_used} provider=${runtimeCompleted.provider_used} fallback=${runtimeCompleted.used_fallback} finish_reason=${runtimeCompleted.finish_reason} chars=${finalText.length} beats=${finalBeats.length}`,
@@ -1202,7 +1216,10 @@ export async function POST(request: Request) {
         finalBeats.length >= 2
           ? finalBeats.flatMap((beat, beatIndex) => {
               const delivery = finalBeatDelivery[beatIndex] ?? {
-                kind: beatIndex === 0 ? 'immediate' as const : 'continuation' as const,
+                kind:
+                  beatIndex === 0
+                    ? ('immediate' as const)
+                    : ('continuation' as const),
                 available_after_ms: beatIndex * 10_000,
               };
               return [
@@ -1212,7 +1229,8 @@ export async function POST(request: Request) {
                     beatIndex,
                     kind: delivery.kind,
                     availableAt: new Date(
-                      assistantCreatedAt.getTime() + delivery.available_after_ms,
+                      assistantCreatedAt.getTime() +
+                        delivery.available_after_ms,
                     ).toISOString(),
                   },
                 },
@@ -1308,8 +1326,7 @@ export async function POST(request: Request) {
               '[relationship] failed to schedule durable opportunity',
               {
                 chatId: id,
-                error:
-                  error instanceof Error ? error.message : 'Unknown error',
+                error: error instanceof Error ? error.message : 'Unknown error',
               },
             );
           });
@@ -1329,6 +1346,57 @@ export async function POST(request: Request) {
               createdAt: assistantCreatedAt,
             },
           };
+          // Fast-path semantic commit runs BEFORE the Cortex turn is enqueued
+          // (mirrorCompletedTurn below): this establishes the happens-before
+          // "fast actions durable -> outbox row exists", so any later outbox
+          // delivery resolves the app message's TurnAction ledger into
+          // materialized_actions. A sweep can never see the turn before the
+          // fast path committed.
+          try {
+            const semanticCommit = await commitTurnSemantics({
+              userId: session.user.id,
+              chatId: id,
+              messageId: message.id,
+              userText: currentUserText,
+              assistantText: finalText,
+              localTime: new Intl.DateTimeFormat('en-GB', {
+                dateStyle: 'full',
+                timeStyle: 'short',
+                timeZone,
+              }).format(assistantCreatedAt),
+              timeZone,
+              recentContext: boundedEpistemicContext(uiMessages),
+              signal: AbortSignal.timeout(
+                Number(
+                  process.env.SOPHIE_COMMITMENT_INTERPRETER_TIMEOUT_MS ?? 8_000,
+                ) + 15_000,
+              ),
+            });
+            if (semanticCommit.committed.length > 0) {
+              console.info('[tasks] fast-path committed actions', {
+                chatId: id,
+                messageId: message.id,
+                actions: semanticCommit.committed.map((entry) => ({
+                  action: entry.action,
+                  taskId: entry.taskId,
+                  title: entry.title,
+                })),
+              });
+            }
+            if (semanticCommit.clarifications.length > 0) {
+              console.info('[tasks] fast-path surfaced ambiguity', {
+                chatId: id,
+                messageId: message.id,
+                clarifications: semanticCommit.clarifications,
+              });
+            }
+          } catch (error) {
+            console.warn('[tasks] fast-path semantic commit failed open', {
+              chatId: id,
+              messageId: message.id,
+              error: error instanceof Error ? error.message : 'Unknown error',
+            });
+          }
           await mirrorCompletedTurn(completedTurn);
           try {
             const candidates = await extractSophieAttentionCandidates({
@@ -1372,9 +1440,16 @@ export async function POST(request: Request) {
           // timing belongs to the client; the Vercel function must not block
           // between already-completed beats.
           if (finalBeats.length >= 2) {
-            for (let beatIndex = 0; beatIndex < finalBeats.length; beatIndex += 1) {
+            for (
+              let beatIndex = 0;
+              beatIndex < finalBeats.length;
+              beatIndex += 1
+            ) {
               const delivery = finalBeatDelivery[beatIndex] ?? {
-                kind: beatIndex === 0 ? 'immediate' as const : 'continuation' as const,
+                kind:
+                  beatIndex === 0
+                    ? ('immediate' as const)
+                    : ('continuation' as const),
                 available_after_ms: beatIndex * 10_000,
               };
               dataStream.write({
