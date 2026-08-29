@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { ArrowLeft, Database, Search } from 'lucide-react';
 
 import type { ContinuityInspectorState } from '@/lib/synapse-cortex';
+import type { ContinuityDeliveryDiagnostics } from '@/lib/continuity/diagnostics';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -28,7 +29,11 @@ type SectionKey =
   | 'recurring_occurrences'
   | 'attention_candidates'
   | 'commitment_candidates'
-  | 'objective_progress';
+  | 'objective_progress'
+  | 'initiative_opportunities'
+  | 'initiative_decisions'
+  | 'cortex_deliveries'
+  | 'worker_heartbeats';
 
 const sections: Array<{ key: SectionKey; label: string }> = [
   { key: 'tasks', label: 'Canonical tasks' },
@@ -39,6 +44,10 @@ const sections: Array<{ key: SectionKey; label: string }> = [
   { key: 'attention_candidates', label: 'Attention' },
   { key: 'commitment_candidates', label: 'Task candidates' },
   { key: 'objective_progress', label: 'Progress' },
+  { key: 'initiative_opportunities', label: 'Outreach queue' },
+  { key: 'initiative_decisions', label: 'Outreach decisions' },
+  { key: 'cortex_deliveries', label: 'Cortex delivery' },
+  { key: 'worker_heartbeats', label: 'Worker health' },
 ];
 
 function display(value: unknown): string {
@@ -47,11 +56,18 @@ function display(value: unknown): string {
 
 function titleFor(item: Record<string, unknown>): string {
   return display(
-    item.title ?? item.content ?? item.topic ?? item.candidate_key,
+    item.title ??
+      item.content ??
+      item.topic ??
+      item.candidate_key ??
+      item.trigger ??
+      item.status,
   );
 }
 
 function statusFor(item: Record<string, unknown>): string {
+  if (item.stale === true) return 'stale';
+  if (item.stuck === true) return 'stuck';
   return display(
     item.status ?? item.outcome_state ?? item.temporal_state ?? item.authority,
   );
@@ -63,16 +79,20 @@ function evidenceFor(item: Record<string, unknown>): string | null {
     item.source_evidence ??
     item.evidence ??
     item.summary ??
-    item.notes;
+    item.notes ??
+    item.reason ??
+    item.lastError;
   return typeof value === 'string' && value.trim() ? value : null;
 }
 
 export function ContinuityInspector({
   tasks,
   cortex,
+  delivery,
 }: {
   tasks: CanonicalTask[];
   cortex: ContinuityInspectorState | null;
+  delivery: ContinuityDeliveryDiagnostics;
 }) {
   const [section, setSection] = useState<SectionKey>('expectations');
   const [query, setQuery] = useState('');
@@ -81,17 +101,32 @@ export function ContinuityInspector({
     const records =
       section === 'tasks'
         ? (tasks.map((task) => ({ ...task })) as Array<Record<string, unknown>>)
-        : ((cortex?.[section] as Array<Record<string, unknown>> | undefined) ??
-          []);
+        : section === 'initiative_opportunities'
+          ? delivery.initiativeOpportunities
+          : section === 'initiative_decisions'
+            ? delivery.initiativeDecisions
+            : section === 'cortex_deliveries'
+              ? delivery.cortexDeliveries
+              : section === 'worker_heartbeats'
+                ? delivery.workerHeartbeats
+                : ((cortex?.[section] as
+                    | Array<Record<string, unknown>>
+                    | undefined) ?? []);
     const needle = query.trim().toLowerCase();
     if (!needle) return records;
     return records.filter((item) =>
       JSON.stringify(item).toLowerCase().includes(needle),
     );
-  }, [cortex, query, section, tasks]);
+  }, [cortex, delivery, query, section, tasks]);
 
   const countFor = (key: SectionKey) => {
     if (key === 'tasks') return tasks.length;
+    if (key === 'initiative_opportunities')
+      return delivery.initiativeOpportunities.length;
+    if (key === 'initiative_decisions')
+      return delivery.initiativeDecisions.length;
+    if (key === 'cortex_deliveries') return delivery.cortexDeliveries.length;
+    if (key === 'worker_heartbeats') return delivery.workerHeartbeats.length;
     const value = cortex?.[key];
     return Number(
       cortex?.counts?.[key] ?? (Array.isArray(value) ? value.length : 0),

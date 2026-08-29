@@ -190,6 +190,20 @@ export type RelationshipOpportunity = InferSelectModel<
   typeof relationshipOpportunity
 >;
 
+export const runtimeHeartbeat = pgTable('RuntimeHeartbeat', {
+  worker: varchar('worker', { length: 64 }).primaryKey().notNull(),
+  status: varchar('status', { length: 16 }).notNull().default('idle'),
+  lastStartedAt: timestamp('lastStartedAt'),
+  lastCompletedAt: timestamp('lastCompletedAt'),
+  lastFailedAt: timestamp('lastFailedAt'),
+  lastDurationMs: integer('lastDurationMs'),
+  lastSummary: json('lastSummary'),
+  lastError: text('lastError'),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+});
+
+export type RuntimeHeartbeat = InferSelectModel<typeof runtimeHeartbeat>;
+
 // DEPRECATED: The following schema is deprecated and will be removed in the future.
 // Read the migration guide at https://chat-sdk.dev/docs/migration-guides/message-parts
 export const voteDeprecated = pgTable(

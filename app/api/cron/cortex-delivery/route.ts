@@ -2,6 +2,7 @@ import {
   requeueBlockedCortexOutbox,
   sweepDueCortexOutbox,
 } from '@/lib/cortex/outbox';
+import { withWorkerHeartbeat } from '@/lib/observability/worker-heartbeat';
 
 export const maxDuration = 300;
 
@@ -15,7 +16,15 @@ export async function GET(request: Request) {
   if (action === 'requeue') {
     // Explicit recovery path after Cortex configuration repair: moves blocked
     // rows back to pending. Run only once config is healthy.
-    return Response.json(await requeueBlockedCortexOutbox());
+    return Response.json(
+      await withWorkerHeartbeat('cortex-delivery', () =>
+        requeueBlockedCortexOutbox(),
+      ),
+    );
   }
-  return Response.json(await sweepDueCortexOutbox({ limit: 25 }));
+  return Response.json(
+    await withWorkerHeartbeat('cortex-delivery', () =>
+      sweepDueCortexOutbox({ limit: 25 }),
+    ),
+  );
 }
