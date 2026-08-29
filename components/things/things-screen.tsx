@@ -7,11 +7,13 @@ import {
   Check,
   CheckCircle2,
   Circle,
+  Eye,
   ListChecks,
   Pencil,
   Sparkles,
   X,
 } from 'lucide-react';
+import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -109,12 +111,10 @@ export function ThingsScreen({
 
   // "Sophie noticed" — uncertain commitment candidates from Cortex, kept
   // visibly separate from canonical Things.
-  const [candidates, setCandidates] = useState<CandidateShape[]>(
-    initialCandidates,
-  );
-  const [candidatesEnabled, setCandidatesEnabled] = useState(
-    candidatesAvailable,
-  );
+  const [candidates, setCandidates] =
+    useState<CandidateShape[]>(initialCandidates);
+  const [candidatesEnabled, setCandidatesEnabled] =
+    useState(candidatesAvailable);
 
   // Add form
   const [newTitle, setNewTitle] = useState('');
@@ -139,7 +139,9 @@ export function ThingsScreen({
   }, []);
 
   const refreshCandidates = useCallback(async () => {
-    const response = await fetch('/api/tasks/candidates', { cache: 'no-store' });
+    const response = await fetch('/api/tasks/candidates', {
+      cache: 'no-store',
+    });
     if (!response.ok) return;
     const body = (await response.json()) as {
       ok: boolean;
@@ -188,20 +190,16 @@ export function ThingsScreen({
   const addTask = async () => {
     const title = newTitle.trim();
     if (!title) return;
-    const ok = await runMutation(
-      'add',
-      '/api/tasks',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title,
-          notes: newNotes.trim() || null,
-          dueAt: newDue ? new Date(newDue).toISOString() : null,
-          source: 'manual',
-        }),
-      },
-    );
+    const ok = await runMutation('add', '/api/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title,
+        notes: newNotes.trim() || null,
+        dueAt: newDue ? new Date(newDue).toISOString() : null,
+        source: 'manual',
+      }),
+    });
     if (ok) {
       setNewTitle('');
       setNewNotes('');
@@ -275,14 +273,22 @@ export function ThingsScreen({
 
   return (
     <div className="mx-auto w-full max-w-3xl p-4 md:p-8">
-      <div className="mb-6 flex items-center gap-3">
-        <ListChecks className="size-6 text-muted-foreground" />
-        <div>
-          <h1 className="text-xl font-semibold">Things</h1>
-          <p className="text-sm text-muted-foreground">
-            {pendingCount} pending · everything is user-owned, cross-chat
-          </p>
+      <div className="mb-6 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <ListChecks className="size-6 text-muted-foreground" />
+          <div>
+            <h1 className="text-xl font-semibold">Things</h1>
+            <p className="text-sm text-muted-foreground">
+              {pendingCount} canonical tasks · user-owned, cross-chat
+            </p>
+          </div>
         </div>
+        <Button asChild size="sm" variant="outline">
+          <Link href="/things/inspect">
+            <Eye className="mr-2 size-4" />
+            Inspect background
+          </Link>
+        </Button>
       </div>
 
       {error ? (
@@ -456,7 +462,9 @@ export function ThingsScreen({
                           variant="ghost"
                           aria-label="Complete"
                           disabled={busy !== null}
-                          onClick={() => void patchTask(task.id, 'complete', {})}
+                          onClick={() =>
+                            void patchTask(task.id, 'complete', {})
+                          }
                         >
                           <Circle />
                         </Button>
@@ -518,9 +526,11 @@ export function ThingsScreen({
                           size="xs"
                           variant="ghost"
                           disabled={busy !== null}
-                          onClick={() => void patchTask(task.id, 'snooze', {
-                            offsetMinutes: 60,
-                          })}
+                          onClick={() =>
+                            void patchTask(task.id, 'snooze', {
+                              offsetMinutes: 60,
+                            })
+                          }
                         >
                           Snooze +1h
                         </Button>
@@ -565,7 +575,9 @@ export function ThingsScreen({
                         type="datetime-local"
                         aria-label="New due date"
                         value={rescheduleDue}
-                        onChange={(event) => setRescheduleDue(event.target.value)}
+                        onChange={(event) =>
+                          setRescheduleDue(event.target.value)
+                        }
                       />
                       <Button
                         size="sm"

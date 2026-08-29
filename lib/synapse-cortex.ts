@@ -447,6 +447,42 @@ export type CommitmentCandidate = {
   createdAt: string;
 };
 
+export type ContinuityInspectorState = {
+  generated_at: string;
+  counts: Record<string, number>;
+  expectations: Array<Record<string, unknown>>;
+  open_loops: Array<Record<string, unknown>>;
+  recurring_intentions: Array<Record<string, unknown>>;
+  recurring_occurrences: Array<Record<string, unknown>>;
+  objective_progress: Array<Record<string, unknown>>;
+  attention_candidates: Array<Record<string, unknown>>;
+  commitment_candidates: Array<Record<string, unknown>>;
+};
+
+export async function fetchContinuityInspectorState(input: {
+  userId: string;
+  limit?: number;
+}): Promise<ContinuityInspectorState | null> {
+  const configLocal = configuration();
+  if (!configLocal.enabled || !configLocal.baseURL) return null;
+  const ids = honchoIds(input.userId, '');
+  const params = new URLSearchParams({
+    workspace_id: ids.workspaceId,
+    owner_peer_id: ids.userPeerId,
+    limit: String(Math.max(1, Math.min(input.limit ?? 100, 250))),
+  });
+  try {
+    const raw = await cortexFetch(`/v1/debug/owner-state?${params.toString()}`);
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+    return raw as ContinuityInspectorState;
+  } catch (error) {
+    console.warn('[synapse-cortex] owner-state inspection failed', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+    return null;
+  }
+}
+
 function mapCommitmentCandidate(
   row: Record<string, unknown>,
 ): CommitmentCandidate | null {
