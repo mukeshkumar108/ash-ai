@@ -430,10 +430,10 @@ function PureMultimodalInput({
       }
       const text =
         action === 'start_session_one'
-          ? "Let's properly meet."
+          ? "Let's get to know each other."
           : action === 'start_invited_discovery'
-            ? "Let's have a proper getting-to-know-each-other catch-up."
-            : "Let's stop the getting-to-know-each-other session here.";
+            ? "Let's do another discovery session."
+            : "Let's pause the discovery session here.";
       void sendMessage(
         { role: 'user', parts: [{ type: 'text', text }] },
         { body: { sessionModeAction: action } },
@@ -638,19 +638,19 @@ function PureMultimodalInput({
               data-testid="start-session-one-option"
               onSelect={() => triggerSessionMode('start_session_one')}
             >
-              Properly meet Sophie
+              Start first discovery session
             </DropdownMenuItem>
             <DropdownMenuItem
               data-testid="start-discovery-session-option"
               onSelect={() => triggerSessionMode('start_invited_discovery')}
             >
-              Get to know each other
+              Start another discovery session
             </DropdownMenuItem>
             <DropdownMenuItem
               data-testid="stop-session-mode-option"
               onSelect={() => triggerSessionMode('stop')}
             >
-              End getting-to-know-you mode
+              Pause discovery session
             </DropdownMenuItem>
             <DropdownMenuItem
               data-testid="attach-image-option"
