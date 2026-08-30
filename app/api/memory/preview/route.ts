@@ -127,11 +127,17 @@ export async function GET(request: Request) {
         !snapshot.persistedActiveState ||
         snapshot.continuityEvents.length === 0);
 
+    // QUARANTINE: the roleplay-era continuity writer is persona-framed
+    // ("Isa"/character perspective) and must never regenerate continuity
+    // state for neutral Sophie chats. Neutral chats get a read-only preview.
+    const roleplayChat =
+      Boolean(chat?.characterId) && chat?.characterId !== 'neutral';
+
     let repairResult: Awaited<
       ReturnType<typeof refreshChatContinuityState>
     > | null = null;
 
-    if (repair || needsRepair) {
+    if ((repair || needsRepair) && roleplayChat) {
       repairResult = await refreshChatContinuityState({
         chatId,
         userId: session.user.id,
