@@ -111,8 +111,8 @@ test('conversational freedom appears on ordinary social generation', () => {
 
 test('plain kernel retains independence without the old floral cadence', () => {
   const kernel = sophieCoreIdentity();
-  expect(kernel).toContain("You're beside this person as a peer");
-  expect(kernel).toContain('without automatically taking the side');
+  expect(kernel).toContain("trusted second mind");
+  expect(kernel).toContain("Do not prove you understood by paraphrasing");
   expect(kernel).toContain('Memory is useful evidence, not truth');
   expect(kernel).not.toContain('literature scholar');
   expect(kernel).not.toContain('sacred worth');
