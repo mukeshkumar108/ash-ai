@@ -217,8 +217,26 @@ export async function executeCompanionRuntimeTurn(
   input: CompanionRuntimeTurnInput,
 ): Promise<CompanionRuntimeResult> {
   const { baseUrl, secret } = configuredRuntime();
+  // WS10 latency waterfall: BFF-side cost of the runtime turn call
+  // (network + full runtime execution). Surfaced via logs and metadata.
+  const runtimeCallStartedAtMs = Date.now();
   try {
-    return await submit(baseUrl, secret, input);
+    const result = await submit(baseUrl, secret, input);
+    const bffRuntimeCallMs = Date.now() - runtimeCallStartedAtMs;
+    const completedMeta =
+      result.status === 'completed'
+        ? (result as { execution_metadata?: Record<string, unknown> })
+            .execution_metadata
+        : null;
+    console.log('[latency-waterfall] bff_runtime_call_ms', {
+      turnId: input.turn_id,
+      bffRuntimeCallMs,
+      runtimeTotalMs: completedMeta?.total_ms ?? null,
+      runtimeTtftMs: completedMeta?.time_to_first_token_ms ?? null,
+      runtimeContextMs: completedMeta?.context_ms ?? null,
+      runtimeStages: completedMeta?.stage_timings_ms ?? null,
+    });
+    return result;
   } catch (initialError) {
     // The POST may have reached Python even when its HTTP response was lost.
     // Resolve through the durable turn record, then retry the identical input;
