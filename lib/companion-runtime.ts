@@ -59,6 +59,23 @@ const statusResponseSchema = z.object({
   result: z.unknown().nullable(),
 });
 
+const proactiveTickResultSchema = z.object({
+  contract_version: z.literal('v1'),
+  request_id: z.string(),
+  should_appear: z.boolean(),
+  reason: z.string(),
+  outbound_text: z.string().nullable().optional(),
+  model_used: z.string().nullable().optional(),
+  decision_id: z.string().nullable().optional(),
+  occurrence_id: z.string().nullable().optional(),
+  handover: z.record(z.unknown()),
+  trace: z.record(z.unknown()),
+});
+
+export type CompanionRuntimeProactiveResult = z.infer<
+  typeof proactiveTickResultSchema
+>;
+
 const streamStatusEventSchema = z.object({
   contract_version: z.literal('v1'),
   turn_id: z.string(),
@@ -267,6 +284,49 @@ export async function executeCompanionRuntimeTurn(
     }
     throw initialError;
   }
+}
+
+export async function executeCompanionRuntimeProactiveTick(input: {
+  request_id: string;
+  user_id: string;
+  conversation_id: string;
+  anchor_message_id: string;
+  trigger: string;
+  now: string;
+  timezone: string;
+  recent_history: Array<{
+    id: string;
+    role: 'user' | 'assistant';
+    content: string;
+    created_at?: string;
+  }>;
+}): Promise<CompanionRuntimeProactiveResult> {
+  const { baseUrl, secret } = configuredRuntime();
+  const raw = await requestJson(
+    `${baseUrl}/v1/proactive/tick`,
+    secret,
+    { method: 'POST', body: JSON.stringify({ contract_version: 'v1', ...input }) },
+    Number(process.env.COMPANION_RUNTIME_REQUEST_TIMEOUT_MS ?? 250_000),
+  );
+  return proactiveTickResultSchema.parse(raw);
+}
+
+export async function completeCompanionRuntimeProactive(input: {
+  user_id: string;
+  conversation_id: string;
+  decision_id: string;
+  occurrence_id?: string | null;
+  delivered: boolean;
+  now: string;
+  reason?: string;
+}) {
+  const { baseUrl, secret } = configuredRuntime();
+  return requestJson(
+    `${baseUrl}/v1/proactive/complete`,
+    secret,
+    { method: 'POST', body: JSON.stringify({ contract_version: 'v1', ...input }) },
+    20_000,
+  );
 }
 
 function parseStreamEvent(

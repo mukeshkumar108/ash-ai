@@ -2,6 +2,11 @@ import 'server-only';
 
 import { randomUUID } from 'node:crypto';
 import { mirrorAssistantInitiative } from '@/lib/honcho';
+import {
+  completeCompanionRuntimeProactive,
+  executeCompanionRuntimeProactiveTick,
+  type CompanionRuntimeProactiveResult,
+} from '@/lib/companion-runtime';
 
 import { composeInitiative } from './composer';
 import { retrieveRelationshipEvidence } from './evidence';
@@ -16,11 +21,14 @@ import {
 } from './continuity';
 import {
   claimInitiative,
+  claimRuntimeInitiative,
   completeNoAction,
   completeSuppressed,
   conversationSnapshot,
+  conversationHistoryForRuntime,
   failInitiative,
   persistInitiativeMessage,
+  persistRuntimeInitiativeMessage,
   recentAssistantTopics,
   serverInitiativeScanCandidates,
   initiativeSituationSnapshot,
@@ -28,11 +36,10 @@ import {
 import { markTaskReminderFired } from '@/lib/tasks/domain';
 import { consumeCalendarFollowup } from '@/lib/calendar/sync';
 import type { InitiativeTrigger } from './types';
-import {
-  ambientCandidateForSituation,
-  type AmbientCandidate,
-  type InitiativeSituation,
-  type TrustedSituationalFacts,
+import type {
+  AmbientCandidate,
+  InitiativeSituation,
+  TrustedSituationalFacts,
 } from './situation';
 
 export type InitiativeTraceEvent = {
@@ -403,106 +410,119 @@ export async function runServerInitiativeScan(
   let acted = 0;
   for (const candidate of candidates) {
     const timeZone = process.env.ASH_TIME_ZONE?.trim() || 'Europe/London';
-    const [topics, situation] = await Promise.all([
-      recentAssistantTopics(String(candidate.chatId)),
-      initiativeSituationSnapshot({
-        userId: String(candidate.userId),
-        evaluationNow,
-        timeZone,
-        trustedFacts: options.trustedFacts,
-      }),
-    ]);
-    const continuity = await retrieveInitiativeContinuity({
-      userId: String(candidate.userId),
-      chatId: String(candidate.chatId),
-      timeZone,
-      recentlyAddressedTopics: topics,
+    const userId = String(candidate.userId);
+    const chatId = String(candidate.chatId);
+    const anchorMessageId = String(candidate.anchorMessageId);
+    const history = await conversationHistoryForRuntime(chatId);
+    let runtimeDecision: CompanionRuntimeProactiveResult | null = null;
+    try {
+      runtimeDecision = await executeCompanionRuntimeProactiveTick({
+        request_id: randomUUID(),
+        user_id: userId,
+        conversation_id: chatId,
+        anchor_message_id: anchorMessageId,
+        trigger: String(candidate.trigger),
+        now: evaluationNow.toISOString(),
+        timezone: timeZone,
+        recent_history: history,
+      });
+    } catch (error) {
+      console.warn('[relationship] proactive runtime failed closed', {
+        chatId,
+        trigger: candidate.trigger,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+      continue;
+    }
+    if (
+      !runtimeDecision ||
+      !runtimeDecision.should_appear ||
+      !runtimeDecision.outbound_text ||
+      !runtimeDecision.decision_id
+    )
+      continue;
+    const decisionId = runtimeDecision.decision_id;
+    const completion = async (delivered: boolean, reason?: string) => {
+      await completeCompanionRuntimeProactive({
+        user_id: userId,
+        conversation_id: chatId,
+        decision_id: decisionId,
+        occurrence_id: runtimeDecision.occurrence_id,
+        delivered,
+        now: evaluationNow.toISOString(),
+        reason,
+      });
+    };
+    const claim = await claimRuntimeInitiative({
+      userId,
+      chatId,
+      anchorMessageId,
+      trigger: String(candidate.trigger),
+      decisionId,
       evaluationNow,
     });
-    const ambientCandidate = ambientCandidateForSituation(situation);
-    const hasContinuity = hasPlausibleContinuityCandidate(continuity);
-    const scheduledTrigger =
-      candidate.trigger === 'second_thought' ||
-      candidate.trigger === 'active_idle' ||
-      candidate.trigger === 'task_reminder' ||
-      candidate.trigger === 'calendar_followup'
-        ? candidate.trigger
-        : null;
-    // Deterministic wake-ups consume their bookkeeping exactly once, before
-    // evaluation: an active conversation (claim failure) or a declined send
-    // never re-offers the same reminder/callback. Reactive continuity still
-    // carries the underlying state.
-    let deterministicReason: DeterministicReason | null = null;
-    let dedupeScopeKey: string | undefined;
-    if (candidate.trigger === 'task_reminder' && candidate.context) {
-      const context = candidate.context as Record<string, unknown>;
-      const reminderId =
-        typeof context.reminderId === 'string' ? context.reminderId : null;
-      const taskTitle =
-        typeof context.taskTitle === 'string' ? context.taskTitle : 'a task';
-      const windowLabel =
-        typeof context.windowLabel === 'string' && context.windowLabel
-          ? context.windowLabel
-          : 'its reminder window';
-      if (reminderId) {
-        await markTaskReminderFired(reminderId, evaluationNow);
-        deterministicReason = {
-          kind: 'task_reminder',
-          title: taskTitle,
-          detail: `The user asked to be reminded about "${taskTitle}" and ${windowLabel} is open now.`,
-        };
-        dedupeScopeKey = `task_reminder:${reminderId}`;
+    if (!claim.ok) {
+      await completion(false, claim.reason);
+      continue;
+    }
+    try {
+      const message = await persistRuntimeInitiativeMessage({
+        eventId: claim.eventId,
+        userId,
+        chatId,
+        anchorMessageId,
+        decisionId,
+        reason: runtimeDecision.reason,
+        trace: runtimeDecision.trace,
+        messageId: randomUUID(),
+        text: runtimeDecision.outbound_text,
+        evaluationNow,
+      });
+      if (!message) {
+        await completion(false, 'conversation_changed_before_send');
+        continue;
       }
-    } else if (candidate.trigger === 'calendar_followup' && candidate.context) {
-      const context = candidate.context as Record<string, unknown>;
-      const eventId =
-        typeof context.eventId === 'string' ? context.eventId : null;
-      const eventTitle =
-        typeof context.eventTitle === 'string' && context.eventTitle
-          ? context.eventTitle
-          : 'their event';
-      if (eventId) {
-        await consumeCalendarFollowup(
-          String(candidate.userId),
-          eventId,
-          evaluationNow,
-        );
-        deterministicReason = {
-          kind: 'calendar_followup',
-          title: eventTitle,
-          detail: `"${eventTitle}" on the user's Google Calendar finished within the last few minutes; a bounded follow-up window is open.`,
-        };
-        dedupeScopeKey = `calendar_followup:${eventId}`;
+      await completion(true);
+      if (candidate.trigger === 'task_reminder' && candidate.context) {
+        const reminderId = (candidate.context as Record<string, unknown>)
+          .reminderId;
+        if (typeof reminderId === 'string')
+          await markTaskReminderFired(reminderId, evaluationNow);
+      } else if (
+        candidate.trigger === 'calendar_followup' &&
+        candidate.context
+      ) {
+        const eventId = (candidate.context as Record<string, unknown>).eventId;
+        if (typeof eventId === 'string')
+          await consumeCalendarFollowup(userId, eventId, evaluationNow);
+      }
+      void mirrorAssistantInitiative({
+        userId,
+        chatId,
+        message: {
+          id: message.id,
+          text: runtimeDecision.outbound_text,
+          createdAt: message.metadata.createdAt,
+        },
+      });
+      acted += 1;
+    } catch (error) {
+      await failInitiative(
+        claim.eventId,
+        error instanceof Error ? error.message : 'Unknown delivery error',
+      );
+      try {
+        await completion(false, 'delivery_failed');
+      } catch (completionError) {
+        console.warn('[relationship] proactive completion failed', {
+          decisionId: runtimeDecision.decision_id,
+          error:
+            completionError instanceof Error
+              ? completionError.message
+              : 'Unknown error',
+        });
       }
     }
-    if (candidate.trigger === 'task_reminder' && !deterministicReason) continue;
-    if (candidate.trigger === 'calendar_followup' && !deterministicReason)
-      continue;
-    if (!scheduledTrigger && !hasContinuity && !ambientCandidate) continue;
-    const selectedAmbientCandidate =
-      scheduledTrigger || hasContinuity ? null : ambientCandidate;
-    const result = await runRelationshipInitiative({
-      userId: String(candidate.userId),
-      chatId: String(candidate.chatId),
-      trigger:
-        scheduledTrigger ?? (hasContinuity ? 'server_scan' : 'ambient_scan'),
-      anchorMessageId: String(candidate.anchorMessageId),
-      continuityContext: continuity,
-      situation,
-      ambientCandidate: selectedAmbientCandidate,
-      deterministicReason,
-      dedupeScopeKey: dedupeScopeKey ?? selectedAmbientCandidate?.key,
-      ownedObject:
-        candidate.context && typeof candidate.context === 'object'
-          ? ((candidate.context as Record<string, unknown>).ownedObject as
-              | Record<string, unknown>
-              | null
-              | undefined)
-          : null,
-      evaluationNow,
-      onTrace: options.onTrace,
-    });
-    if (result.acted) acted += 1;
   }
   return { enabled: true, scanned: candidates.length, acted };
 }

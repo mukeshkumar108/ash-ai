@@ -190,6 +190,123 @@ export async function conversationSnapshot(chatId: string) {
     .slice(-6_000);
 }
 
+export async function conversationHistoryForRuntime(chatId: string) {
+  const rows = await sql()`
+    SELECT id, role, parts, "createdAt" FROM "Message_v2"
+    WHERE "chatId" = ${chatId} AND role IN ('user', 'assistant')
+    ORDER BY "createdAt" DESC, id DESC LIMIT 14
+  `;
+  return rows.reverse().flatMap((row) => {
+    const content = Array.isArray(row.parts)
+      ? row.parts
+          .filter((part: any) => part?.type === 'text')
+          .map((part: any) => String(part.text ?? ''))
+          .join(' ')
+          .replace(/\s+/gu, ' ')
+          .trim()
+          .slice(0, 2_000)
+      : '';
+    if (!content || (row.role !== 'user' && row.role !== 'assistant'))
+      return [];
+    return [
+      {
+        id: String(row.id),
+        role: row.role as 'user' | 'assistant',
+        content,
+        created_at: new Date(row.createdAt).toISOString(),
+      },
+    ];
+  });
+}
+
+export async function claimRuntimeInitiative(input: {
+  userId: string;
+  chatId: string;
+  anchorMessageId: string;
+  trigger: string;
+  decisionId: string;
+  evaluationNow: Date;
+}): Promise<InitiativeClaim> {
+  return sql().begin(async (tx) => {
+    const [latest] = await tx`
+      SELECT m.id FROM "Message_v2" m JOIN "Chat" c ON c.id = m."chatId"
+      WHERE m."chatId" = ${input.chatId} AND c."userId" = ${input.userId}
+      ORDER BY m."createdAt" DESC, m.id DESC LIMIT 1 FOR UPDATE OF m
+    `;
+    if (!latest || latest.id !== input.anchorMessageId) {
+      return { ok: false as const, reason: 'conversation_changed' };
+    }
+    const claimed = await tx`
+      INSERT INTO "RelationshipInitiative"
+        ("userId", "chatId", trigger, "triggerMessageId", "dedupeKey", "evaluationAt")
+      VALUES (${input.userId}, ${input.chatId}, ${input.trigger}, ${input.anchorMessageId},
+        ${`runtime:${input.decisionId}`}, ${input.evaluationNow})
+      ON CONFLICT ("dedupeKey") DO NOTHING RETURNING id
+    `;
+    if (!claimed.length) {
+      return { ok: false as const, reason: 'duplicate', duplicate: true };
+    }
+    await tx`
+      UPDATE "RelationshipOpportunity" SET status = 'claimed', "claimedAt" = ${input.evaluationNow}
+      WHERE "anchorMessageId" = ${input.anchorMessageId}
+        AND trigger = ${input.trigger} AND status = 'scheduled'
+    `;
+    return {
+      ok: true as const,
+      eventId: String(claimed[0].id),
+      recentTopicKeys: [],
+    };
+  });
+}
+
+export async function persistRuntimeInitiativeMessage(input: {
+  eventId: string;
+  userId: string;
+  chatId: string;
+  anchorMessageId: string;
+  decisionId: string;
+  reason: string;
+  trace: Record<string, unknown>;
+  messageId: string;
+  text: string;
+  evaluationNow: Date;
+}) {
+  return sql().begin(async (tx) => {
+    const [latest] = await tx`
+      SELECT m.id FROM "Message_v2" m JOIN "Chat" c ON c.id = m."chatId"
+      WHERE m."chatId" = ${input.chatId} AND c."userId" = ${input.userId}
+      ORDER BY m."createdAt" DESC, m.id DESC LIMIT 1 FOR UPDATE OF m
+    `;
+    if (!latest || latest.id !== input.anchorMessageId) {
+      await tx`UPDATE "RelationshipInitiative" SET status = 'suppressed', reason = 'conversation_changed_before_send', "decidedAt" = now() WHERE id = ${input.eventId}`;
+      return null;
+    }
+    const canonical = canonicalInitiativeMessage({
+      id: input.messageId,
+      chatId: input.chatId,
+      text: input.text,
+      createdAt: input.evaluationNow,
+    });
+    await tx`
+      INSERT INTO "Message_v2" (id, "chatId", role, parts, attachments, "createdAt")
+      VALUES (${canonical.id}, ${canonical.chatId}, ${canonical.role}, ${tx.json(canonical.parts)}, ${tx.json(canonical.attachments)}, ${canonical.createdAt})
+    `;
+    await tx`
+      UPDATE "RelationshipInitiative" SET status = 'sent', "candidateKind" = 'continue_thread',
+        "topicKey" = ${`cortex:${input.decisionId}`}, reason = ${input.reason},
+        evidence = ${tx.json(input.trace as any)}, "generatedMessageId" = ${input.messageId},
+        "decidedAt" = now(), "sentAt" = ${input.evaluationNow}
+      WHERE id = ${input.eventId} AND status = 'evaluating'
+    `;
+    return {
+      id: input.messageId,
+      role: 'assistant' as const,
+      parts: [{ type: 'text' as const, text: input.text }],
+      metadata: { createdAt: input.evaluationNow.toISOString() },
+    };
+  });
+}
+
 export async function recentAssistantTopics(chatId: string) {
   const rows = await sql()`
     SELECT parts FROM "Message_v2"
