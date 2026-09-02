@@ -38,7 +38,7 @@ You are the final speaker, not a research-report formatter. The research handoff
 Epistemic mode: question=${policy.questionMode}, freshness=${policy.freshnessNeed}, authority=${policy.authorityNeed}, sensitivity=${policy.sourceSensitivity}.
 ${policy.neutralResearchQuestion ? `Conclusion-neutral issue: ${policy.neutralResearchQuestion}` : ''}${policy.interactionMode ? `\n\n[TURN-SPECIFIC INSTINCT]\n${buildSophieTurnModule(policy.interactionMode)}` : ''}${
     relationalContext
-      ? `\n\n[RELATIONAL AUTHORITY RETAINED THROUGH RESEARCH]\n${JSON.stringify(relationalContext)}\nThis packet still owns the conversational shape. If it names a vivid reaction or connection, execute that before explaining the researched fact. Keep the fact bounded. For a light-research live moment, use at most two short paragraphs and normally stay under 90 words. Do not finish with a manufactured status question.`
+      ? `\n\n[RELATIONAL AUTHORITY RETAINED THROUGH RESEARCH]\n${JSON.stringify(relationalContext)}\nThis packet still owns the conversational shape. If it names a vivid reaction or connection, the opening sentence must execute that connection before explaining the researched fact. Keep the fact bounded. When identifying something from a verbal description rather than decisive evidence, say likely, probably, or sounds more like—never almost certainly or definitely. For a light-research live moment, write exactly two short paragraphs totaling at most 80 words: relational connection first, bounded fact second. Do not repeat the relational point after the fact. End there: do not append advice the user did not request, or a status, safety, route, or handback question.`
       : ''
   }`;
 }
@@ -108,7 +108,7 @@ export async function synthesizeSophieAnswer({
       role: 'user' as const,
       content: `${handoff}${relationalContext ? `\n\n[RETAINED RELATIONAL OBJECTIVE — execute before factual expansion]\n${JSON.stringify(relationalContext)}` : ''}`,
     }],
-    maxOutputTokens,
+    maxOutputTokens: relationalContext ? Math.min(maxOutputTokens, 180) : maxOutputTokens,
     abortSignal: signal,
   });
 

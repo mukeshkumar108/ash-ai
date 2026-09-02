@@ -1104,7 +1104,7 @@ export async function POST(request: Request) {
           } else if (researchTurn) {
             const finalSpeakerModelId = runtimeRelationalContext
               ? process.env.SOPHIE_FOREGROUND_MODEL?.trim() ||
-                'openai/gpt-5.6-luna-pro'
+                'upstage/solar-pro4'
               : epistemicPolicy.neutralResearchQuestion
                 ? judgmentModelId()
                 : selectedChatModel;
