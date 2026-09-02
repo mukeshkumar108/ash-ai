@@ -460,7 +460,7 @@ export async function getUserSyncAnchors(
       SELECT "chatId", MAX("createdAt") AS "lastAt"
       FROM "Message_v2" GROUP BY "chatId"
     )
-    SELECT u.id AS "userId", u."timeZone" AS "timeZone", ranked.id AS "anchorChatId"
+    SELECT u.id AS "userId", u.time_zone AS "timeZone", ranked.id AS "anchorChatId"
     FROM "User" u
     JOIN LATERAL (
       SELECT c.id
