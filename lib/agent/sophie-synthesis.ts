@@ -38,7 +38,7 @@ You are the final speaker, not a research-report formatter. The research handoff
 Epistemic mode: question=${policy.questionMode}, freshness=${policy.freshnessNeed}, authority=${policy.authorityNeed}, sensitivity=${policy.sourceSensitivity}.
 ${policy.neutralResearchQuestion ? `Conclusion-neutral issue: ${policy.neutralResearchQuestion}` : ''}${policy.interactionMode ? `\n\n[TURN-SPECIFIC INSTINCT]\n${buildSophieTurnModule(policy.interactionMode)}` : ''}${
     relationalContext
-      ? `\n\n[RELATIONAL AUTHORITY RETAINED THROUGH RESEARCH]\n${JSON.stringify(relationalContext)}\nThis packet still owns the conversational shape. If it names a vivid reaction or connection, execute that before explaining the researched fact. Keep the fact bounded. Do not finish with a manufactured status question.`
+      ? `\n\n[RELATIONAL AUTHORITY RETAINED THROUGH RESEARCH]\n${JSON.stringify(relationalContext)}\nThis packet still owns the conversational shape. If it names a vivid reaction or connection, execute that before explaining the researched fact. Keep the fact bounded. For a light-research live moment, use at most two short paragraphs and normally stay under 90 words. Do not finish with a manufactured status question.`
       : ''
   }`;
 }
