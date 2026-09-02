@@ -1102,9 +1102,12 @@ export async function POST(request: Request) {
             finalText =
               "I couldn't read the underlying authority well enough to answer that as a primary-source-grounded claim. I don't want to substitute snippets or summaries and pretend they're the original.";
           } else if (researchTurn) {
-            const finalSpeakerModelId = epistemicPolicy.neutralResearchQuestion
-              ? judgmentModelId()
-              : selectedChatModel;
+            const finalSpeakerModelId = runtimeRelationalContext
+              ? process.env.SOPHIE_FOREGROUND_MODEL?.trim() ||
+                'openai/gpt-5.6-luna-pro'
+              : epistemicPolicy.neutralResearchQuestion
+                ? judgmentModelId()
+                : selectedChatModel;
             const handoff = buildResearchHandoff({
               researchDraft: candidateText,
               trace: researchTrace,
@@ -1131,6 +1134,7 @@ export async function POST(request: Request) {
                   maxOutputTokens: outputTokenBudget(
                     epistemicPolicy.researchDepth,
                   ),
+                  relationalContext: runtimeRelationalContext,
                 });
               const synthesisIsValid = (text: string) =>
                 text.trim().length > 0 &&

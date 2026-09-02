@@ -19,6 +19,7 @@ type ConversationTurn = {
 
 export function buildSophieSynthesisSystemPrompt(
   policy: EpistemicPolicy,
+  relationalContext?: Record<string, unknown> | null,
 ): string {
   return `${sophieSystemPrompt().trim()}
 
@@ -35,7 +36,11 @@ You are the final speaker, not a research-report formatter. The research handoff
 - Do not open by praising or validating the user's framing. After giving the answer, remain Sophie: if genuine curiosity or a meaningful conversational thread remains, engage it naturally rather than closing like a report.
 
 Epistemic mode: question=${policy.questionMode}, freshness=${policy.freshnessNeed}, authority=${policy.authorityNeed}, sensitivity=${policy.sourceSensitivity}.
-${policy.neutralResearchQuestion ? `Conclusion-neutral issue: ${policy.neutralResearchQuestion}` : ''}${policy.interactionMode ? `\n\n[TURN-SPECIFIC INSTINCT]\n${buildSophieTurnModule(policy.interactionMode)}` : ''}`;
+${policy.neutralResearchQuestion ? `Conclusion-neutral issue: ${policy.neutralResearchQuestion}` : ''}${policy.interactionMode ? `\n\n[TURN-SPECIFIC INSTINCT]\n${buildSophieTurnModule(policy.interactionMode)}` : ''}${
+    relationalContext
+      ? `\n\n[RELATIONAL AUTHORITY RETAINED THROUGH RESEARCH]\n${JSON.stringify(relationalContext)}\nThis packet still owns the conversational shape. If it names a vivid reaction or connection, execute that before explaining the researched fact. Keep the fact bounded. Do not finish with a manufactured status question.`
+      : ''
+  }`;
 }
 
 export function buildResearchHandoff({
@@ -86,6 +91,7 @@ export async function synthesizeSophieAnswer({
   handoff,
   signal,
   maxOutputTokens,
+  relationalContext,
 }: {
   model: LanguageModel;
   conversation: ConversationTurn[];
@@ -93,11 +99,15 @@ export async function synthesizeSophieAnswer({
   handoff: string;
   signal: AbortSignal;
   maxOutputTokens: number;
+  relationalContext?: Record<string, unknown> | null;
 }): Promise<{ text: string; finishReason: string }> {
   const result = await generateText({
     model,
-    system: buildSophieSynthesisSystemPrompt(policy),
-    messages: [...conversation, { role: 'user' as const, content: handoff }],
+    system: buildSophieSynthesisSystemPrompt(policy, relationalContext),
+    messages: [...conversation, {
+      role: 'user' as const,
+      content: `${handoff}${relationalContext ? `\n\n[RETAINED RELATIONAL OBJECTIVE — execute before factual expansion]\n${JSON.stringify(relationalContext)}` : ''}`,
+    }],
     maxOutputTokens,
     abortSignal: signal,
   });
