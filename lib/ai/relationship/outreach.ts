@@ -8,6 +8,7 @@ import {
   type CompanionRuntimeProactiveResult,
 } from '@/lib/companion-runtime';
 
+import { sweepActiveConversationFollowups } from './followup';
 import { composeInitiative } from './composer';
 import { retrieveRelationshipEvidence } from './evidence';
 import { evaluateInitiative } from './evaluator';
@@ -403,12 +404,24 @@ export async function runServerInitiativeScan(
     return { enabled: false, scanned: 0, acted: 0 };
   }
   const evaluationNow = options.evaluationNow ?? new Date();
+  // Deterministic active-conversation follow-up lifecycle: zero model calls.
+  // Runs first so a fresh eligible conversation window is armed/driven by the
+  // cheap phrase-bank path, never by the expensive model-backed loop below.
+  const deterministic = await sweepActiveConversationFollowups({
+    now: evaluationNow,
+    timeZone: process.env.ASH_TIME_ZONE?.trim() || 'Europe/London',
+  });
   const candidates = await serverInitiativeScanCandidates(
     Number(process.env.RELATIONSHIP_SERVER_SCAN_LIMIT ?? 5),
     evaluationNow,
   );
   let acted = 0;
   for (const candidate of candidates) {
+    if (candidate.trigger === 'active_idle') {
+      // Owned by the deterministic follow-up lifecycle above. Skip the model
+      // path entirely: active_idle must never reach an LLM provider.
+      continue;
+    }
     const timeZone = process.env.ASH_TIME_ZONE?.trim() || 'Europe/London';
     const userId = String(candidate.userId);
     const chatId = String(candidate.chatId);
@@ -524,5 +537,10 @@ export async function runServerInitiativeScan(
       }
     }
   }
-  return { enabled: true, scanned: candidates.length, acted };
+  return {
+    enabled: true,
+    scanned: candidates.length,
+    acted,
+    deterministic,
+  };
 }

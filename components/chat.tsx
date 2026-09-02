@@ -74,6 +74,70 @@ export function Chat({
   const [voiceReplyIds, setVoiceReplyIds] = useState<Set<string>>(
     () => new Set(),
   );
+  const instrumentedChatFetch = useCallback(
+    async (input: RequestInfo | URL, init?: RequestInit) => {
+      const startedAt = performance.now();
+      const response = await fetchWithErrorHandlers(input, init);
+      if (!response.body) return response;
+      let buffer = '';
+      let reported = false;
+      let turnId: string | null = null;
+      if (typeof init?.body === 'string') {
+        try {
+          const body = JSON.parse(init.body) as {
+            message?: { id?: unknown };
+          };
+          turnId =
+            typeof body.message?.id === 'string' ? body.message.id : null;
+        } catch {
+          turnId = null;
+        }
+      }
+      const decoder = new TextDecoder();
+      const observed = response.body.pipeThrough(
+        new TransformStream<Uint8Array, Uint8Array>({
+          transform(chunk, controller) {
+            if (!reported) {
+              buffer =
+                `${buffer}${decoder.decode(chunk, { stream: true })}`.slice(
+                  -16_000,
+                );
+              if (buffer.includes('"type":"text-delta"')) {
+                reported = true;
+                const clientTtftMs = performance.now() - startedAt;
+                const payload = JSON.stringify({
+                  id,
+                  turnId,
+                  chatId: id,
+                  clientTtftMs,
+                });
+                if (typeof navigator.sendBeacon === 'function') {
+                  navigator.sendBeacon(
+                    '/api/telemetry/chat',
+                    new Blob([payload], { type: 'application/json' }),
+                  );
+                } else {
+                  void fetch('/api/telemetry/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: payload,
+                    keepalive: true,
+                  });
+                }
+              }
+            }
+            controller.enqueue(chunk);
+          },
+        }),
+      );
+      return new Response(observed, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers,
+      });
+    },
+    [id],
+  );
 
   const {
     messages,
@@ -90,7 +154,7 @@ export function Chat({
     generateId: generateUUID,
     transport: new DefaultChatTransport({
       api: '/api/chat',
-      fetch: fetchWithErrorHandlers,
+      fetch: instrumentedChatFetch,
       prepareSendMessagesRequest({ messages, id, body }) {
         return {
           body: {

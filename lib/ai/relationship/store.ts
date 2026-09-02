@@ -339,22 +339,6 @@ export async function serverInitiativeScanCandidates(
       FROM "RelationshipOpportunity" o
       WHERE o.status = 'scheduled' AND o."notBefore" <= ${evaluationNow}
         AND o."createdAt" >= ${evaluationNow}::timestamp - interval '48 hours'
-    ),
-    latest_per_chat AS (
-      SELECT c."userId", m."chatId", m.id AS "anchorMessageId",
-        m.role, m."createdAt" AS "lastMessageAt",
-        NULL::json AS context,
-        row_number() OVER (
-          PARTITION BY m."chatId"
-          ORDER BY m."createdAt" DESC, m.id DESC
-        ) AS chat_rank
-      FROM "Message_v2" m
-      JOIN "Chat" c ON c.id = m."chatId"
-    ), eligible AS (
-      SELECT * FROM latest_per_chat
-      WHERE chat_rank = 1 AND role = 'assistant'
-        AND "lastMessageAt" <= ${evaluationNow}::timestamp - (${INITIATIVE_POLICY.idleMs} * interval '1 millisecond')
-        AND "lastMessageAt" >= ${evaluationNow}::timestamp - interval '48 hours'
     )
     , due_task_reminders AS (
       SELECT r."userId", lm."chatId",
@@ -445,10 +429,6 @@ export async function serverInitiativeScanCandidates(
       UNION ALL
       SELECT "userId", "chatId", "anchorMessageId", trigger, "lastMessageAt", context, priority
       FROM due_calendar_followups
-      UNION ALL
-      SELECT "userId", "chatId", "anchorMessageId", 'server_scan' AS trigger,
-        "lastMessageAt", context, 1 AS priority
-      FROM eligible
     )
     SELECT DISTINCT ON ("userId") "userId", "chatId", "anchorMessageId", trigger, "lastMessageAt", context
     FROM scan_candidates

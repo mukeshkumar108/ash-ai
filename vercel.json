@@ -16,7 +16,7 @@
     },
     {
       "path": "/api/cron/continuity-brief",
-      "schedule": "*/15 * * * *"
+      "schedule": "0 * * * *"
     }
   ]
 }
