@@ -4,6 +4,7 @@ import { generateObject } from 'ai';
 import { z } from 'zod';
 
 import { getLanguageModel } from '@/lib/ai/providers';
+import { normalizeDueFromTemporalBasis } from './temporal-basis';
 
 /**
  * Real-time commitment interpreter (the fast path).
@@ -58,6 +59,11 @@ const interpreterActionSchema = z.object({
   title: z.string().trim().min(1).max(280).nullable(),
   notes: z.string().trim().max(2000).nullable(),
   due_iso: z.string().datetime({ offset: true }).nullable(),
+  // A due date is never accepted on model arithmetic alone. The model must
+  // point to the user's exact temporal words and classify their scope so code
+  // can validate (and, for "today/tonight", own) the calendar date.
+  temporal_evidence_verbatim: z.string().trim().min(1).max(240).nullable().optional(),
+  temporal_scope: z.enum(['current_day', 'future_explicit', 'none']).optional(),
   reminder_windows: z
     .array(
       z.object({
@@ -327,6 +333,7 @@ Grounding rules (critical):
 
 Other rules:
 - "create_task" needs a title. Resolve relative times ("tomorrow at 5", "Friday morning", "in 30 minutes") into ISO 8601 with UTC offset using the supplied local time and timezone. "Friday morning" = 07:00–12:00 local; "afternoon" = 12:00–18:00 local.
+- Any non-null due_iso MUST include temporal_evidence_verbatim copied exactly from the user's message. Set temporal_scope=current_day for "today", "tonight", "this evening", "end the day", or equivalent; future_explicit for an explicit future date/relative time; none when there is no temporal evidence. Never infer "tomorrow" from a commitment made today.
 - evidence_verbatim MUST be copied exactly from the user's message (never Sophie's text, never paraphrased). Anything implicit ("I should probably deal with insurance someday"), hypothetical, or merely discussed is NOT an action here — leave it out entirely; a separate background system handles it.
 - Reminder windows are optional explicit windows ("the day before", "30 minutes before"). Never invent times for a reminder the user gave without one: set due_iso/reminder_windows to null.
 - Return empty actions and empty clarifications when nothing explicit happened.`,
@@ -396,6 +403,7 @@ export async function commitInterpreterActions(input: {
   roster: InterpreterRosterEntry[];
   originMessageId: string | null;
   recentContext?: string;
+  referenceTime?: Date;
 }): Promise<InterpreterCommitted> {
   const { createTask, completeTask, cancelTask, snoozeTask, rescheduleTask } =
     await import('@/lib/tasks/domain');
@@ -470,6 +478,25 @@ export async function commitInterpreterActions(input: {
       rejected.push({ action, reason: 'evidence_not_found_in_turn' });
       continue;
     }
+    let effectiveDueIso = action.due_iso;
+    if (effectiveDueIso) {
+      const normalized = normalizeDueFromTemporalBasis({
+        dueIso: effectiveDueIso,
+        scope: action.temporal_scope,
+        temporalEvidenceValid: Boolean(
+          action.temporal_evidence_verbatim && locateEvidenceVerbatim(
+          input.userText,
+          action.temporal_evidence_verbatim,
+          )),
+        referenceTime: input.referenceTime ?? new Date(),
+        timeZone: input.timeZone,
+      });
+      if (normalized.rejection || !normalized.dueIso) {
+        rejected.push({ action, reason: normalized.rejection ?? 'invalid_due' });
+        continue;
+      }
+      effectiveDueIso = normalized.dueIso;
+    }
     // Gate 2: create must have a title.
     if (action.action === 'create_task') {
       if (!action.title) {
@@ -486,9 +513,21 @@ export async function commitInterpreterActions(input: {
               evidence: action.evidence_verbatim,
             })
           : null;
+      const normalizeWindowIso = (iso: string) => {
+        if (action.temporal_scope !== 'current_day') return iso;
+        return normalizeDueFromTemporalBasis({
+          dueIso: iso,
+          scope: 'current_day',
+          temporalEvidenceValid: true,
+          referenceTime: input.referenceTime ?? new Date(),
+          timeZone: input.timeZone,
+        }).dueIso ?? iso;
+      };
       const windows = action.reminder_windows.map((window) => ({
-        startAt: new Date(window.start_iso),
-        endAt: window.end_iso ? new Date(window.end_iso) : null,
+        startAt: new Date(normalizeWindowIso(window.start_iso)),
+        endAt: window.end_iso
+          ? new Date(normalizeWindowIso(window.end_iso))
+          : null,
         label: window.label,
       }));
       try {
@@ -497,7 +536,7 @@ export async function commitInterpreterActions(input: {
           chatId: input.chatId,
           title: action.title,
           notes: action.notes,
-          dueAt: action.due_iso ? new Date(action.due_iso) : null,
+          dueAt: effectiveDueIso ? new Date(effectiveDueIso) : null,
           reminders: windows,
           source:
             action.evidence_class === 'explicit_acceptance'

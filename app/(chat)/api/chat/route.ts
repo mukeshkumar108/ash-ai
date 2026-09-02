@@ -613,6 +613,7 @@ export async function POST(request: Request) {
         { status: 'completed' }
       > | null = null;
       let pendingSessionRouting: Record<string, unknown> | null = null;
+      let runtimeRelationalContext: Record<string, unknown> | null = null;
       let runtimeDeferred = false;
 
       if (companionRuntimeReplyOnlyEnabled()) {
@@ -696,6 +697,14 @@ export async function POST(request: Request) {
           };
         } else {
           runtimeDeferred = true;
+          runtimeRelationalContext = runtimeResult.relational_context;
+          if (
+            runtimeResult.next_session_state &&
+            typeof runtimeResult.next_session_state === 'object' &&
+            !Array.isArray(runtimeResult.next_session_state)
+          ) {
+            pendingSessionRouting = runtimeResult.next_session_state;
+          }
           sceneState = runtimeResult.scene_state as typeof sceneState;
           epistemicPolicy =
             runtimeResult.epistemic_classification as typeof epistemicPolicy;
@@ -997,6 +1006,8 @@ export async function POST(request: Request) {
               researchSession,
               capabilityMode: researchTurn ? 'research' : 'read_tools',
               memoryPacket: turnMemory.packet,
+              relationalContext:
+                runtimeDeferred ? runtimeRelationalContext : null,
             }).invoke({ messages: inputMessages }, { signal: agentSignal });
 
           const invokeWithFallback = async (
@@ -1365,6 +1376,7 @@ export async function POST(request: Request) {
                 timeZone,
               }).format(assistantCreatedAt),
               timeZone,
+              referenceTime: assistantCreatedAt,
               recentContext: boundedEpistemicContext(uiMessages),
               signal: AbortSignal.timeout(
                 Number(

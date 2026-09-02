@@ -605,6 +605,7 @@ export function createAshAgent({
   researchSession,
   capabilityMode = 'all',
   memoryPacket,
+  relationalContext,
 }: {
   userId: string;
   modelId: string;
@@ -626,6 +627,7 @@ export function createAshAgent({
   researchSession?: ResearchSession;
   capabilityMode?: 'all' | 'read_tools' | 'research';
   memoryPacket?: string | null;
+  relationalContext?: Record<string, unknown> | null;
 }) {
   assertPrivateTracingPolicy();
 
@@ -654,7 +656,11 @@ export function createAshAgent({
         : capabilityMode === 'read_tools'
           ? 'Only private read-only Gmail and Calendar tools are available for this turn. Public web research tools are unavailable.'
           : 'Private read-only tools and public research tools are available when relevant.'
-    }${memoryPacket ? `\n\n${memoryPacket}` : ''}`,
+    }${memoryPacket ? `\n\n${memoryPacket}` : ''}${
+      relationalContext
+        ? `\n\n[RELATIONAL RESPONSE OBJECTIVE — RETAIN THROUGH TOOL USE]\n${JSON.stringify(relationalContext)}\nResearch is evidence gathering, not a transfer of conversational authority. Return as Sophie: lead with the most alive, moment-specific connection when appropriate, keep the factual answer bounded, and do not default to validation + explanation + safety advice + status question.`
+        : ''
+    }`,
     tools: buildAshModelTools(
       userId,
       { now, timeZone },

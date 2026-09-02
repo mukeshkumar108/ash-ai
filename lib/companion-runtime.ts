@@ -47,6 +47,8 @@ const deferredTurnSchema = z.object({
   scene_state: z.record(z.unknown()),
   honcho_memory_packet: z.record(z.unknown()).nullable(),
   cortex_context_packet: z.record(z.unknown()).nullable(),
+  relational_context: z.record(z.unknown()).default({}),
+  next_session_state: z.record(z.unknown()).default({}),
 });
 
 const runtimeResultSchema = z.discriminatedUnion('status', [

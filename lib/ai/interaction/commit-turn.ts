@@ -36,6 +36,7 @@ export async function commitTurnSemantics(input: {
   signal?: AbortSignal;
   generate?: () => Promise<unknown>;
   __resolvedRoster?: { taskId: string; title: string; dueAt: Date | null }[];
+  referenceTime?: Date;
 }): Promise<TurnSemanticsCommitResult> {
   const empty = { committed: [], clarifications: [], rejected: [] };
 
@@ -71,5 +72,6 @@ export async function commitTurnSemantics(input: {
     roster,
     originMessageId: input.messageId,
     recentContext: input.recentContext,
+    referenceTime: input.referenceTime,
   });
 }
