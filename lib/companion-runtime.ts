@@ -18,10 +18,17 @@ const completedTurnSchema = z.object({
   // Optional native multi-beat structure: 1..3 intentional beats in delivery
   // order. Absent when the reply is a single logical beat.
   beats: z.array(z.string().min(1)).min(1).max(3).nullable().optional(),
-  beat_delivery: z.array(z.object({
-    kind: z.enum(['immediate', 'continuation']),
-    available_after_ms: z.number().int().nonnegative().max(30_000),
-  })).min(1).max(3).nullable().optional(),
+  beat_delivery: z
+    .array(
+      z.object({
+        kind: z.enum(['immediate', 'continuation']),
+        available_after_ms: z.number().int().nonnegative().max(30_000),
+      }),
+    )
+    .min(1)
+    .max(3)
+    .nullable()
+    .optional(),
   model_used: z.string(),
   provider_used: z.string(),
   execution_lane: z.literal('reply_only'),
@@ -97,6 +104,14 @@ const streamTextDeltaEventSchema = z.object({
   elapsed_ms: z.number().nonnegative(),
 });
 
+const streamBeatStartEventSchema = z.object({
+  contract_version: z.literal('v1'),
+  turn_id: z.string(),
+  conversation_id: z.string(),
+  beat_index: z.number().int().nonnegative(),
+  elapsed_ms: z.number().nonnegative(),
+});
+
 const streamCompletedEventSchema = z.object({
   contract_version: z.literal('v1'),
   turn_id: z.string(),
@@ -118,6 +133,7 @@ const streamErrorEventSchema = z.object({
 export type CompanionRuntimeStreamEvent =
   | { type: 'status'; data: z.infer<typeof streamStatusEventSchema> }
   | { type: 'text_delta'; data: z.infer<typeof streamTextDeltaEventSchema> }
+  | { type: 'beat_start'; data: z.infer<typeof streamBeatStartEventSchema> }
   | { type: 'completed'; data: z.infer<typeof streamCompletedEventSchema> }
   | { type: 'error'; data: z.infer<typeof streamErrorEventSchema> };
 
@@ -307,7 +323,10 @@ export async function executeCompanionRuntimeProactiveTick(input: {
   const raw = await requestJson(
     `${baseUrl}/v1/proactive/tick`,
     secret,
-    { method: 'POST', body: JSON.stringify({ contract_version: 'v1', ...input }) },
+    {
+      method: 'POST',
+      body: JSON.stringify({ contract_version: 'v1', ...input }),
+    },
     Number(process.env.COMPANION_RUNTIME_REQUEST_TIMEOUT_MS ?? 250_000),
   );
   return proactiveTickResultSchema.parse(raw);
@@ -326,7 +345,10 @@ export async function completeCompanionRuntimeProactive(input: {
   return requestJson(
     `${baseUrl}/v1/proactive/complete`,
     secret,
-    { method: 'POST', body: JSON.stringify({ contract_version: 'v1', ...input }) },
+    {
+      method: 'POST',
+      body: JSON.stringify({ contract_version: 'v1', ...input }),
+    },
     20_000,
   );
 }
@@ -335,7 +357,11 @@ function parseStreamEvent(
   eventName: string,
   data: string,
 ): CompanionRuntimeStreamEvent | null {
-  if (!['status', 'text_delta', 'completed', 'error'].includes(eventName)) {
+  if (
+    !['status', 'text_delta', 'beat_start', 'completed', 'error'].includes(
+      eventName,
+    )
+  ) {
     return null;
   }
 
@@ -347,6 +373,11 @@ function parseStreamEvent(
       return {
         type: 'text_delta',
         data: streamTextDeltaEventSchema.parse(value),
+      };
+    case 'beat_start':
+      return {
+        type: 'beat_start',
+        data: streamBeatStartEventSchema.parse(value),
       };
     case 'completed':
       return {
@@ -366,6 +397,7 @@ function parseStreamEvent(
  */
 export async function* streamCompanionRuntimeTurn(
   input: CompanionRuntimeTurnInput,
+  signal?: AbortSignal,
 ): AsyncGenerator<CompanionRuntimeStreamEvent> {
   const { baseUrl, secret } = configuredRuntime();
   const response = await fetch(`${baseUrl}/v1/turns/stream`, {
@@ -377,9 +409,16 @@ export async function* streamCompanionRuntimeTurn(
     },
     body: JSON.stringify(input),
     cache: 'no-store',
-    signal: AbortSignal.timeout(
-      Number(process.env.COMPANION_RUNTIME_REQUEST_TIMEOUT_MS ?? 250_000),
-    ),
+    signal: signal
+      ? AbortSignal.any([
+          signal,
+          AbortSignal.timeout(
+            Number(process.env.COMPANION_RUNTIME_REQUEST_TIMEOUT_MS ?? 250_000),
+          ),
+        ])
+      : AbortSignal.timeout(
+          Number(process.env.COMPANION_RUNTIME_REQUEST_TIMEOUT_MS ?? 250_000),
+        ),
   });
 
   if (!response.ok) {

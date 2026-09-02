@@ -1,4 +1,5 @@
 import { createUIMessageStream, JsonToSseTransformStream } from 'ai';
+import type { z } from 'zod';
 import { auth } from '@/app/(auth)/auth';
 import { createAshAgent, outputTokenBudget } from '@/lib/agent/ash-agent';
 import {
@@ -104,9 +105,10 @@ import { resolveUserTimeZone } from '@/lib/agent/timezone';
 import {
   companionRuntimeAssistantMessageId,
   companionRuntimeReplyOnlyEnabled,
-  executeCompanionRuntimeTurn,
   legacyCompanionRuntimeAssistantMessageId,
+  streamCompanionRuntimeTurn,
   type CompanionRuntimeResult,
+  type CompanionRuntimeTurnInput,
 } from '@/lib/companion-runtime';
 import { initiativeOpportunityForRuntimeOutcome } from '@/lib/ai/relationship/policy';
 import {
@@ -176,6 +178,192 @@ function boundedEpistemicContext(messages: ChatMessage[]): string {
     .filter(Boolean)
     .join('\n')
     .slice(-3_500);
+}
+
+async function persistStreamedRuntimeReply(input: {
+  result: Extract<CompanionRuntimeResult, { status: 'completed' }>;
+  assistantId: string;
+  chatId: string;
+  userId: string;
+  userMessageId: string;
+  userText: string;
+  userCreatedAt: Date;
+  timeZone: string;
+  uiMessages: ChatMessage[];
+  transcriptReliability: z.infer<typeof transcriptReliabilitySchema> | null;
+}) {
+  const {
+    result,
+    assistantId,
+    chatId,
+    userId,
+    userMessageId,
+    userText,
+    userCreatedAt,
+    timeZone,
+    uiMessages,
+    transcriptReliability,
+  } = input;
+  const assistantCreatedAt = new Date();
+  const beats =
+    result.beats && result.beats.length >= 2 ? result.beats.slice(0, 3) : [];
+  const delivery = result.beat_delivery ?? [];
+  const textParts =
+    beats.length >= 2
+      ? beats.flatMap((beat, beatIndex) => {
+          const item = delivery[beatIndex] ?? {
+            kind:
+              beatIndex === 0
+                ? ('immediate' as const)
+                : ('continuation' as const),
+            available_after_ms: 0,
+          };
+          return [
+            {
+              type: 'data-beatDelivery' as const,
+              data: {
+                beatIndex,
+                kind: item.kind,
+                availableAt: new Date(
+                  assistantCreatedAt.getTime() + item.available_after_ms,
+                ).toISOString(),
+              },
+            },
+            { type: 'text' as const, text: beat },
+          ];
+        })
+      : [{ type: 'text' as const, text: result.assistant_message }];
+  const inserted = await db
+    .insert(messageTable)
+    .values({
+      id: assistantId,
+      role: 'assistant',
+      parts: textParts,
+      createdAt: assistantCreatedAt,
+      attachments: [],
+      chatId,
+    })
+    .onConflictDoNothing()
+    .returning({ id: messageTable.id });
+
+  const nextSessionState = result.execution_metadata.next_session_state;
+  if (
+    nextSessionState &&
+    typeof nextSessionState === 'object' &&
+    !Array.isArray(nextSessionState)
+  ) {
+    const sessionRouting = nextSessionState as Record<string, unknown>;
+    after(async () => {
+      await updateChatSessionRouting({
+        id: chatId,
+        userId,
+        sessionRouting,
+        timeoutMs: Number(
+          process.env.SESSION_ROUTING_UPDATE_TIMEOUT_MS ?? 2_000,
+        ),
+      }).catch((error) => {
+        console.warn('[chat] streamed session routing update failed open', {
+          chatId,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+      });
+      const liveSituation = sessionRouting.liveSituation;
+      if (
+        liveSituation &&
+        typeof liveSituation === 'object' &&
+        !Array.isArray(liveSituation)
+      ) {
+        await updateUserLiveSituation({
+          userId,
+          liveSituation: liveSituation as Record<string, unknown>,
+        }).catch((error) => {
+          console.warn('[chat] streamed live-situation update failed open', {
+            chatId,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
+        });
+      }
+    });
+  }
+
+  if (inserted.length === 0) return;
+  after(async () => {
+    const opportunity = initiativeOpportunityForRuntimeOutcome(
+      result.execution_metadata,
+      assistantCreatedAt,
+    );
+    await scheduleInitiativeOpportunity({
+      userId,
+      chatId,
+      anchorMessageId: assistantId,
+      trigger: opportunity.trigger,
+      notBefore: opportunity.notBefore,
+      context: opportunity.context,
+    }).catch(() => undefined);
+    try {
+      await commitTurnSemantics({
+        userId,
+        chatId,
+        messageId: userMessageId,
+        userText,
+        assistantText: result.assistant_message,
+        localTime: new Intl.DateTimeFormat('en-GB', {
+          dateStyle: 'full',
+          timeStyle: 'short',
+          timeZone,
+        }).format(assistantCreatedAt),
+        timeZone,
+        referenceTime: assistantCreatedAt,
+        recentContext: boundedEpistemicContext(uiMessages),
+        signal: AbortSignal.timeout(
+          Number(
+            process.env.SOPHIE_COMMITMENT_INTERPRETER_TIMEOUT_MS ?? 8_000,
+          ) + 15_000,
+        ),
+      });
+    } catch (error) {
+      console.warn('[tasks] streamed semantic commit failed open', {
+        chatId,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+    await mirrorCompletedTurn({
+      userId,
+      chatId,
+      userMessage: {
+        id: userMessageId,
+        text: userText,
+        createdAt: userCreatedAt,
+        inputSource: transcriptReliability?.source ?? 'typed',
+        transcriptReliability,
+      },
+      assistantMessage: {
+        id: assistantId,
+        text: result.assistant_message,
+        createdAt: assistantCreatedAt,
+      },
+    });
+    try {
+      const candidates = await extractSophieAttentionCandidates({
+        recentContext: boundedEpistemicContext(uiMessages),
+        userText,
+        assistantText: result.assistant_message,
+      });
+      await persistSophieAttention({
+        userId,
+        chatId,
+        sourceMessageId: userMessageId,
+        sourceAssistantMessageId: assistantId,
+        candidates,
+        now: assistantCreatedAt,
+      });
+    } catch (error) {
+      console.warn('[interaction] streamed attention extraction failed open', {
+        chatId,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  });
 }
 
 function recentRetrievalProvenance(messages: ChatMessage[]): string | null {
@@ -616,6 +804,38 @@ export async function POST(request: Request) {
       let pendingSessionRouting: Record<string, unknown> | null = null;
       let runtimeRelationalContext: Record<string, unknown> | null = null;
       let runtimeDeferred = false;
+      let assistantId = companionRuntimeReplyOnlyEnabled()
+        ? companionRuntimeAssistantMessageId(id, message.id)
+        : generateUUID();
+      if (companionRuntimeReplyOnlyEnabled()) {
+        const legacyAssistantId = legacyCompanionRuntimeAssistantMessageId(
+          message.id,
+        );
+        const [legacyAssistant] = await getMessageById({
+          id: legacyAssistantId,
+        });
+        if (
+          legacyAssistant?.chatId === id &&
+          legacyAssistant.role === 'assistant'
+        ) {
+          assistantId = legacyAssistantId;
+        }
+        if (behaviorCorrection) {
+          after(async () => {
+            try {
+              await updateUserCorrections({
+                userId: session.user.id,
+                corrections: userCorrections,
+              });
+            } catch (error) {
+              console.warn('[chat] user correction update failed open', {
+                chatId: id,
+                error: error instanceof Error ? error.message : 'Unknown error',
+              });
+            }
+          });
+        }
+      }
 
       if (companionRuntimeReplyOnlyEnabled()) {
         const [runtimeMessages, dayPacket] = await Promise.all([
@@ -627,7 +847,7 @@ export async function POST(request: Request) {
           ).catch(() => null),
         ]);
         const runtimeCurrent = runtimeMessages.at(-1);
-        const runtimeResult = await executeCompanionRuntimeTurn({
+        const runtimeTurnInput: CompanionRuntimeTurnInput = {
           contract_version: 'v1',
           turn_id: message.id,
           conversation_id: id,
@@ -670,7 +890,187 @@ export async function POST(request: Request) {
             granted_scopes: ['read_tools', 'live_data', 'research'],
           },
           transcript_reliability: transcriptReliability,
-        });
+        };
+        const runtimeRequestStartedAt = performance.now();
+        const runtimeEvents = streamCompanionRuntimeTurn(
+          runtimeTurnInput,
+          request.signal,
+        );
+        let firstRuntimeDelta: { delta: string; elapsed_ms: number } | null =
+          null;
+        let runtimeResult: CompanionRuntimeResult | null = null;
+        while (!firstRuntimeDelta && !runtimeResult) {
+          const next = await runtimeEvents.next();
+          if (next.done) {
+            throw new Error(
+              'Companion Runtime stream ended before a terminal event',
+            );
+          }
+          if (next.value.type === 'error') {
+            throw new Error(
+              `Companion Runtime ${next.value.data.error.error_code}: ${next.value.data.error.message}`,
+            );
+          }
+          if (next.value.type === 'text_delta') {
+            firstRuntimeDelta = next.value.data;
+          } else if (next.value.type === 'completed') {
+            runtimeResult = next.value.data.result;
+          }
+        }
+
+        if (firstRuntimeDelta) {
+          const streamId = generateUUID();
+          await createStreamId({ streamId, chatId: id });
+          const firstDelta = firstRuntimeDelta;
+          const stream = createUIMessageStream({
+            execute: async ({ writer: dataStream }) => {
+              const beatMarker = '<<<BEAT>>>';
+              let beatIndex = 0;
+              let partId = `${assistantId}-beat-0`;
+              let partOpen = false;
+              let markerBuffer = '';
+              let clientFirstTokenAt: number | null = null;
+
+              const openPart = () => {
+                if (partOpen) return;
+                dataStream.write({
+                  type: 'data-beatDelivery',
+                  data: {
+                    beatIndex,
+                    kind: beatIndex === 0 ? 'immediate' : 'continuation',
+                    availableAt: new Date().toISOString(),
+                  },
+                });
+                dataStream.write({ type: 'text-start', id: partId });
+                partOpen = true;
+              };
+              const emitText = (text: string) => {
+                if (!text) return;
+                openPart();
+                if (clientFirstTokenAt === null) {
+                  clientFirstTokenAt = performance.now();
+                  console.info('[latency-waterfall] client_first_token', {
+                    turnId: message.id,
+                    clientTtftMs: Math.round(
+                      clientFirstTokenAt - runtimeRequestStartedAt,
+                    ),
+                    runtimeDeltaElapsedMs: firstDelta.elapsed_ms,
+                  });
+                }
+                dataStream.write({
+                  type: 'text-delta',
+                  id: partId,
+                  delta: text,
+                });
+              };
+              const consumeDelta = (delta: string) => {
+                markerBuffer += delta;
+                while (markerBuffer.includes(beatMarker)) {
+                  const markerAt = markerBuffer.indexOf(beatMarker);
+                  emitText(markerBuffer.slice(0, markerAt));
+                  markerBuffer = markerBuffer.slice(
+                    markerAt + beatMarker.length,
+                  );
+                  if (partOpen)
+                    dataStream.write({ type: 'text-end', id: partId });
+                  beatIndex += 1;
+                  partId = `${assistantId}-beat-${beatIndex}`;
+                  partOpen = false;
+                }
+                let held = 0;
+                for (let size = 1; size < beatMarker.length; size += 1) {
+                  if (markerBuffer.endsWith(beatMarker.slice(0, size)))
+                    held = size;
+                }
+                const safe = held ? markerBuffer.slice(0, -held) : markerBuffer;
+                markerBuffer = held ? markerBuffer.slice(-held) : '';
+                emitText(safe);
+              };
+              const startBeat = (nextBeatIndex: number) => {
+                emitText(markerBuffer);
+                markerBuffer = '';
+                if (partOpen)
+                  dataStream.write({ type: 'text-end', id: partId });
+                beatIndex = nextBeatIndex;
+                partId = `${assistantId}-beat-${beatIndex}`;
+                partOpen = false;
+              };
+
+              dataStream.write({ type: 'start', messageId: assistantId });
+              consumeDelta(firstDelta.delta);
+              let completed: Extract<
+                CompanionRuntimeResult,
+                { status: 'completed' }
+              > | null = null;
+              for await (const event of runtimeEvents) {
+                if (event.type === 'text_delta') consumeDelta(event.data.delta);
+                else if (event.type === 'beat_start') {
+                  startBeat(event.data.beat_index);
+                } else if (event.type === 'error') {
+                  throw new Error(
+                    `Companion Runtime ${event.data.error.error_code}: ${event.data.error.message}`,
+                  );
+                } else if (event.type === 'completed') {
+                  if (event.data.result.status !== 'completed') {
+                    throw new Error(
+                      'Companion Runtime deferred after emitting foreground text',
+                    );
+                  }
+                  completed = event.data.result;
+                  break;
+                }
+              }
+              emitText(markerBuffer);
+              markerBuffer = '';
+              if (partOpen) dataStream.write({ type: 'text-end', id: partId });
+              if (!completed)
+                throw new Error('Companion Runtime stream had no completion');
+
+              await persistStreamedRuntimeReply({
+                result: completed,
+                assistantId,
+                chatId: id,
+                userId: session.user.id,
+                userMessageId: message.id,
+                userText: currentUserText,
+                userCreatedAt,
+                timeZone,
+                uiMessages,
+                transcriptReliability,
+              });
+              const completedAt = performance.now();
+              console.info('[latency-waterfall] streamed_runtime_complete', {
+                turnId: message.id,
+                clientTtftMs:
+                  clientFirstTokenAt === null
+                    ? null
+                    : Math.round(clientFirstTokenAt - runtimeRequestStartedAt),
+                totalCompletionMs: Math.round(
+                  completedAt - runtimeRequestStartedAt,
+                ),
+                runtimeTiming: completed.execution_metadata.timing ?? null,
+              });
+              dataStream.write({ type: 'finish' });
+            },
+            generateId: generateUUID,
+          });
+          const streamContext = getStreamContext();
+          if (streamContext) {
+            return new Response(
+              await streamContext.resumableStream(streamId, () =>
+                stream.pipeThrough(new JsonToSseTransformStream()),
+              ),
+            );
+          }
+          return new Response(
+            stream.pipeThrough(new JsonToSseTransformStream()),
+          );
+        }
+        if (!runtimeResult) {
+          throw new Error(
+            'Companion Runtime produced neither text nor a result',
+          );
+        }
 
         if (runtimeResult.status === 'completed') {
           const nextSessionState =
@@ -872,38 +1272,6 @@ export async function POST(request: Request) {
       // is persisted before the response is returned. This keeps conversation
       // persistence deterministic and makes reconnect/resume restorations
       // reliable without a token-by-token model stream.
-      let assistantId = companionRuntimeReplyOnlyEnabled()
-        ? companionRuntimeAssistantMessageId(id, message.id)
-        : generateUUID();
-      if (companionRuntimeReplyOnlyEnabled()) {
-        const legacyAssistantId = legacyCompanionRuntimeAssistantMessageId(
-          message.id,
-        );
-        const [legacyAssistant] = await getMessageById({
-          id: legacyAssistantId,
-        });
-        if (
-          legacyAssistant?.chatId === id &&
-          legacyAssistant.role === 'assistant'
-        ) {
-          assistantId = legacyAssistantId;
-        }
-        if (behaviorCorrection) {
-          after(async () => {
-            try {
-              await updateUserCorrections({
-                userId: session.user.id,
-                corrections: userCorrections,
-              });
-            } catch (error) {
-              console.warn('[chat] user correction update failed open', {
-                chatId: id,
-                error: error instanceof Error ? error.message : 'Unknown error',
-              });
-            }
-          });
-        }
-      }
       const textPartId = generateUUID();
       let finalText = '';
       // Native multi-beat output (from the Companion Runtime): 1..3 intentional

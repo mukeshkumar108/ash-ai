@@ -272,3 +272,103 @@ test('rejects a stream that closes without a terminal event', async () => {
     globalThis.fetch = originalFetch;
   }
 });
+
+test('yields a foreground delta before runtime and post-response completion', async () => {
+  const originalFetch = globalThis.fetch;
+  const encoder = new TextEncoder();
+  let releaseCompletion: (() => void) | undefined;
+  const completionGate = new Promise<void>((resolve) => {
+    releaseCompletion = resolve;
+  });
+  globalThis.fetch = async () =>
+    new Response(
+      new ReadableStream({
+        async start(controller) {
+          controller.enqueue(
+            encoder.encode(
+              'event: text_delta\ndata: {"contract_version":"v1","turn_id":"turn-1","conversation_id":"conversation-1","delta":"Solar first","index":0,"elapsed_ms":25}\n\n',
+            ),
+          );
+          await completionGate;
+          controller.enqueue(
+            encoder.encode(
+              `event: completed\ndata: ${JSON.stringify({
+                contract_version: 'v1',
+                turn_id: input.turn_id,
+                conversation_id: input.conversation_id,
+                result: completed,
+              })}\n\n`,
+            ),
+          );
+          controller.close();
+        },
+      }),
+      { headers: { 'Content-Type': 'text/event-stream' } },
+    );
+
+  try {
+    const events = streamCompanionRuntimeTurn(input);
+    const first = await events.next();
+    expect(first.value?.type).toBe('text_delta');
+    expect(
+      first.value?.type === 'text_delta' ? first.value.data.delta : null,
+    ).toBe('Solar first');
+    let completionObserved = false;
+    const terminal = events.next().then((event) => {
+      completionObserved = true;
+      return event;
+    });
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(completionObserved).toBe(false);
+    releaseCompletion?.();
+    expect((await terminal).value?.type).toBe('completed');
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test('parses an explicit asynchronous beat boundary without leaking a marker', async () => {
+  const originalFetch = globalThis.fetch;
+  const encoder = new TextEncoder();
+  globalThis.fetch = async () =>
+    new Response(
+      new ReadableStream({
+        start(controller) {
+          controller.enqueue(
+            encoder.encode(
+              'event: text_delta\ndata: {"contract_version":"v1","turn_id":"turn-1","conversation_id":"conversation-1","delta":"First beat","index":0,"elapsed_ms":25}\n\n' +
+                'event: beat_start\ndata: {"contract_version":"v1","turn_id":"turn-1","conversation_id":"conversation-1","beat_index":1,"elapsed_ms":80}\n\n' +
+                'event: text_delta\ndata: {"contract_version":"v1","turn_id":"turn-1","conversation_id":"conversation-1","delta":"Afterthought","index":1,"elapsed_ms":82}\n\n' +
+                `event: completed\ndata: ${JSON.stringify({
+                  contract_version: 'v1',
+                  turn_id: input.turn_id,
+                  conversation_id: input.conversation_id,
+                  result: completed,
+                })}\n\n`,
+            ),
+          );
+          controller.close();
+        },
+      }),
+      { headers: { 'Content-Type': 'text/event-stream' } },
+    );
+
+  try {
+    const events = [];
+    for await (const event of streamCompanionRuntimeTurn(input)) {
+      events.push(event);
+    }
+    expect(events.map((event) => event.type)).toEqual([
+      'text_delta',
+      'beat_start',
+      'text_delta',
+      'completed',
+    ]);
+    expect(events[1]).toMatchObject({
+      type: 'beat_start',
+      data: { beat_index: 1 },
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
