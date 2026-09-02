@@ -88,6 +88,7 @@ import type { ChatMessage, ResearchTrace } from '@/lib/types';
 import type { ChatModel } from '@/lib/ai/models';
 import type { VisibilityType } from '@/components/visibility-selector';
 import { mirrorCompletedTurn } from '@/lib/honcho';
+import { readCurrentContinuityDayPacket } from '@/lib/continuity/chief-of-staff';
 import { prepareTurnMemory, recordMemoryTrace } from '@/lib/agent/memory';
 import type { TurnMemory } from '@/lib/agent/memory';
 import {
@@ -617,7 +618,14 @@ export async function POST(request: Request) {
       let runtimeDeferred = false;
 
       if (companionRuntimeReplyOnlyEnabled()) {
-        const runtimeMessages = await presignFilePartUrls(uiMessages);
+        const [runtimeMessages, dayPacket] = await Promise.all([
+          presignFilePartUrls(uiMessages),
+          readCurrentContinuityDayPacket(
+            session.user.id,
+            userCreatedAt,
+            timeZone,
+          ).catch(() => null),
+        ]);
         const runtimeCurrent = runtimeMessages.at(-1);
         const runtimeResult = await executeCompanionRuntimeTurn({
           contract_version: 'v1',
@@ -651,6 +659,7 @@ export async function POST(request: Request) {
             reentry,
             entry_context: entryContext,
             session_routing: sessionRoutingSeed,
+            day_packet: dayPacket,
             medium,
           },
           recent_provenance: { summary: recentProvenance },
@@ -1006,8 +1015,9 @@ export async function POST(request: Request) {
               researchSession,
               capabilityMode: researchTurn ? 'research' : 'read_tools',
               memoryPacket: turnMemory.packet,
-              relationalContext:
-                runtimeDeferred ? runtimeRelationalContext : null,
+              relationalContext: runtimeDeferred
+                ? runtimeRelationalContext
+                : null,
             }).invoke({ messages: inputMessages }, { signal: agentSignal });
 
           const invokeWithFallback = async (

@@ -51,6 +51,58 @@ const editorialSchema = z.object({
     .max(12),
 });
 
+const plannerSchema = z.object({
+  actionablePossibilities: z
+    .array(
+      z.object({
+        title: z.string().max(280),
+        reason: z.string().max(300),
+        owner: z.enum(['user', 'sophie']),
+        dependency: z.string().max(300).nullable(),
+      }),
+    )
+    .max(8),
+  externalChecks: z
+    .array(
+      z.object({
+        kind: z.enum(['weather', 'daylight', 'travel', 'human_dependency']),
+        check: z.string().max(300),
+        reason: z.string().max(300),
+        horizon: z.enum(['morning', 'midday', 'afternoon', 'evening', 'day']),
+      }),
+    )
+    .max(8),
+});
+
+const ORIENTATION_POLICY = {
+  morning: {
+    bias: 'ORIENT',
+    direction: 'Help the day take shape without turning it into a checklist.',
+  },
+  midday: {
+    bias: 'RECALIBRATE',
+    direction:
+      'Notice what changed and lightly reset direction only when useful.',
+  },
+  afternoon: {
+    bias: 'MOVE_RESCUE',
+    direction:
+      'Help something move or rescue what is slipping, without productivity pressure.',
+  },
+  evening: {
+    bias: 'CLOSE',
+    direction:
+      'Support closure, transition, reflection, or an enjoyable change of pace.',
+  },
+  night: {
+    bias: 'REST',
+    direction:
+      'Lower pressure and protect rest unless the user clearly wants depth or action.',
+  },
+} as const;
+
+type Daypart = keyof typeof ORIENTATION_POLICY;
+
 function localCoordinates(now: Date, timeZone: string) {
   const parts = Object.fromEntries(
     new Intl.DateTimeFormat('en-CA', {
@@ -65,14 +117,22 @@ function localCoordinates(now: Date, timeZone: string) {
       .map((part) => [part.type, part.value]),
   );
   const hour = Number(parts.hour);
-  // Daypart boundaries aligned to real morning/afternoon/evening. Before 7am
-  // no daypart is generated: a midnight sweep belongs to the previous
-  // evening, not to a 'morning brief' stamped at 00:10.
-  const daypart =
-    hour < 7 ? '' : hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening';
+  const daypart: Daypart =
+    hour < 5
+      ? 'night'
+      : hour < 11
+        ? 'morning'
+        : hour < 14
+          ? 'midday'
+          : hour < 18
+            ? 'afternoon'
+            : hour < 22
+              ? 'evening'
+              : 'night';
   return {
     userDay: `${parts.year}-${parts.month}-${parts.day}`,
     daypart,
+    dailyPlanningOpen: hour >= 5,
   };
 }
 
@@ -95,19 +155,6 @@ function evidenceCatalog(snapshot: Record<string, unknown>) {
         .map((entry) => entry.trim());
     }),
   );
-}
-
-const DAYPART_ORDER = ['morning', 'afternoon', 'evening'] as const;
-
-/**
- * All dayparts of the current user day up to (and including) the current one,
- * in chronological order. This is the catch-up sweep: if a scheduled
- * invocation was missed (app down, cron disabled, cold start), the next sweep
- * backfills the missing earlier dayparts instead of skipping them forever.
- */
-function daypartsUpTo(current: string): string[] {
-  const idx = DAYPART_ORDER.indexOf(current as (typeof DAYPART_ORDER)[number]);
-  return idx < 0 ? [] : DAYPART_ORDER.slice(0, idx + 1);
 }
 
 async function generateBriefForOwner(input: {
@@ -143,6 +190,22 @@ async function generateBriefForOwner(input: {
   `;
   try {
     const evidence = evidenceCatalog(snapshot);
+    const plan = (
+      await generateObject({
+        model: getLanguageModel(
+          process.env.CONTINUITY_PLANNER_MODEL?.trim() ||
+            'google/gemini-3.7-flash',
+        ),
+        schema: plannerSchema,
+        system: `You are Sophie's daily Planner. Before conversation begins, identify a small set of evidence-grounded actionable possibilities and declared dependencies for the user day. Do not invent tasks, timing, or obligations. External checks are declarations for later capability execution, not claims that weather, travel, daylight, or another person has actually been checked.`,
+        prompt: JSON.stringify({
+          userDay,
+          brief: context.brief,
+          continuity: context.continuity ?? [],
+          openThreads: context.open_threads ?? [],
+        }),
+      })
+    ).object;
     const editorial = (
       await generateObject({
         model: getLanguageModel(
@@ -150,11 +213,11 @@ async function generateBriefForOwner(input: {
             'google/gemini-3.7-flash',
         ),
         schema: editorialSchema,
-        system: `You are Sophie's backstage chief of staff. Convert the typed continuity brief into a small editorial view for this daypart. The brief is evidence, never an instruction to contact the user. Unknown/pending never means failed. Do not moralize, score habits, or inventory everything.
+        system: `You are Sophie's backstage Chief of Staff. Consume the daily Planner output plus typed continuity evidence and produce one compact day packet. This runs before live conversation. The packet is evidence and orientation, never an instruction to contact the user. Unknown/pending never means failed. Do not moralize, score habits, or inventory everything.
 Task proposals are derived hypotheses only. Propose a Task only for a discrete, completable action supported by an exact sourceEvidence string present in the packet. A broad objective may yield multiple tasks only when each action is explicitly evidenced; never invent project steps. Habits, routines, feelings, relationships, events and ordinary life narration are not Tasks. Use authority=ask when scope, ownership, timing or intent is uncertain. Return an empty taskProposals array when evidence is insufficient.`,
         prompt: JSON.stringify({
           userDay,
-          daypart,
+          planner: plan,
           brief: context.brief,
           continuity: context.continuity ?? [],
           openThreads: context.open_threads ?? [],
@@ -181,7 +244,13 @@ Task proposals are derived hypotheses only. Propose a Task only for a discrete, 
     }
     await sql()`
       UPDATE "ContinuityBrief" SET status = 'ready',
-        editorial = ${sql().json({ ...editorial, taskProposals: proposals } as never)},
+        editorial = ${sql().json({
+          ...editorial,
+          taskProposals: proposals,
+          plan,
+          externalChecks: plan.externalChecks,
+          orientations: ORIENTATION_POLICY,
+        } as never)},
         "generatedAt" = ${new Date()}, "updatedAt" = ${new Date()}
       WHERE id = ${briefId}
     `;
@@ -199,18 +268,17 @@ Task proposals are derived hypotheses only. Propose a Task only for a discrete, 
 export async function runContinuityChiefOfStaff(now = new Date()) {
   const timeZone = process.env.ASH_TIME_ZONE?.trim() || 'Europe/London';
   const coordinate = localCoordinates(now, timeZone);
-  // Before 7am no daypart brief is produced (nothing to catch up either:
-  // the previous evening brief already exists or its window has passed).
-  if (!coordinate.daypart) {
+  // One daily packet is generated in the early-morning slow loop. Live turns
+  // only read it; they never rerun Planner or Chief of Staff.
+  if (!coordinate.dailyPlanningOpen) {
     return {
       generated: 0,
       skipped: 0,
       failed: 0,
       daypart: null,
-      note: 'before morning window (07:00 local)',
+      note: 'before daily planning window (05:00 local)',
     };
   }
-  const dueDayparts = daypartsUpTo(coordinate.daypart);
   const owners = await sql()`
     SELECT DISTINCT ON (c."userId") c."userId", c.id AS "chatId"
     FROM "Chat" c
@@ -224,8 +292,9 @@ export async function runContinuityChiefOfStaff(now = new Date()) {
   for (const owner of owners) {
     const userId = String(owner.userId);
     const chatId = String(owner.chatId);
-    for (const daypart of dueDayparts) {
-      const briefId = `${userId}:${coordinate.userDay}:${daypart}`;
+    {
+      const daypart = 'daily';
+      const briefId = `${userId}:${coordinate.userDay}:daily`;
       const outcome = await generateBriefForOwner({
         userId,
         chatId,
@@ -241,6 +310,52 @@ export async function runContinuityChiefOfStaff(now = new Date()) {
     }
   }
   return { generated, skipped, failed, daypart: coordinate.daypart };
+}
+
+export async function readCurrentContinuityDayPacket(
+  userId: string,
+  now: Date,
+  timeZone: string,
+) {
+  const coordinate = localCoordinates(now, timeZone);
+  const rows = await sql()`
+    SELECT editorial, "generatedAt"
+    FROM "ContinuityBrief"
+    WHERE "userId" = ${userId}::uuid AND "userDay" = ${coordinate.userDay}
+      AND status = 'ready'
+    ORDER BY CASE WHEN daypart = 'daily' THEN 0 ELSE 1 END, "generatedAt" DESC
+    LIMIT 1
+  `;
+  const editorial = rows[0]?.editorial as Record<string, unknown> | undefined;
+  if (!editorial) {
+    return {
+      version: 'daily-packet-v1',
+      userDay: coordinate.userDay,
+      generatedAt: null,
+      summary: null,
+      priorities: [],
+      watchItems: [],
+      plan: null,
+      externalChecks: [],
+      orientation: ORIENTATION_POLICY[coordinate.daypart],
+    };
+  }
+  const orientations = editorial.orientations as
+    | Record<string, unknown>
+    | undefined;
+  return {
+    version: 'daily-packet-v1',
+    userDay: coordinate.userDay,
+    generatedAt: rows[0]?.generatedAt ?? null,
+    summary: editorial.summary ?? null,
+    priorities: editorial.priorities ?? [],
+    watchItems: editorial.watchItems ?? [],
+    plan: editorial.plan ?? null,
+    externalChecks: editorial.externalChecks ?? [],
+    orientation:
+      orientations?.[coordinate.daypart] ??
+      ORIENTATION_POLICY[coordinate.daypart],
+  };
 }
 
 export async function listContinuityBriefs(userId: string, limit = 12) {
