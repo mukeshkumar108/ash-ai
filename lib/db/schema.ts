@@ -174,6 +174,11 @@ export const relationshipOpportunity = pgTable(
     context: json('context'),
     createdAt: timestamp('createdAt').notNull().defaultNow(),
     claimedAt: timestamp('claimedAt'),
+    followupDueAt: timestamp('followupDueAt'),
+    followupSentAt: timestamp('followupSentAt'),
+    finalDueAt: timestamp('finalDueAt'),
+    finalSentAt: timestamp('finalSentAt'),
+    closedAt: timestamp('closedAt'),
   },
   (table) => ({
     anchorTriggerIdx: uniqueIndex(
@@ -182,6 +187,10 @@ export const relationshipOpportunity = pgTable(
     dueIdx: index('RelationshipOpportunity_due_idx').on(
       table.status,
       table.notBefore,
+    ),
+    followupDueIdx: index('RelationshipOpportunity_followup_due_idx').on(
+      table.status,
+      table.followupDueAt,
     ),
   }),
 );
