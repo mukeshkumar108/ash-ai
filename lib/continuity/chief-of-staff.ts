@@ -55,6 +55,7 @@ const plannerSchema = z.object({
   actionablePossibilities: z
     .array(
       z.object({
+        decisionKey: z.string().min(1).max(80),
         title: z.string().max(280),
         reason: z.string().max(300),
         owner: z.enum(['user', 'sophie']),
@@ -69,6 +70,7 @@ const plannerSchema = z.object({
         check: z.string().max(300),
         reason: z.string().max(300),
         horizon: z.enum(['morning', 'midday', 'afternoon', 'evening', 'day']),
+        altersDecisionKeys: z.array(z.string().min(1).max(80)).min(1).max(4),
       }),
     )
     .max(8),
@@ -132,7 +134,7 @@ function localCoordinates(now: Date, timeZone: string) {
   return {
     userDay: `${parts.year}-${parts.month}-${parts.day}`,
     daypart,
-    dailyPlanningOpen: hour >= 5,
+    hour,
   };
 }
 
@@ -168,9 +170,15 @@ async function generateBriefForOwner(input: {
 }): Promise<'generated' | 'skipped' | 'failed'> {
   const { userId, chatId, userDay, daypart, briefId, timeZone, now } = input;
   const existing = await sql()`
-    SELECT id, status FROM "ContinuityBrief" WHERE id = ${briefId} LIMIT 1
+    SELECT id, status, editorial FROM "ContinuityBrief" WHERE id = ${briefId} LIMIT 1
   `;
-  if (existing[0]?.status === 'ready') return 'skipped';
+  if (
+    existing[0]?.status === 'ready' &&
+    (existing[0]?.editorial as Record<string, unknown> | undefined)
+      ?.generatedForTimeZone === timeZone
+  ) {
+    return 'skipped';
+  }
   const context = await fetchCanonicalContinuityContext({
     userId,
     chatId,
@@ -197,7 +205,7 @@ async function generateBriefForOwner(input: {
             'google/gemini-3.7-flash',
         ),
         schema: plannerSchema,
-        system: `You are Sophie's daily Planner. Before conversation begins, identify a small set of evidence-grounded actionable possibilities and declared dependencies for the user day. Do not invent tasks, timing, or obligations. External checks are declarations for later capability execution, not claims that weather, travel, daylight, or another person has actually been checked.`,
+        system: `You are Sophie's daily Planner. Before conversation begins, identify a small set of evidence-grounded actionable possibilities and declared dependencies for the user day. Do not invent tasks, timing, or obligations. Give every possibility a unique decisionKey. External checks are declarations for later capability execution, not claims that weather, travel, daylight, or another person has actually been checked. Every external check must name one or more altersDecisionKeys from actionablePossibilities so a future result can be routed to the decision it can change.`,
         prompt: JSON.stringify({
           userDay,
           brief: context.brief,
@@ -206,6 +214,14 @@ async function generateBriefForOwner(input: {
         }),
       })
     ).object;
+    const decisionKeyCounts = plan.actionablePossibilities.reduce(
+      (counts, item) =>
+        counts.set(item.decisionKey, (counts.get(item.decisionKey) ?? 0) + 1),
+      new Map<string, number>(),
+    );
+    const externalChecks = plan.externalChecks.filter((item) =>
+      item.altersDecisionKeys.every((key) => decisionKeyCounts.get(key) === 1),
+    );
     const editorial = (
       await generateObject({
         model: getLanguageModel(
@@ -247,9 +263,10 @@ Task proposals are derived hypotheses only. Propose a Task only for a discrete, 
         editorial = ${sql().json({
           ...editorial,
           taskProposals: proposals,
-          plan,
-          externalChecks: plan.externalChecks,
+          plan: { ...plan, externalChecks },
+          externalChecks,
           orientations: ORIENTATION_POLICY,
+          generatedForTimeZone: timeZone,
         } as never)},
         "generatedAt" = ${new Date()}, "updatedAt" = ${new Date()}
       WHERE id = ${briefId}
@@ -266,22 +283,23 @@ Task proposals are derived hypotheses only. Propose a Task only for a discrete, 
 }
 
 export async function runContinuityChiefOfStaff(now = new Date()) {
-  const timeZone = process.env.ASH_TIME_ZONE?.trim() || 'Europe/London';
-  const coordinate = localCoordinates(now, timeZone);
+  const configuredHour = Number.parseInt(
+    process.env.CONTINUITY_DAILY_LOCAL_HOUR?.trim() || '5',
+    10,
+  );
+  const planningHour =
+    Number.isInteger(configuredHour) &&
+    configuredHour >= 0 &&
+    configuredHour <= 23
+      ? configuredHour
+      : 5;
   // One daily packet is generated in the early-morning slow loop. Live turns
   // only read it; they never rerun Planner or Chief of Staff.
-  if (!coordinate.dailyPlanningOpen) {
-    return {
-      generated: 0,
-      skipped: 0,
-      failed: 0,
-      daypart: null,
-      note: 'before daily planning window (05:00 local)',
-    };
-  }
   const owners = await sql()`
-    SELECT DISTINCT ON (c."userId") c."userId", c.id AS "chatId"
+    SELECT DISTINCT ON (c."userId") c."userId", c.id AS "chatId",
+      COALESCE(u.time_zone, ${process.env.ASH_TIME_ZONE?.trim() || 'Europe/London'}) AS "timeZone"
     FROM "Chat" c
+    JOIN "User" u ON u.id = c."userId"
     WHERE c."userId" IS NOT NULL
     ORDER BY c."userId", c."createdAt" DESC
     LIMIT 100
@@ -292,6 +310,12 @@ export async function runContinuityChiefOfStaff(now = new Date()) {
   for (const owner of owners) {
     const userId = String(owner.userId);
     const chatId = String(owner.chatId);
+    const timeZone = String(owner.timeZone);
+    const coordinate = localCoordinates(now, timeZone);
+    if (coordinate.hour !== planningHour) {
+      skipped += 1;
+      continue;
+    }
     {
       const daypart = 'daily';
       const briefId = `${userId}:${coordinate.userDay}:daily`;
@@ -309,7 +333,7 @@ export async function runContinuityChiefOfStaff(now = new Date()) {
       else skipped += 1;
     }
   }
-  return { generated, skipped, failed, daypart: coordinate.daypart };
+  return { generated, skipped, failed, planningHour };
 }
 
 export async function readCurrentContinuityDayPacket(
@@ -318,16 +342,25 @@ export async function readCurrentContinuityDayPacket(
   timeZone: string,
 ) {
   const coordinate = localCoordinates(now, timeZone);
-  const rows = await sql()`
-    SELECT editorial, "generatedAt"
-    FROM "ContinuityBrief"
-    WHERE "userId" = ${userId}::uuid AND "userDay" = ${coordinate.userDay}
-      AND status = 'ready'
-    ORDER BY CASE WHEN daypart = 'daily' THEN 0 ELSE 1 END, "generatedAt" DESC
-    LIMIT 1
-  `;
+  let rows: Array<{ editorial?: unknown; generatedAt?: unknown }> = [];
+  try {
+    rows = await sql()`
+      SELECT editorial, "generatedAt"
+      FROM "ContinuityBrief"
+      WHERE "userId" = ${userId}::uuid AND "userDay" = ${coordinate.userDay}
+        AND status = 'ready'
+      ORDER BY CASE WHEN daypart = 'daily' THEN 0 ELSE 1 END, "generatedAt" DESC
+      LIMIT 1
+    `;
+  } catch {
+    rows = [];
+  }
   const editorial = rows[0]?.editorial as Record<string, unknown> | undefined;
-  if (!editorial) {
+  if (
+    !editorial ||
+    (editorial.generatedForTimeZone !== undefined &&
+      editorial.generatedForTimeZone !== timeZone)
+  ) {
     return {
       version: 'daily-packet-v1',
       userDay: coordinate.userDay,
