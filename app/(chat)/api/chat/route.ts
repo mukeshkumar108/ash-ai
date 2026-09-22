@@ -78,6 +78,11 @@ import { isProductionEnvironment } from '@/lib/constants';
 import { postRequestBodySchema, type PostRequestBody } from './schema';
 import { sanitizeText } from '@/lib/ai/sanitize';
 import { logAIError } from '@/lib/ai/error-log';
+import {
+  createStreamTrace,
+  persistStreamTrace,
+  wrapSseBody,
+} from '@/lib/stream-trace';
 import { presignFilePartUrls } from '@/lib/blob-server';
 import {
   createResumableStreamContext,
@@ -89,6 +94,7 @@ import type { ChatMessage, ResearchTrace } from '@/lib/types';
 import type { ChatModel } from '@/lib/ai/models';
 import type { VisibilityType } from '@/components/visibility-selector';
 import { mirrorCompletedTurn } from '@/lib/honcho';
+import { enqueueCandidateDeliveryReceipts } from '@/lib/cortex/candidate-receipt-outbox';
 import { readCurrentContinuityDayPacket } from '@/lib/continuity/chief-of-staff';
 import { prepareTurnMemory, recordMemoryTrace } from '@/lib/agent/memory';
 import type { TurnMemory } from '@/lib/agent/memory';
@@ -892,6 +898,12 @@ export async function POST(request: Request) {
           transcript_reliability: transcriptReliability,
         };
         const runtimeRequestStartedAt = performance.now();
+        const runtimeTraceOrigin = performance.now();
+        const resumableContext = getStreamContext();
+        const streamTrace = createStreamTrace(
+          runtimeTraceOrigin,
+          Boolean(resumableContext),
+        );
         const runtimeEvents = streamCompanionRuntimeTurn(
           runtimeTurnInput,
           request.signal,
@@ -901,6 +913,7 @@ export async function POST(request: Request) {
         let runtimeResult: CompanionRuntimeResult | null = null;
         while (!firstRuntimeDelta && !runtimeResult) {
           const next = await runtimeEvents.next();
+          streamTrace.mark(performance.now(), 'runtimeStreamConnectedMs');
           if (next.done) {
             throw new Error(
               'Companion Runtime stream ended before a terminal event',
@@ -912,6 +925,7 @@ export async function POST(request: Request) {
             );
           }
           if (next.value.type === 'text_delta') {
+            streamTrace.mark(performance.now(), 'runtimeFirstTextDeltaMs');
             firstRuntimeDelta = next.value.data;
           } else if (next.value.type === 'completed') {
             runtimeResult = next.value.data.result;
@@ -949,6 +963,10 @@ export async function POST(request: Request) {
                 openPart();
                 if (clientFirstTokenAt === null) {
                   clientFirstTokenAt = performance.now();
+                  streamTrace.mark(
+                    clientFirstTokenAt,
+                    'firstDataStreamWriteMs',
+                  );
                   console.info('[latency-waterfall] client_first_token', {
                     turnId: message.id,
                     clientTtftMs: Math.round(
@@ -1016,6 +1034,7 @@ export async function POST(request: Request) {
                       'Companion Runtime deferred after emitting foreground text',
                     );
                   }
+                  streamTrace.mark(performance.now(), 'runtimeCompletedMs');
                   completed = event.data.result;
                   break;
                 }
@@ -1050,6 +1069,15 @@ export async function POST(request: Request) {
                 ),
                 runtimeTiming: completed.execution_metadata.timing ?? null,
               });
+              after(() =>
+                persistStreamTrace({
+                  turnId: message.id,
+                  chatId: id,
+                  env: isProductionEnvironment ? 'production' : 'development',
+                  trace: streamTrace,
+                  runtimeTiming: completed.execution_metadata.timing ?? null,
+                }),
+              );
               dataStream.write({ type: 'finish' });
             },
             generateId: generateUUID,
@@ -1058,12 +1086,18 @@ export async function POST(request: Request) {
           if (streamContext) {
             return new Response(
               await streamContext.resumableStream(streamId, () =>
-                stream.pipeThrough(new JsonToSseTransformStream()),
+                wrapSseBody(
+                  stream.pipeThrough(new JsonToSseTransformStream()) as never,
+                  streamTrace,
+                ),
               ),
             );
           }
           return new Response(
-            stream.pipeThrough(new JsonToSseTransformStream()),
+            wrapSseBody(
+              stream.pipeThrough(new JsonToSseTransformStream()) as never,
+              streamTrace,
+            ),
           );
         }
         if (!runtimeResult) {
@@ -1646,13 +1680,30 @@ export async function POST(request: Request) {
       } as const;
       let shouldMirrorCompletedTurn = !existingRuntimeAssistant;
       if (companionRuntimeReplyOnlyEnabled()) {
-        const inserted = await db
-          .insert(messageTable)
-          .values(assistantMessage)
-          .onConflictDoNothing()
-          .returning({ id: messageTable.id });
-        shouldMirrorCompletedTurn =
-          !existingRuntimeAssistant && inserted.length > 0;
+        await db.transaction(async (tx) => {
+          const inserted = await tx
+            .insert(messageTable)
+            .values(assistantMessage)
+            .onConflictDoNothing()
+            .returning({ id: messageTable.id });
+          shouldMirrorCompletedTurn =
+            !existingRuntimeAssistant && inserted.length > 0;
+
+          if (runtimeCompleted) {
+            await enqueueCandidateDeliveryReceipts(
+              {
+                userId: session.user.id,
+                chatId: id,
+                assistantMessageId: assistantId,
+                decisionId: runtimeCompleted.decision_record.decision_id,
+                turnId: runtimeCompleted.turn_id,
+                occurredAt: assistantCreatedAt,
+                candidateRefs: runtimeCompleted.decision_record.candidate_refs,
+              },
+              { database: tx },
+            );
+          }
+        });
       } else {
         await saveMessages({ messages: [assistantMessage] });
       }

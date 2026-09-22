@@ -10,6 +10,27 @@ const executionLaneSchema = z.enum([
   'research',
 ]);
 
+const candidateReferenceSchema = z.object({
+  candidate_id: z.string(),
+  candidate_version: z.string(),
+  source: z.string(),
+});
+
+const decisionRecordSchema = z.object({
+  contract_version: z.literal('v1'),
+  decision_id: z.string(),
+  objective: z.string(),
+  relationship_mode: z.string(),
+  initiative: z.string(),
+  required_acknowledgement: z.string().nullable().optional(),
+  allowed_moves: z.array(z.string()),
+  selected_move: z.string(),
+  evidence_used: z.array(z.record(z.unknown())),
+  rejected_candidates: z.array(z.record(z.unknown())),
+  candidate_refs: z.array(candidateReferenceSchema),
+  reason: z.string(),
+});
+
 const completedTurnSchema = z.object({
   status: z.literal('completed'),
   turn_id: z.string(),
@@ -32,6 +53,7 @@ const completedTurnSchema = z.object({
   model_used: z.string(),
   provider_used: z.string(),
   execution_lane: z.literal('reply_only'),
+  decision_record: decisionRecordSchema,
   used_fallback: z.boolean(),
   finish_reason: z.string(),
   execution_metadata: z.record(z.unknown()),
@@ -56,6 +78,7 @@ const deferredTurnSchema = z.object({
   cortex_context_packet: z.record(z.unknown()).nullable(),
   relational_context: z.record(z.unknown()).default({}),
   next_session_state: z.record(z.unknown()).default({}),
+  decision_record: decisionRecordSchema,
 });
 
 const runtimeResultSchema = z.discriminatedUnion('status', [

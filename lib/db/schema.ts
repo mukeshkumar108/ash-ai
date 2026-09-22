@@ -199,6 +199,36 @@ export type RelationshipOpportunity = InferSelectModel<
   typeof relationshipOpportunity
 >;
 
+// Streaming-boundary telemetry (read-only diagnostic, see 0030). Written
+// post-request, fail-open. Never consulted by request handling.
+export const streamTrace = pgTable('StreamTrace', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  turnId: uuid('turnId').notNull(),
+  chatId: uuid('chatId').notNull(),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  env: varchar('env', { length: 16 }).notNull().default('production'),
+  resumableEnabled: boolean('resumableEnabled').notNull().default(false),
+  // Monotonic ms since chat route started (per-request origin).
+  chatRouteStartedMs: integer('chatRouteStartedMs'),
+  runtimeStreamConnectedMs: integer('runtimeStreamConnectedMs'),
+  runtimeFirstTextDeltaMs: integer('runtimeFirstTextDeltaMs'),
+  firstDataStreamWriteMs: integer('firstDataStreamWriteMs'),
+  firstOutputChunkMs: integer('firstOutputChunkMs'),
+  runtimeCompletedMs: integer('runtimeCompletedMs'),
+  responseStreamClosedMs: integer('responseStreamClosedMs'),
+  // Chunk accounting before runtime completion.
+  chunksBeforeCompleted: integer('chunksBeforeCompleted').notNull().default(0),
+  firstChunkBytes: integer('firstChunkBytes'),
+  firstFewChunksBytes: integer('firstFewChunksBytes'),
+  coalescedIntoFirstBrowserChunk: boolean('coalescedIntoFirstBrowserChunk')
+    .notNull()
+    .default(false),
+  browserFirstChunkMs: integer('browserFirstChunkMs'),
+  browserFirstTextDeltaMs: integer('browserFirstTextDeltaMs'),
+  runtimeTiming: json('runtimeTiming'),
+  error: text('error'),
+});
+
 export const runtimeHeartbeat = pgTable('RuntimeHeartbeat', {
   worker: varchar('worker', { length: 64 }).primaryKey().notNull(),
   status: varchar('status', { length: 16 }).notNull().default('idle'),
@@ -526,6 +556,61 @@ export const cortexOutbox = pgTable(
 
 export type CortexOutboxRow = InferSelectModel<typeof cortexOutbox>;
 export type CortexOutboxInsert = typeof cortexOutbox.$inferInsert;
+
+/**
+ * Durable product acknowledgement that a Runtime-selected Cortex candidate
+ * reached a canonically persisted assistant message. This is deliberately
+ * separate from the user-turn outbox: delivery receipts have a different
+ * idempotency key and endpoint, and must never be inferred from a context read.
+ */
+export const cortexCandidateReceiptOutbox = pgTable(
+  'CortexCandidateReceiptOutbox',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    receiptId: varchar('receipt_id', { length: 200 }).notNull(),
+    decisionId: varchar('decision_id', { length: 200 }).notNull(),
+    turnId: varchar('turn_id', { length: 200 }).notNull(),
+    candidateId: varchar('candidate_id', { length: 240 }).notNull(),
+    candidateVersion: varchar('candidate_version', { length: 80 }).notNull(),
+    workspaceId: varchar('workspace_id', { length: 128 }).notNull(),
+    ownerPeerId: varchar('owner_peer_id', { length: 128 }).notNull(),
+    assistantMessageId: uuid('assistant_message_id')
+      .notNull()
+      .references(() => message.id, { onDelete: 'cascade' }),
+    occurredAt: timestamp('occurred_at').notNull(),
+    status: varchar('status', {
+      enum: cortexOutboxStatus,
+      length: 16,
+    })
+      .notNull()
+      .default('pending'),
+    attempts: integer('attempts').notNull().default(0),
+    lastAttemptAt: timestamp('last_attempt_at'),
+    nextAttemptAt: timestamp('next_attempt_at'),
+    lockedUntil: timestamp('locked_until'),
+    lastStatusCode: integer('last_status_code'),
+    lastError: text('last_error'),
+    deliveredAt: timestamp('delivered_at'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    receiptUnique: uniqueIndex('cortex_candidate_receipt_id_unique').on(
+      table.receiptId,
+    ),
+    decisionCandidateUnique: uniqueIndex(
+      'cortex_candidate_receipt_decision_candidate_unique',
+    ).on(table.decisionId, table.candidateId),
+    due: index('cortex_candidate_receipt_due').on(
+      table.status,
+      table.nextAttemptAt,
+      table.lockedUntil,
+    ),
+  }),
+);
+
+export type CortexCandidateReceiptOutboxRow = InferSelectModel<
+  typeof cortexCandidateReceiptOutbox
+>;
 
 export const taskStatus = ['pending', 'completed', 'cancelled'] as const;
 export type TaskStatus = (typeof taskStatus)[number];

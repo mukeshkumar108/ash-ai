@@ -94,9 +94,33 @@ export function Chat({
         }
       }
       const decoder = new TextDecoder();
+      let firstChunkMs: number | null = null;
       const observed = response.body.pipeThrough(
         new TransformStream<Uint8Array, Uint8Array>({
           transform(chunk, controller) {
+            if (firstChunkMs === null) {
+              firstChunkMs = performance.now() - startedAt;
+              const payload = JSON.stringify({
+                id,
+                turnId,
+                chatId: id,
+                kind: 'first_chunk',
+                clientTtftMs: Math.round(firstChunkMs),
+              });
+              if (typeof navigator.sendBeacon === 'function') {
+                navigator.sendBeacon(
+                  '/api/telemetry/chat',
+                  new Blob([payload], { type: 'application/json' }),
+                );
+              } else {
+                void fetch('/api/telemetry/chat', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: payload,
+                  keepalive: true,
+                });
+              }
+            }
             if (!reported) {
               buffer =
                 `${buffer}${decoder.decode(chunk, { stream: true })}`.slice(
@@ -109,7 +133,8 @@ export function Chat({
                   id,
                   turnId,
                   chatId: id,
-                  clientTtftMs,
+                  kind: 'first_text_delta',
+                  clientTtftMs: Math.round(clientTtftMs),
                 });
                 if (typeof navigator.sendBeacon === 'function') {
                   navigator.sendBeacon(

@@ -204,6 +204,20 @@
       "when": 1788120000000,
       "tag": "0029_active_conversation_followup",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1788200000000,
+      "tag": "0030_stream_trace",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1790078400000,
+      "tag": "0031_cortex_candidate_receipt_outbox",
+      "breakpoints": true
     }
   ]
 }
