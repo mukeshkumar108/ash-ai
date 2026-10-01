@@ -166,7 +166,7 @@ export function VoiceCall({ chatId }: { chatId: string }) {
       }
       switch (event.type) {
         case 'session.created':
-          // Voice carries no instructions: the Runtime owns the character.
+          // The Runtime owns the character; the call sends configuration only.
           wsRef.current?.send(
             JSON.stringify({
               type: 'session.update',
