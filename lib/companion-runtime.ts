@@ -229,6 +229,22 @@ function configuration() {
   return { baseUrl, secret };
 }
 
+export function companionRuntimeMessageId(
+  label: string,
+  conversationId: string,
+  turnId: string,
+) {
+  const hex = createHash('sha256')
+    .update(`${label}:${conversationId}:${turnId}`)
+    .digest('hex')
+    .slice(0, 32)
+    .split('');
+  hex[12] = '4';
+  hex[16] = ((Number.parseInt(hex[16] ?? '0', 16) & 0x3) | 0x8).toString(16);
+  const value = hex.join('');
+  return `${value.slice(0, 8)}-${value.slice(8, 12)}-${value.slice(12, 16)}-${value.slice(16, 20)}-${value.slice(20)}`;
+}
+
 export function companionRuntimeAssistantMessageId(
   conversationId: string,
   turnId: string,

@@ -37,6 +37,10 @@ import {
   synthesizeSophieAnswer,
 } from '@/lib/agent/sophie-synthesis';
 import { getLanguageModel, getPinnedOpenAIModel } from '@/lib/ai/providers';
+import {
+  boundedRecentContext,
+  persistRuntimeReply,
+} from '@/lib/runtime-turn-persistence';
 import { commitTurnSemantics } from '@/lib/ai/interaction/commit-turn';
 import {
   createStreamId,
@@ -117,172 +121,6 @@ function assistantFinishReason(message: unknown): string | undefined {
   const value = (message as { additional_kwargs?: { finish_reason?: unknown } })
     ?.additional_kwargs?.finish_reason;
   return typeof value === 'string' ? value : undefined;
-}
-
-function boundedEpistemicContext(messages: ChatMessage[]): string {
-  return messages
-    .slice(0, -1)
-    .slice(-6)
-    .map((entry) => {
-      const text = entry.parts
-        .filter((part) => part.type === 'text')
-        .map((part) => ('text' in part ? part.text : ''))
-        .join(' ')
-        .replace(/\s+/gu, ' ')
-        .trim()
-        .slice(0, 700);
-      return text ? `${entry.role}: ${text}` : '';
-    })
-    .filter(Boolean)
-    .join('\n')
-    .slice(-3_500);
-}
-
-async function persistStreamedRuntimeReply(input: {
-  result: Extract<CompanionRuntimeResult, { status: 'completed' }>;
-  assistantId: string;
-  chatId: string;
-  userId: string;
-  userMessageId: string;
-  userText: string;
-  userCreatedAt: Date;
-  timeZone: string;
-  uiMessages: ChatMessage[];
-  transcriptReliability: z.infer<typeof transcriptReliabilitySchema> | null;
-}) {
-  const {
-    result,
-    assistantId,
-    chatId,
-    userId,
-    userMessageId,
-    userText,
-    userCreatedAt,
-    timeZone,
-    uiMessages,
-    transcriptReliability,
-  } = input;
-  const assistantCreatedAt = new Date();
-  const beats =
-    result.beats && result.beats.length >= 2 ? result.beats.slice(0, 3) : [];
-  const delivery = result.beat_delivery ?? [];
-  const textParts =
-    beats.length >= 2
-      ? beats.flatMap((beat, beatIndex) => {
-          const item = delivery[beatIndex] ?? {
-            kind:
-              beatIndex === 0
-                ? ('immediate' as const)
-                : ('continuation' as const),
-            available_after_ms: 0,
-          };
-          return [
-            {
-              type: 'data-beatDelivery' as const,
-              data: {
-                beatIndex,
-                kind: item.kind,
-                availableAt: new Date(
-                  assistantCreatedAt.getTime() + item.available_after_ms,
-                ).toISOString(),
-              },
-            },
-            { type: 'text' as const, text: beat },
-          ];
-        })
-      : [{ type: 'text' as const, text: result.assistant_message }];
-  const inserted = await db
-    .insert(messageTable)
-    .values({
-      id: assistantId,
-      role: 'assistant',
-      parts: textParts,
-      createdAt: assistantCreatedAt,
-      attachments: [],
-      chatId,
-    })
-    .onConflictDoNothing()
-    .returning({ id: messageTable.id });
-
-  const nextSessionState = result.execution_metadata.next_session_state;
-  if (
-    nextSessionState &&
-    typeof nextSessionState === 'object' &&
-    !Array.isArray(nextSessionState)
-  ) {
-    const sessionRouting = nextSessionState as Record<string, unknown>;
-    after(async () => {
-      await updateChatSessionRouting({
-        id: chatId,
-        userId,
-        sessionRouting,
-        timeoutMs: Number(
-          process.env.SESSION_ROUTING_UPDATE_TIMEOUT_MS ?? 2_000,
-        ),
-      }).catch((error) => {
-        console.warn('[chat] streamed session routing update failed open', {
-          chatId,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        });
-      });
-    });
-  }
-
-  if (inserted.length === 0) return;
-  after(async () => {
-    const opportunity = activeIdleOpportunity(assistantCreatedAt);
-    await scheduleInitiativeOpportunity({
-      userId,
-      chatId,
-      anchorMessageId: assistantId,
-      trigger: opportunity.trigger,
-      notBefore: opportunity.notBefore,
-      context: opportunity.context,
-    }).catch(() => undefined);
-    try {
-      await commitTurnSemantics({
-        userId,
-        chatId,
-        messageId: userMessageId,
-        userText,
-        assistantText: result.assistant_message,
-        localTime: new Intl.DateTimeFormat('en-GB', {
-          dateStyle: 'full',
-          timeStyle: 'short',
-          timeZone,
-        }).format(assistantCreatedAt),
-        timeZone,
-        referenceTime: assistantCreatedAt,
-        recentContext: boundedEpistemicContext(uiMessages),
-        signal: AbortSignal.timeout(
-          Number(
-            process.env.SOPHIE_COMMITMENT_INTERPRETER_TIMEOUT_MS ?? 8_000,
-          ) + 15_000,
-        ),
-      });
-    } catch (error) {
-      console.warn('[tasks] streamed semantic commit failed open', {
-        chatId,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
-    }
-    await mirrorCompletedTurn({
-      userId,
-      chatId,
-      userMessage: {
-        id: userMessageId,
-        text: userText,
-        createdAt: userCreatedAt,
-        inputSource: transcriptReliability?.source ?? 'typed',
-        transcriptReliability,
-      },
-      assistantMessage: {
-        id: assistantId,
-        text: result.assistant_message,
-        createdAt: assistantCreatedAt,
-      },
-    });
-  });
 }
 
 function textConversation(
@@ -781,8 +619,11 @@ export async function POST(request: Request) {
               if (!completed)
                 throw new Error('Companion Runtime stream had no completion');
 
-              await persistStreamedRuntimeReply({
-                result: completed,
+              await persistRuntimeReply({
+                assistantText: completed.assistant_message,
+                beats: completed.beats,
+                beatDelivery: completed.beat_delivery,
+                nextSessionState: completed.execution_metadata.next_session_state,
                 assistantId,
                 chatId: id,
                 userId: session.user.id,
@@ -790,7 +631,7 @@ export async function POST(request: Request) {
                 userText: currentUserText,
                 userCreatedAt,
                 timeZone,
-                uiMessages,
+                recentContext: boundedRecentContext(uiMessages),
                 transcriptReliability,
               });
               const completedAt = performance.now();
@@ -1363,7 +1204,7 @@ export async function POST(request: Request) {
               }).format(assistantCreatedAt),
               timeZone,
               referenceTime: assistantCreatedAt,
-              recentContext: boundedEpistemicContext(uiMessages),
+              recentContext: boundedRecentContext(uiMessages),
               signal: AbortSignal.timeout(
                 Number(
                   process.env.SOPHIE_COMMITMENT_INTERPRETER_TIMEOUT_MS ?? 8_000,
