@@ -403,3 +403,20 @@ test('parses an explicit asynchronous beat boundary without leaking a marker', a
     globalThis.fetch = originalFetch;
   }
 });
+
+test('a POST that never reached the Runtime (status 404) is simply resubmitted', async () => {
+  const calls: string[] = [];
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (request, init) => {
+    calls.push(`${init?.method ?? 'GET'} ${String(request)}`);
+    if (calls.length === 1) throw new TypeError('fetch failed');
+    if (calls.length === 2) return new Response('{}', { status: 404 });
+    return jsonResponse(completed);
+  };
+  try {
+    await expect(executeCompanionRuntimeTurn(input)).resolves.toEqual(completed);
+    expect(calls.map((c) => c.split(' ')[0])).toEqual(['POST', 'GET', 'POST']);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

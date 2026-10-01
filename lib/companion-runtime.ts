@@ -287,7 +287,9 @@ async function requestJson(
     signal: AbortSignal.timeout(timeoutMs),
   });
   if (!response.ok) {
-    throw new Error(`Companion Runtime HTTP ${response.status}`);
+    throw Object.assign(new Error(`Companion Runtime HTTP ${response.status}`), {
+      status: response.status,
+    });
   }
   return response.json();
 }
@@ -353,6 +355,11 @@ export async function executeCompanionRuntimeTurn(
         return await submit(baseUrl, secret, input);
       }
     } catch (recoveryError) {
+      // 404: the POST never reached the Runtime (e.g. a stale keep-alive
+      // socket), so the identical turn is simply submitted.
+      if ((recoveryError as { status?: number }).status === 404) {
+        return await submit(baseUrl, secret, input);
+      }
       throw new AggregateError(
         [initialError, recoveryError],
         'Companion Runtime execution became ambiguous and status recovery failed.',
