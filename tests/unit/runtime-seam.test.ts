@@ -9,7 +9,7 @@ import {
 
 function wire(name: string) {
   return JSON.parse(
-    readFileSync(`tests/fixtures/runtime-wire/${name}.json`, 'utf8'),
+    readFileSync(`tests/runtime-wire/${name}.json`, 'utf8'),
   );
 }
 
