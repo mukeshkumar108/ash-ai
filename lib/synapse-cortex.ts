@@ -1,25 +1,6 @@
 import 'server-only';
 
 import { honchoIds } from '@/lib/honcho';
-import type { SceneState } from '@/lib/agent/scene-state';
-import type { UserChronology } from '@/lib/agent/chronology';
-
-export type CortexContext = {
-  localDateTime: string;
-  timeZone: string;
-  interactionGapMinutes: number | null;
-  currentScene: SceneState;
-  orientation: unknown;
-  daypart: unknown;
-  sitting: unknown;
-  firstContactToday: boolean;
-  live: unknown[];
-  unresolved: unknown[];
-  recentChanges: unknown[];
-  avoidSurface: unknown[];
-  memoryRefs: unknown[];
-  continuityContext: Record<string, unknown>;
-};
 
 export type CanonicalContinuityContext = {
   now?: { local_time?: string; timezone?: string; daypart?: string };
@@ -43,61 +24,16 @@ function list(value: unknown, limit: number): unknown[] {
   return Array.isArray(value) ? value.slice(0, limit) : [];
 }
 
-export function compactCortexContext(
-  attention: Record<string, unknown>,
-  handshake: Record<string, unknown>,
-  localDateTime: string,
-  timeZone = 'UTC',
-  interactionGapMinutes: number | null = null,
-  currentScene: SceneState = { current: [], historical: [] },
-): CortexContext {
-  const continuityContext =
-    attention.continuity_context &&
-    typeof attention.continuity_context === 'object' &&
-    !Array.isArray(attention.continuity_context)
-      ? (attention.continuity_context as Record<string, unknown>)
-      : {
-          now: {
-            local_time: localDateTime,
-            timeZone,
-            daypart: handshake.daypart,
-          },
-          continuity: list(attention.followups, 3),
-          open_threads: list(attention.open_loops, 3),
-          sophie_attention: list(attention.sophie_attention, 5),
-          recent_resolutions: list(attention.recent_resolutions, 3),
-          avoid_repeating: list(attention.suppressed_targets, 5),
-          relevant_honcho_message_ids: list(
-            attention.relevant_honcho_message_ids,
-            8,
-          ),
-        };
-  return {
-    localDateTime,
-    timeZone,
-    interactionGapMinutes,
-    currentScene,
-    // Demoted from authoritative gap classification: chronology authority
-    // lives in lib/agent/chronology.ts (30-min TemporalSession + 05:00
-    // UserDay, derived from canonical user-role message timestamps). These
-    // fields echo what the app decided; Cortex consumes them, it never
-    // re-derives them.
-    orientation: handshake.orientation ?? null,
-    daypart: handshake.daypart ?? null,
-    sitting: handshake.sitting ?? null,
-    firstContactToday: handshake.first_contact_today === true,
-    live: list(handshake.live_threads, 3),
-    unresolved: [
-      ...list(attention.waiting_on, 2),
-      ...list(attention.open_loops, 2),
-    ].slice(0, 3),
-    recentChanges: list(attention.recent_resolutions, 2),
-    avoidSurface: list(handshake.avoid_surface, 3),
-    memoryRefs: list(handshake.relevant_memory_refs, 3),
-    continuityContext,
-  };
+function asList(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
 }
 
+/**
+ * Product-view read of the accepted Cortex AttentionState (GET, no writes).
+ * This feeds Sophie's own day-brief/Things views only; it is not a
+ * conversation path (the chat turn gets Cortex state exclusively through
+ * Companion Runtime). Shape mapping follows CORTEX_CUTOVER.md section 11.
+ */
 export async function fetchCanonicalContinuityContext(input: {
   userId: string;
   chatId: string;
@@ -105,7 +41,7 @@ export async function fetchCanonicalContinuityContext(input: {
   now?: Date;
 }): Promise<CanonicalContinuityContext | null> {
   const config = configuration();
-  if (!config.enabled || !config.contextEnabled || !config.baseURL) return null;
+  if (!config.enabled || !config.baseURL) return null;
   const ids = honchoIds(input.userId, input.chatId);
   const query = new URLSearchParams({
     workspace_id: ids.workspaceId,
@@ -117,21 +53,37 @@ export async function fetchCanonicalContinuityContext(input: {
     timezone: input.timeZone,
   });
   try {
-    const attention = await cortexFetch(
-      `/v1/cortex/attention-packet?${query.toString()}`,
-    );
-    if (!attention) return null;
-    const context = attention.continuity_context;
-    return context && typeof context === 'object' && !Array.isArray(context)
-      ? (context as CanonicalContinuityContext)
-      : (compactCortexContext(
-          attention,
-          {},
-          (input.now ?? new Date()).toISOString(),
-          input.timeZone,
-        ).continuityContext as CanonicalContinuityContext);
+    const state = await cortexFetch(`/v1/cortex/attention-state?${query.toString()}`);
+    if (!state) return null;
+    const window = (state.window ?? {}) as Record<string, unknown>;
+    const scopes = (window.scopes ?? {}) as Record<string, unknown>;
+    return {
+      now: {
+        local_time: String(window.local_time ?? state.timestamp ?? ''),
+        timezone: input.timeZone,
+        daypart: typeof window.daypart === 'string' ? window.daypart : undefined,
+      },
+      brief: {
+        version: 'attention-state',
+        user_day: typeof window.user_day === 'string' ? window.user_day : undefined,
+        daypart: typeof window.daypart === 'string' ? window.daypart : undefined,
+        horizons: {
+          now: asList(scopes.immediate),
+          today: asList(scopes.today),
+          upcoming: asList(scopes.upcoming),
+          unresolved: asList(scopes.unresolved),
+          review_needed: asList(scopes.review_needed),
+        },
+      },
+      continuity: asList(state.eligible),
+      open_threads: asList(state.open_loops),
+      sophie_attention: asList(state.sophie_attention),
+      recent_resolutions: asList(state.recent_resolutions),
+      avoid_repeating: asList(state.suppressed_targets),
+      relevant_honcho_message_ids: asList(state.relevant_honcho_message_ids) as string[],
+    };
   } catch (error) {
-    console.warn('[synapse-cortex] continuity fetch failed (fail-open)', {
+    console.warn('[synapse-cortex] attention-state read failed (fail-open)', {
       chatId: input.chatId,
       error: error instanceof Error ? error.message : 'Unknown error',
     });
@@ -143,7 +95,6 @@ function configuration() {
   const baseURL = process.env.SYNAPSE_CORTEX_URL?.trim().replace(/\/$/u, '');
   return {
     enabled: Boolean(baseURL) && process.env.SYNAPSE_CORTEX_ENABLED !== 'false',
-    contextEnabled: process.env.SYNAPSE_CORTEX_CONTEXT_ENABLED !== 'false',
     baseURL,
     token: process.env.SYNAPSE_CORTEX_API_TOKEN?.trim(),
     timeoutMs: Number(process.env.SYNAPSE_CORTEX_TIMEOUT_MS ?? 1500),
@@ -166,75 +117,6 @@ async function cortexFetch(path: string, init?: RequestInit) {
   return (await response.json()) as Record<string, unknown>;
 }
 
-export async function persistSophieAttention(input: {
-  userId: string;
-  chatId: string;
-  sourceMessageId: string;
-  sourceAssistantMessageId: string;
-  candidates: Array<{
-    key: string;
-    kind:
-      | 'pending_question'
-      | 'unfinished_thought'
-      | 'callback'
-      | 'promise'
-      | 'reentry';
-    content: string;
-    salience: number;
-    confidence: number;
-    notBeforeMinutes: number | null;
-    expiresAfterHours: number;
-  }>;
-  now?: Date;
-}) {
-  if (input.candidates.length === 0) return { persisted: false as const };
-  const ids = honchoIds(input.userId, input.chatId);
-  const now = input.now ?? new Date();
-  try {
-    const result = await cortexFetch('/v1/events/attention', {
-      method: 'POST',
-      body: JSON.stringify({
-        workspace_id: ids.workspaceId,
-        session_id: ids.sessionId,
-        source_message_id: input.sourceMessageId,
-        source_assistant_message_id: input.sourceAssistantMessageId,
-        candidates: input.candidates.map((candidate) => ({
-          key: candidate.key,
-          kind: candidate.kind,
-          content: candidate.content,
-          salience: candidate.salience,
-          confidence: candidate.confidence,
-          not_before:
-            candidate.notBeforeMinutes === null
-              ? null
-              : new Date(
-                  now.getTime() + candidate.notBeforeMinutes * 60_000,
-                ).toISOString(),
-          expires_at: new Date(
-            now.getTime() + candidate.expiresAfterHours * 3_600_000,
-          ).toISOString(),
-        })),
-      }),
-    });
-    return { persisted: true as const, result };
-  } catch (error) {
-    console.warn('[synapse-cortex] Sophie attention persistence failed open', {
-      chatId: input.chatId,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    });
-    return { persisted: false as const };
-  }
-}
-
-/**
- * Deterministic object-state projection into Cortex lifecycle state.
- *
- * Canonical tasks (app Postgres) and Google Calendar events are referenced by
- * stable source system + object id + integer version — never embedded as
- * duplicate provider objects. Cortex derives lifecycle/attention state only.
- * Fire-and-forget by design: callers mark canonical rows dirty and a cron
- * sweep re-pushes on failure, so a dropped call never loses state.
- */
 export async function postObjectState(
   input: {
     userId: string;
@@ -340,108 +222,6 @@ export async function postObjectState(
     };
   }
 }
-
-export async function fetchCortexContext(input: {
-  userId: string;
-  chatId: string;
-  timeZone: string;
-  now?: Date;
-  lastInteractionTime?: Date | null;
-  sceneState?: SceneState;
-  chronology?: UserChronology;
-}): Promise<CortexContext | null> {
-  const config = configuration();
-  if (!config.contextEnabled) return null;
-  const ids = honchoIds(input.userId, input.chatId);
-  const now = (input.now ?? new Date()).toISOString();
-  try {
-    const attentionQuery = new URLSearchParams({
-      workspace_id: ids.workspaceId,
-      session_id: ids.sessionId,
-      peer_id: ids.userPeerId,
-      now,
-      timezone: input.timeZone,
-    });
-    // Canonical chronology: the app decides whether this is a new sitting.
-    // Cortex consumes the fact; it never infers new-vs-ongoing from timestamps.
-    const chronology = input.chronology;
-    const handshakeChronology = chronology
-      ? {
-          temporalSession: chronology.newTemporalSession ? 'new' : 'same',
-          firstContactUserDay: chronology.isFirstContactUserDay,
-          gapMinutes: chronology.inactivityGapMinutes ?? null,
-        }
-      : undefined;
-    const [attention, handshake] = await Promise.all([
-      cortexFetch(`/v1/cortex/attention-packet?${attentionQuery.toString()}`),
-      cortexFetch('/v1/cortex/handshake', {
-        method: 'POST',
-        body: JSON.stringify({
-          workspace_id: ids.workspaceId,
-          session_id: ids.sessionId,
-          peer_id: ids.userPeerId,
-          now,
-          timezone: input.timeZone,
-          last_interaction_time:
-            input.lastInteractionTime?.toISOString() ?? null,
-          ...(handshakeChronology ? { chronology: handshakeChronology } : {}),
-        }),
-      }),
-    ]);
-    if (!attention || !handshake) return null;
-    const context = compactCortexContext(
-      attention,
-      handshake,
-      new Intl.DateTimeFormat('en-GB', {
-        dateStyle: 'full',
-        timeStyle: 'long',
-        timeZone: input.timeZone,
-      }).format(input.now ?? new Date()),
-      input.timeZone,
-      input.lastInteractionTime
-        ? Math.max(
-            0,
-            Math.floor(
-              ((input.now ?? new Date()).getTime() -
-                input.lastInteractionTime.getTime()) /
-                60_000,
-            ),
-          )
-        : null,
-      input.sceneState,
-    );
-    console.info('[synapse-cortex] context delivered', {
-      chatId: input.chatId,
-      context,
-    });
-    return context;
-  } catch (error) {
-    console.warn('[synapse-cortex] context fetch failed (fail-open)', {
-      chatId: input.chatId,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    });
-    return null;
-  }
-}
-
-export async function routeWithCortex(query: string) {
-  try {
-    return await cortexFetch('/v1/cortex/route', {
-      method: 'POST',
-      body: JSON.stringify({ query }),
-    });
-  } catch (error) {
-    console.warn('[synapse-cortex] route lookup failed (fail-open)', {
-      error: error instanceof Error ? error.message : 'Unknown error',
-    });
-    return null;
-  }
-}
-
-// ── Commitment candidates ("Sophie noticed") ──────────────────────────────
-// Cortex owns the uncertain/implicit commitment intelligence; the app only
-// exposes its pending candidates and turns a promoted candidate into a
-// canonical Task through the deterministic domain (never a second detector).
 
 export type CommitmentCandidate = {
   key: string;

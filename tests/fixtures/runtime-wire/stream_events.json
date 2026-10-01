@@ -1,0 +1,161 @@
+[
+  {
+    "data": {
+      "contract_version": "v1",
+      "conversation_id": "wire-conv",
+      "phase": "accepted",
+      "status": "executing",
+      "turn_id": "wire-3"
+    },
+    "event": "status"
+  },
+  {
+    "data": {
+      "contract_version": "v1",
+      "conversation_id": "wire-conv",
+      "phase": "jev",
+      "status": "executing",
+      "turn_id": "wire-3"
+    },
+    "event": "status"
+  },
+  {
+    "data": {
+      "contract_version": "v1",
+      "conversation_id": "wire-conv",
+      "phase": "foreground_request_started",
+      "status": "executing",
+      "turn_id": "wire-3"
+    },
+    "event": "status"
+  },
+  {
+    "data": {
+      "contract_version": "v1",
+      "conversation_id": "wire-conv",
+      "delta": "Hello from th",
+      "index": 0,
+      "turn_id": "wire-3"
+    },
+    "event": "text_delta"
+  },
+  {
+    "data": {
+      "contract_version": "v1",
+      "conversation_id": "wire-conv",
+      "delta": "e fake model!",
+      "index": 1,
+      "turn_id": "wire-3"
+    },
+    "event": "text_delta"
+  },
+  {
+    "data": {
+      "contract_version": "v1",
+      "conversation_id": "wire-conv",
+      "result": {
+        "assistant_message": "Hello from the fake model!",
+        "beat_delivery": [
+          {
+            "available_after_ms": 0,
+            "kind": "immediate"
+          }
+        ],
+        "beats": [
+          "Hello from the fake model!"
+        ],
+        "companion_id": "sophie",
+        "conversation_id": "wire-conv",
+        "execution_lane": "reply_only",
+        "execution_metadata": {
+          "application_id": "sophie",
+          "architecture": "resident-runtime-v1",
+          "context_adapter_id": "sophie-v1",
+          "context_surgery_applied": false,
+          "cortex_calls": 0,
+          "depth": {
+            "attempts": [],
+            "cortex_calls": 0,
+            "reason": "jev_none",
+            "source": "none"
+          },
+          "effects": "live",
+          "evaluation_namespace": null,
+          "evidence_rendered": false,
+          "exceptional_operations": [],
+          "executed_outcome": {
+            "beatCount": 1
+          },
+          "execution_mode": "live",
+          "foreground_model": "upstage/solar-pro4",
+          "jev": {
+            "capability": "reply",
+            "entity_reference": "none",
+            "gated": false,
+            "memory_relevance": "none",
+            "model": "typesafe/jev-1.13",
+            "model_route": "default",
+            "opportunity": false,
+            "safety_routing": false,
+            "scene_change": false,
+            "scene_delta": {},
+            "scores": {},
+            "session_release": false,
+            "trajectory_degraded": false
+          },
+          "jev_backend": "typesafe/jev-1.13",
+          "next_session_state": {
+            "lastJev": {
+              "capability": "reply",
+              "entity_reference": "none",
+              "gated": false,
+              "memory_relevance": "none",
+              "model": "typesafe/jev-1.13",
+              "model_route": "default",
+              "opportunity": false,
+              "safety_routing": false,
+              "scene_change": false,
+              "scene_delta": {},
+              "scores": {},
+              "session_release": false,
+              "trajectory_degraded": false
+            },
+            "residentWorld": {
+              "attention_state": {},
+              "current_scene": {},
+              "depth_index": {},
+              "invalidated": false,
+              "local_deltas": [],
+              "version": "resident-world-v1",
+              "world_model": {}
+            },
+            "turnNumber": 1
+          },
+          "possibility_count": 0,
+          "post_reply": [],
+          "prompt_blocks": [
+            "[TEMPORAL FACTS]",
+            "[CURRENT SCENE \u2014 established local state]",
+            "[OUTPUT CONTRACT]"
+          ],
+          "scene_delta": {},
+          "scene_extractor_ran": false
+        },
+        "finish_reason": "stop",
+        "model_used": "upstage/solar-pro4",
+        "provider_used": "fake",
+        "scene_state": {
+          "fields": {},
+          "observed_at": null,
+          "source": "resident",
+          "version": "current-scene-v1"
+        },
+        "status": "completed",
+        "turn_id": "wire-3",
+        "used_fallback": false
+      },
+      "turn_id": "wire-3"
+    },
+    "event": "completed"
+  }
+]

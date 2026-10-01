@@ -1,7 +1,5 @@
 import { expect, test } from '@playwright/test';
 import { postRequestBodySchema } from '@/app/(chat)/api/chat/schema';
-import { buildSophieReplySystemPrompt } from '@/lib/agent/system-prompt';
-import { applyTranscriptReliabilityGuard } from '@/lib/agent/transcript-reliability';
 import { assessTranscriptReliability } from '@/lib/ai/transcript-reliability';
 import {
   isTranscriptMemoryEligible,
@@ -32,13 +30,6 @@ test.describe('audio transcript reliability', () => {
     });
     expect(judgeCalls).toBe(0);
     expect(reliability.status).toBe('reliable');
-    const prompt = buildSophieReplySystemPrompt({
-      transcriptReliability: reliability,
-    });
-    expect(prompt).toContain('This user message was transcribed from audio.');
-    expect(prompt).toContain(
-      'do not force an interpretation or silently correct it',
-    );
   });
 
   test('suspicious audio may invoke the semantic judge', async () => {
@@ -140,7 +131,6 @@ test.describe('audio transcript reliability', () => {
         (part) => part.type === 'data-transcriptReliability',
       ),
     ).toBe(false);
-    expect(buildSophieReplySystemPrompt()).not.toContain('AUDIO INPUT SOURCE');
   });
 
   test('explicit session-mode actions are bounded request metadata', () => {
@@ -164,21 +154,6 @@ test.describe('audio transcript reliability', () => {
     ).toThrow();
   });
 
-  test('clean audio gives Sophie permission to notice fluent missed garbling', () => {
-    const reliability = mechanicalTranscriptReliability({
-      transcript:
-        'This is fluent enough to pass cheap checks but Sophie may still find it implausible in context.',
-      durationMs: 8_000,
-    });
-    const prompt = buildSophieReplySystemPrompt({
-      transcriptReliability: reliability,
-    });
-    expect(prompt).toContain(
-      'Do not mention transcription uncertainty unless you genuinely have reason',
-    );
-    expect(prompt).toContain('ask them to repeat or clarify');
-  });
-
   test('uncertain and likely-garbled transcripts are excluded from memory', () => {
     const base = mechanicalTranscriptReliability({
       transcript: 'ordinary voice note',
@@ -191,34 +166,6 @@ test.describe('audio transcript reliability', () => {
     expect(
       isTranscriptMemoryEligible({ ...base, status: 'likely_garbled' }),
     ).toBe(false);
-  });
-
-  test('likely-garbled audio retains the tools and research guard', () => {
-    const policy = {
-      researchDepth: 'deep' as const,
-      freshnessNeed: 'required' as const,
-      authorityNeed: 'required' as const,
-      sourceSensitivity: 'high' as const,
-      stakes: 'high' as const,
-      questionMode: 'investigation' as const,
-      capabilityRoute: 'live_data' as const,
-      interactionMode: 'practical' as const,
-      neutralResearchQuestion: 'What did the user ask?',
-      reason: 'The apparent transcript requests research.',
-      confidence: 0.8,
-      classifierRan: true,
-      classifierSucceeded: true,
-      userDeclinedResearch: false,
-    };
-    const reliability = {
-      ...mechanicalTranscriptReliability({ transcript: 'short audio' }),
-      status: 'likely_garbled' as const,
-    };
-    expect(applyTranscriptReliabilityGuard(policy, reliability)).toMatchObject({
-      researchDepth: 'none',
-      capabilityRoute: 'reply',
-      interactionMode: 'social',
-    });
   });
 
   test('judge failure falls back safely without breaking the turn', async () => {

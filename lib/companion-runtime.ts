@@ -10,75 +10,48 @@ const executionLaneSchema = z.enum([
   'research',
 ]);
 
-const candidateReferenceSchema = z.object({
-  candidate_id: z.string(),
-  candidate_version: z.string(),
-  source: z.string(),
+const beatDeliverySchema = z.object({
+  kind: z.enum(['immediate', 'continuation']),
+  available_after_ms: z.number().int().nonnegative().max(30_000),
 });
 
-const decisionRecordSchema = z.object({
-  contract_version: z.literal('v1'),
-  decision_id: z.string(),
-  objective: z.string(),
-  relationship_mode: z.string(),
-  initiative: z.string(),
-  required_acknowledgement: z.string().nullable().optional(),
-  allowed_moves: z.array(z.string()),
-  selected_move: z.string(),
-  evidence_used: z.array(z.record(z.unknown())),
-  rejected_candidates: z.array(z.record(z.unknown())),
-  candidate_refs: z.array(candidateReferenceSchema),
-  reason: z.string(),
-});
-
+// The accepted Runtime result is slim: no decision record, epistemic
+// classification, memory packet or context packet. State the product must
+// carry is `execution_metadata.next_session_state` (opaque, verbatim).
 const completedTurnSchema = z.object({
   status: z.literal('completed'),
   turn_id: z.string(),
   conversation_id: z.string(),
+  companion_id: z.string().optional(),
   assistant_message: z.string().min(1),
   // Optional native multi-beat structure: 1..3 intentional beats in delivery
   // order. Absent when the reply is a single logical beat.
   beats: z.array(z.string().min(1)).min(1).max(3).nullable().optional(),
-  beat_delivery: z
-    .array(
-      z.object({
-        kind: z.enum(['immediate', 'continuation']),
-        available_after_ms: z.number().int().nonnegative().max(30_000),
-      }),
-    )
-    .min(1)
-    .max(3)
-    .nullable()
-    .optional(),
+  beat_delivery: z.array(beatDeliverySchema).min(1).max(3).nullable().optional(),
   model_used: z.string(),
   provider_used: z.string(),
   execution_lane: z.literal('reply_only'),
-  decision_record: decisionRecordSchema,
   used_fallback: z.boolean(),
   finish_reason: z.string(),
   execution_metadata: z.record(z.unknown()),
   scene_state: z.record(z.unknown()),
-  epistemic_classification: z.record(z.unknown()),
-  honcho_memory_packet: z.record(z.unknown()).nullable(),
-  cortex_context_packet: z.record(z.unknown()).nullable(),
+  latency_ms: z.number().optional(),
 });
 
+// A lane the Runtime's Jev routed to a product-executed capability.
 const deferredTurnSchema = z.object({
   status: z.literal('deferred'),
   turn_id: z.string(),
   conversation_id: z.string(),
+  companion_id: z.string().optional(),
   execution_lane: executionLaneSchema.exclude(['reply_only']),
   model_role: z.enum(['conversation', 'judgment', 'live_data', 'research']),
   model_id: z.string(),
   fallback_model_id: z.string(),
   reason: z.string(),
-  epistemic_classification: z.record(z.unknown()),
   scene_state: z.record(z.unknown()),
-  honcho_memory_packet: z.record(z.unknown()).nullable(),
-  cortex_context_packet: z.record(z.unknown()).nullable(),
-  relational_context: z.record(z.unknown()).default({}),
+  context: z.record(z.unknown()).default({}),
   next_session_state: z.record(z.unknown()).default({}),
-  decision_record: decisionRecordSchema,
 });
 
 const runtimeResultSchema = z.discriminatedUnion('status', [
@@ -182,20 +155,78 @@ export type CompanionRuntimeTurnInput = {
   transcript_reliability: unknown | null;
 };
 
-function configuration() {
-  const baseUrl = process.env.COMPANION_RUNTIME_URL?.trim().replace(/\/$/u, '');
-  const secret = process.env.COMPANION_RUNTIME_SECRET?.trim();
+type TurnHistoryEntry = {
+  id: string;
+  role: string;
+  parts: Array<{ type: string; text?: string }>;
+  metadata?: { createdAt?: string } | null;
+};
+
+/**
+ * The single product -> Runtime request shape. Products supply facts and
+ * transport state only: user identity, timezone, deterministic chronology,
+ * the explicit session-mode button state, the previous Runtime
+ * `next_session_state` (verbatim, so resident Cortex state is not rehydrated),
+ * delivery medium and audio provenance. No moves, modes, plans or context
+ * packets of their own.
+ */
+export function buildCompanionRuntimeTurnInput(input: {
+  turnId: string;
+  conversationId: string;
+  selectedModelAlias: string;
+  currentText: string;
+  currentParts: unknown[];
+  history: TurnHistoryEntry[];
+  userId: string;
+  timeZone: string;
+  entryContext: Record<string, unknown>;
+  sessionRouting: Record<string, unknown>;
+  medium: 'voice' | 'mobile_text' | 'desktop';
+  transcriptReliability: unknown | null;
+}): CompanionRuntimeTurnInput {
   return {
-    enabled:
-      Boolean(baseUrl && secret) &&
-      process.env.COMPANION_RUNTIME_REPLY_ONLY_ENABLED !== 'false',
-    baseUrl,
-    secret,
+    contract_version: 'v1',
+    turn_id: input.turnId,
+    conversation_id: input.conversationId,
+    companion_id: 'sophie',
+    // Dropdown alias only; the Runtime owns foreground model selection.
+    selected_model_id: input.selectedModelAlias,
+    current_sanitized_message: input.currentText,
+    message_parts: input.currentParts,
+    canonical_history: input.history.map((entry) => ({
+      id: entry.id,
+      role: entry.role,
+      content: entry.parts
+        .filter((part) => part.type === 'text')
+        .map((part) => part.text ?? '')
+        .join('\n'),
+      created_at: entry.metadata?.createdAt,
+      parts: entry.parts.filter(
+        (part) => part.type === 'text' || part.type === 'file',
+      ),
+    })),
+    trusted_user_context: {
+      user_id: input.userId,
+      timezone: input.timeZone,
+      entry_context: input.entryContext,
+      session_routing: input.sessionRouting,
+      medium: input.medium,
+    },
+    recent_provenance: {},
+    capability_grant: {
+      allow_read_tools: true,
+      allow_live_data: true,
+      allow_research: true,
+      granted_scopes: ['read_tools', 'live_data', 'research'],
+    },
+    transcript_reliability: input.transcriptReliability,
   };
 }
 
-export function companionRuntimeReplyOnlyEnabled() {
-  return configuration().enabled;
+function configuration() {
+  const baseUrl = process.env.COMPANION_RUNTIME_URL?.trim().replace(/\/$/u, '');
+  const secret = process.env.COMPANION_RUNTIME_SECRET?.trim();
+  return { baseUrl, secret };
 }
 
 export function companionRuntimeAssistantMessageId(
@@ -213,23 +244,11 @@ export function companionRuntimeAssistantMessageId(
   return `${value.slice(0, 8)}-${value.slice(8, 12)}-${value.slice(12, 16)}-${value.slice(16, 20)}-${value.slice(20)}`;
 }
 
-export function legacyCompanionRuntimeAssistantMessageId(turnId: string) {
-  const hex = createHash('sha256')
-    .update(`companion-runtime-assistant:${turnId}`)
-    .digest('hex')
-    .slice(0, 32)
-    .split('');
-  hex[12] = '4';
-  hex[16] = ((Number.parseInt(hex[16] ?? '0', 16) & 0x3) | 0x8).toString(16);
-  const value = hex.join('');
-  return `${value.slice(0, 8)}-${value.slice(8, 12)}-${value.slice(12, 16)}-${value.slice(16, 20)}-${value.slice(20)}`;
-}
-
 function configuredRuntime() {
   const config = configuration();
   if (!config.baseUrl || !config.secret) {
     throw new Error(
-      'Companion Runtime is enabled but COMPANION_RUNTIME_URL or COMPANION_RUNTIME_SECRET is missing.',
+      'COMPANION_RUNTIME_URL and COMPANION_RUNTIME_SECRET are required: Companion Runtime is the only conversational path.',
     );
   }
   return { baseUrl: config.baseUrl, secret: config.secret };

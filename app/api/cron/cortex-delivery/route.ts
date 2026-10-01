@@ -2,10 +2,6 @@ import {
   requeueBlockedCortexOutbox,
   sweepDueCortexOutbox,
 } from '@/lib/cortex/outbox';
-import {
-  requeueBlockedCandidateReceiptOutbox,
-  sweepDueCandidateReceiptOutbox,
-} from '@/lib/cortex/candidate-receipt-outbox';
 import { withWorkerHeartbeat } from '@/lib/observability/worker-heartbeat';
 
 export const maxDuration = 300;
@@ -23,14 +19,12 @@ export async function GET(request: Request) {
     return Response.json(
       await withWorkerHeartbeat('cortex-delivery', async () => ({
         turns: await requeueBlockedCortexOutbox(),
-        candidateReceipts: await requeueBlockedCandidateReceiptOutbox(),
       })),
     );
   }
   return Response.json(
     await withWorkerHeartbeat('cortex-delivery', async () => ({
       turns: await sweepDueCortexOutbox({ limit: 25 }),
-      candidateReceipts: await sweepDueCandidateReceiptOutbox({ limit: 25 }),
     })),
   );
 }

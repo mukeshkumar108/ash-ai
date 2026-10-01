@@ -1,0 +1,57 @@
+{
+  "companion_id": "sophie",
+  "context": {
+    "jev": {
+      "capability": "read_tools",
+      "entity_reference": "none",
+      "gated": false,
+      "memory_relevance": "none",
+      "model": "typesafe/jev-1.13",
+      "model_route": "default",
+      "opportunity": false,
+      "safety_routing": false,
+      "scene_change": false,
+      "scene_delta": {},
+      "scores": {},
+      "session_release": false,
+      "trajectory_degraded": false
+    },
+    "resident_projection": []
+  },
+  "conversation_id": "wire-conv",
+  "execution_lane": "read_tools",
+  "fallback_model_id": "",
+  "model_id": "",
+  "model_role": "live_data",
+  "next_session_state": {
+    "lastJev": {
+      "capability": "read_tools",
+      "entity_reference": "none",
+      "gated": false,
+      "memory_relevance": "none",
+      "model": "typesafe/jev-1.13",
+      "model_route": "default",
+      "opportunity": false,
+      "safety_routing": false,
+      "scene_change": false,
+      "scene_delta": {},
+      "scores": {},
+      "session_release": false,
+      "trajectory_degraded": false
+    },
+    "residentWorld": {
+      "attention_state": {},
+      "current_scene": {},
+      "depth_index": {},
+      "invalidated": false,
+      "local_deltas": [],
+      "version": "resident-world-v1",
+      "world_model": {}
+    },
+    "turnNumber": 1
+  },
+  "reason": "TypeSafe Jev selected granted read_tools lane.",
+  "scene_state": {},
+  "status": "deferred",
+  "turn_id": "wire-2"
+}

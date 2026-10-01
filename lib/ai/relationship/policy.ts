@@ -24,47 +24,16 @@ export const INITIATIVE_POLICY = {
   ),
 } as const;
 
-export function initiativeOpportunityForRuntimeOutcome(
-  executionMetadata: Record<string, unknown> | null | undefined,
-  createdAt: Date,
-) {
-  const plan = executionMetadata?.director_plan as
-    | Record<string, unknown>
-    | undefined;
-  const outcome = executionMetadata?.executed_outcome as
-    | Record<string, unknown>
-    | undefined;
-  const ownedObject = outcome?.ownedObject as
-    | Record<string, unknown>
-    | undefined;
-  const concreteOwnedObject =
-    plan?.initiativeEligible === true &&
-    outcome?.objectActionExecuted !== 'none' &&
-    typeof ownedObject?.summary === 'string' &&
-    ownedObject.summary.trim().length > 0;
-  const trigger = concreteOwnedObject
-    ? ('second_thought' as const)
-    : ('active_idle' as const);
-  const delayMs =
-    trigger === 'second_thought'
-      ? INITIATIVE_POLICY.secondThoughtMs
-      : INITIATIVE_POLICY.idleMs;
+/**
+ * After a Runtime reply, schedule one idle check. The Runtime/Cortex proactive
+ * tick alone decides whether anything is appropriate to say; the product
+ * carries no plan, objective or owned-object context into that decision.
+ */
+export function activeIdleOpportunity(createdAt: Date) {
   return {
-    trigger,
-    notBefore: new Date(createdAt.getTime() + delayMs),
-    context: concreteOwnedObject
-      ? {
-          socialAgencyVersion: 'v3',
-          intent: plan?.intent,
-          objective: plan?.objective,
-          ownedObject,
-          executedAct: outcome?.executedAct,
-        }
-      : {
-          socialAgencyVersion: 'v3',
-          intent: plan?.intent,
-          objective: plan?.objective,
-        },
+    trigger: 'active_idle' as const,
+    notBefore: new Date(createdAt.getTime() + INITIATIVE_POLICY.idleMs),
+    context: {},
   };
 }
 

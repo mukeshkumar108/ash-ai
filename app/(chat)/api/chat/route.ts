@@ -8,7 +8,6 @@ import {
   mergeResearchTraces,
 } from '@/lib/agent/brave-search';
 import {
-  assessEpistemicPolicy,
   evidenceGapsForRetry,
   evidenceState,
   hasMaterialClaimCitationCoverage,
@@ -18,14 +17,14 @@ import {
   missingRequiredEvidence,
   requiresInlineCitations,
 } from '@/lib/agent/research-policy';
+import { isTextOnlyModel } from '@/lib/agent/turn-runtime';
 import {
-  createTurnPacket,
-  decideTurn,
-  isTextOnlyModel,
-} from '@/lib/agent/turn-runtime';
-import { deriveSceneState } from '@/lib/agent/scene-state';
+  createToolLanePacket,
+  toolLaneDecision,
+  toolLanePolicy,
+  type ToolLane,
+} from '@/lib/agent/tool-lane';
 import {
-  executeDirectReply,
   executeLiveDataReply,
   isRetryableModelError,
 } from '@/lib/agent/turn-executor';
@@ -38,39 +37,25 @@ import {
   synthesizeSophieAnswer,
 } from '@/lib/agent/sophie-synthesis';
 import { getLanguageModel, getPinnedOpenAIModel } from '@/lib/ai/providers';
-import {
-  fetchCortexContext,
-  persistSophieAttention,
-} from '@/lib/synapse-cortex';
-import { extractSophieAttentionCandidates } from '@/lib/ai/interaction/attention';
 import { commitTurnSemantics } from '@/lib/ai/interaction/commit-turn';
 import {
   createStreamId,
   deleteChatById,
   getChatAccessById,
   getChatById,
-  getConversationHandshakeContext,
   getMessageById,
   getMessagesByChatId,
   getUserById,
   getUserChronologyTimeline,
-  getCompanionUserState,
-  getTemporalSessionResidueRows,
   saveUserDefaultLocationIfMissing,
   saveChat,
   saveMessages,
   updateChatTitleById,
   updateChatSessionRouting,
-  updateUserLiveSituation,
-  updateUserCorrections,
   updateMessageParts,
   withQueryContext,
   db,
 } from '@/lib/db/queries';
-import {
-  extractBehaviorCorrection,
-  mergeBehaviorCorrections,
-} from '@/lib/agent/user-corrections';
 import { message as messageTable, user as userTable } from '@/lib/db/schema';
 import { convertToUIMessages, generateUUID } from '@/lib/utils';
 import { generateTitleFromUserMessage } from '../../actions';
@@ -94,29 +79,20 @@ import type { ChatMessage, ResearchTrace } from '@/lib/types';
 import type { ChatModel } from '@/lib/ai/models';
 import type { VisibilityType } from '@/components/visibility-selector';
 import { mirrorCompletedTurn } from '@/lib/honcho';
-import { enqueueCandidateDeliveryReceipts } from '@/lib/cortex/candidate-receipt-outbox';
-import { readCurrentContinuityDayPacket } from '@/lib/continuity/chief-of-staff';
-import { prepareTurnMemory, recordMemoryTrace } from '@/lib/agent/memory';
-import type { TurnMemory } from '@/lib/agent/memory';
 import {
   markLatestInitiativeReplied,
   scheduleInitiativeOpportunity,
 } from '@/lib/ai/relationship/store';
 import { transcriptReliabilitySchema } from '@/lib/transcript-reliability';
-import { applyTranscriptReliabilityGuard } from '@/lib/agent/transcript-reliability';
-import { classifyReentry } from '@/lib/agent/reentry';
 import { computeUserChronology } from '@/lib/agent/chronology';
-import { buildCompanionEntryContext } from '@/lib/agent/entry-context';
 import { resolveUserTimeZone } from '@/lib/agent/timezone';
 import {
+  buildCompanionRuntimeTurnInput,
   companionRuntimeAssistantMessageId,
-  companionRuntimeReplyOnlyEnabled,
-  legacyCompanionRuntimeAssistantMessageId,
   streamCompanionRuntimeTurn,
   type CompanionRuntimeResult,
-  type CompanionRuntimeTurnInput,
 } from '@/lib/companion-runtime';
-import { initiativeOpportunityForRuntimeOutcome } from '@/lib/ai/relationship/policy';
+import { activeIdleOpportunity } from '@/lib/ai/relationship/policy';
 import {
   cancelPendingBeatDeliveries,
   visibleMessagePartsAt,
@@ -126,30 +102,6 @@ export const maxDuration = 300;
 const CHAT_AGENT_TIMEOUT_MS = Number(
   process.env.CHAT_AGENT_TIMEOUT_MS ?? 240_000,
 );
-
-function runtimeMemoryPacket(
-  memory: Record<string, unknown> | null,
-): TurnMemory {
-  return {
-    decision: {
-      needsMemory: Boolean(memory?.needs_memory),
-      memoryQuestion:
-        typeof memory?.memory_question === 'string'
-          ? memory.memory_question
-          : null,
-      reason: 'Prepared by Companion Runtime.',
-      confidence: 1,
-    },
-    retrievalMode:
-      (memory?.retrieval_mode as TurnMemory['retrievalMode']) ?? null,
-    result: typeof memory?.result === 'string' ? memory.result : null,
-    packet: typeof memory?.packet === 'string' ? memory.packet : null,
-    decisionLatencyMs: 0,
-    retrievalLatencyMs: null,
-    failed: Boolean(memory?.failed),
-    empty: memory == null || Boolean(memory.empty),
-  };
-}
 
 function lastAssistantMessage(messages: unknown[]) {
   return [...messages]
@@ -273,31 +225,12 @@ async function persistStreamedRuntimeReply(input: {
           error: error instanceof Error ? error.message : 'Unknown error',
         });
       });
-      const liveSituation = sessionRouting.liveSituation;
-      if (
-        liveSituation &&
-        typeof liveSituation === 'object' &&
-        !Array.isArray(liveSituation)
-      ) {
-        await updateUserLiveSituation({
-          userId,
-          liveSituation: liveSituation as Record<string, unknown>,
-        }).catch((error) => {
-          console.warn('[chat] streamed live-situation update failed open', {
-            chatId,
-            error: error instanceof Error ? error.message : 'Unknown error',
-          });
-        });
-      }
     });
   }
 
   if (inserted.length === 0) return;
   after(async () => {
-    const opportunity = initiativeOpportunityForRuntimeOutcome(
-      result.execution_metadata,
-      assistantCreatedAt,
-    );
+    const opportunity = activeIdleOpportunity(assistantCreatedAt);
     await scheduleInitiativeOpportunity({
       userId,
       chatId,
@@ -349,55 +282,7 @@ async function persistStreamedRuntimeReply(input: {
         createdAt: assistantCreatedAt,
       },
     });
-    try {
-      const candidates = await extractSophieAttentionCandidates({
-        recentContext: boundedEpistemicContext(uiMessages),
-        userText,
-        assistantText: result.assistant_message,
-      });
-      await persistSophieAttention({
-        userId,
-        chatId,
-        sourceMessageId: userMessageId,
-        sourceAssistantMessageId: assistantId,
-        candidates,
-        now: assistantCreatedAt,
-      });
-    } catch (error) {
-      console.warn('[interaction] streamed attention extraction failed open', {
-        chatId,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
-    }
   });
-}
-
-function recentRetrievalProvenance(messages: ChatMessage[]): string | null {
-  const notes = messages
-    .slice(0, -1)
-    .slice(-6)
-    .flatMap((message) =>
-      message.parts.flatMap((part) => {
-        if (part.type !== 'data-research') return [];
-        const trace = part.data;
-        const successful = trace.activities.filter(
-          (activity) => activity.status !== 'failed',
-        );
-        const failed = trace.activities.filter(
-          (activity) => activity.status === 'failed',
-        );
-        const kinds = [...new Set(successful.map((activity) => activity.kind))];
-        const quality =
-          failed.length > 0
-            ? `${failed.length} retrieval attempt${failed.length === 1 ? '' : 's'} failed`
-            : 'no recorded retrieval failures';
-        return [
-          `A recent assistant answer used ${kinds.length > 0 ? kinds.join(', ') : 'no successful retrieval'}; ${quality}.`,
-        ];
-      }),
-    )
-    .slice(-2);
-  return notes.length > 0 ? notes.join('\n') : null;
 }
 
 function textConversation(
@@ -519,16 +404,7 @@ export async function POST(request: Request) {
       // Ensure the session user has a row so chat/message foreign keys hold.
       const userProfile = await getUserById(session.user.id);
       const timeZone = resolveUserTimeZone(userProfile?.timeZone);
-      const [messagesFromDb, crossChatHandshake, companionUserState] =
-        await Promise.all([
-          getMessagesByChatId({ id }),
-          getConversationHandshakeContext({
-            userId: session.user.id,
-            currentChatId: id,
-            timeZone,
-          }),
-          getCompanionUserState({ userId: session.user.id }),
-        ]);
+      const messagesFromDb = await getMessagesByChatId({ id });
       if (!userProfile) {
         if (!isProductionEnvironment) {
           await db
@@ -546,21 +422,6 @@ export async function POST(request: Request) {
         }
       }
 
-      const currentChatLastInteraction =
-        messagesFromDb.at(-1)?.createdAt ?? null;
-      const candidates = [
-        currentChatLastInteraction,
-        crossChatHandshake.lastInteractionAt,
-      ].filter(
-        (value): value is Date =>
-          value instanceof Date && !Number.isNaN(value.getTime()),
-      );
-      const handshake = {
-        chatsToday: crossChatHandshake.chatsToday,
-        lastInteractionAt:
-          candidates.sort((a, b) => b.getTime() - a.getTime())[0] ?? null,
-        isNewChat: messagesFromDb.length === 0,
-      };
       const currentSessionRouting = (chat?.sessionRouting ?? {}) as Record<
         string,
         unknown
@@ -591,24 +452,12 @@ export async function POST(request: Request) {
               exitReason: null,
             }
         : existingSessionMode;
+      // Resident Runtime state (`residentWorld`, scene, receipts, last Jev) is
+      // carried verbatim from the previous Runtime result; the product adds
+      // only the user's explicit session-mode button state.
       const sessionRoutingSeed = {
         ...currentSessionRouting,
         sessionMode: requestedSessionMode,
-        userCorrections:
-          companionUserState.corrections ??
-          currentSessionRouting.userCorrections ??
-          [],
-        // Immediate-world state follows the authenticated user across chats.
-        // Per-chat state remains a backward-compatible fallback during rollout.
-        liveSituation:
-          companionUserState.liveSituation ??
-          currentSessionRouting.liveSituation ??
-          {},
-        meaningfulSessionCount: crossChatHandshake.meaningfulSessionCount,
-        relationship:
-          currentSessionRouting.relationship ??
-          crossChatHandshake.relationshipSeed ??
-          null,
       };
       // A button press is explicit user-owned authority state, not disposable
       // request metadata. Persist it before generation so a provider failure or
@@ -689,50 +538,19 @@ export async function POST(request: Request) {
         now: userCreatedAt,
         timeZone,
       });
-      const allowedDeveloperOverride =
-        process.env.SOPHIE_DEV_MODEL_OVERRIDE_ENABLED === 'true'
-          ? developerModelOverride
-          : undefined;
-      const reentry = classifyReentry({
-        totalPriorUserTurns: crossChatHandshake.totalUserTurns,
-        chronology,
-        manualModelOverride: allowedDeveloperOverride,
-      });
-      const residueRows =
-        chronology.newTemporalSession &&
-        chronology.previousTemporalSessionStartedAt
-          ? await getTemporalSessionResidueRows({
-              userId: session.user.id,
-              // Fetch a bounded historical pool so bridge candidates may come
-              // from more than only the immediately preceding sitting.
-              startedAt: new Date(
-                chronology.previousTemporalSessionStartedAt.getTime() -
-                  7 * 24 * 60 * 60_000,
-              ),
-              before: new Date(
-                Math.min(
-                  userCreatedAt.getTime(),
-                  (chronology.previousTemporalSessionEndedAt?.getTime() ??
-                    userCreatedAt.getTime()) +
-                    30 * 60_000,
-                ),
-              ),
-            })
-          : [];
-      const entryContext = buildCompanionEntryContext({
-        userId: session.user.id,
-        chronology,
-        timeZone,
-        residueRows,
-        thread: {
-          id,
-          title: chat?.title ?? null,
-          durableObjective:
-            typeof currentSessionRouting.currentObjective === 'string'
-              ? currentSessionRouting.currentObjective
-              : null,
+      // Deterministic chronology fact the Runtime consumes (new sitting,
+      // first contact of the user's day). Facts only; no posture or opening.
+      const runtimeEntryContext = {
+        chronology: {
+          temporalSession: chronology.newTemporalSession ? 'new' : 'same',
+          userDay: chronology.userDayKey,
+          daypart: chronology.daypart,
+          firstContactToday: chronology.isFirstContactUserDay,
+          gapMinutes: chronology.inactivityGapMinutes,
+          sessionStartedAt:
+            chronology.currentTemporalSessionStartedAt.toISOString(),
         },
-      });
+      };
       await db
         .insert(messageTable)
         .values({
@@ -765,14 +583,6 @@ export async function POST(request: Request) {
         .filter((part) => part.type === 'text')
         .map((part) => ('text' in part ? part.text : ''))
         .join('\n');
-      const behaviorCorrection = extractBehaviorCorrection({
-        text: currentUserText,
-        sourceTurnId: message.id,
-      });
-      const userCorrections = mergeBehaviorCorrections(
-        companionUserState.corrections,
-        behaviorCorrection,
-      );
       const transcriptReliabilityPart = sanitizedMessage.parts.find(
         (part) => part.type === 'data-transcriptReliability',
       );
@@ -797,106 +607,32 @@ export async function POST(request: Request) {
       const hasImageParts = sanitizedMessage.parts.some(
         (part) => part.type === 'file',
       );
-      const recentProvenance = recentRetrievalProvenance(uiMessages);
-      let sceneState: ReturnType<typeof deriveSceneState>;
-      let epistemicPolicy: Awaited<ReturnType<typeof assessEpistemicPolicy>>;
-      let turnMemory: Awaited<ReturnType<typeof prepareTurnMemory>>;
-      let cortexContext: Awaited<ReturnType<typeof fetchCortexContext>>;
-      let turnDecision: ReturnType<typeof decideTurn>;
       let runtimeCompleted: Extract<
         CompanionRuntimeResult,
         { status: 'completed' }
       > | null = null;
       let pendingSessionRouting: Record<string, unknown> | null = null;
-      let runtimeRelationalContext: Record<string, unknown> | null = null;
-      let runtimeDeferred = false;
-      let assistantId = companionRuntimeReplyOnlyEnabled()
-        ? companionRuntimeAssistantMessageId(id, message.id)
-        : generateUUID();
-      if (companionRuntimeReplyOnlyEnabled()) {
-        const legacyAssistantId = legacyCompanionRuntimeAssistantMessageId(
-          message.id,
-        );
-        const [legacyAssistant] = await getMessageById({
-          id: legacyAssistantId,
-        });
-        if (
-          legacyAssistant?.chatId === id &&
-          legacyAssistant.role === 'assistant'
-        ) {
-          assistantId = legacyAssistantId;
-        }
-        if (behaviorCorrection) {
-          after(async () => {
-            try {
-              await updateUserCorrections({
-                userId: session.user.id,
-                corrections: userCorrections,
-              });
-            } catch (error) {
-              console.warn('[chat] user correction update failed open', {
-                chatId: id,
-                error: error instanceof Error ? error.message : 'Unknown error',
-              });
-            }
-          });
-        }
-      }
+      let toolLane: ToolLane | null = null;
+      const assistantId = companionRuntimeAssistantMessageId(id, message.id);
 
-      if (companionRuntimeReplyOnlyEnabled()) {
-        const [runtimeMessages, dayPacket] = await Promise.all([
-          presignFilePartUrls(uiMessages),
-          readCurrentContinuityDayPacket(
-            session.user.id,
-            userCreatedAt,
-            timeZone,
-          ).catch(() => null),
-        ]);
+      // The one conversational path: Companion Runtime. No local fallback.
+      {
+        const runtimeMessages = await presignFilePartUrls(uiMessages);
         const runtimeCurrent = runtimeMessages.at(-1);
-        const runtimeTurnInput: CompanionRuntimeTurnInput = {
-          contract_version: 'v1',
-          turn_id: message.id,
-          conversation_id: id,
-          companion_id: 'sophie',
-          selected_model_id: reentry.selectedForegroundModel,
-          current_sanitized_message: currentUserText,
-          message_parts: runtimeCurrent?.parts ?? sanitizedMessage.parts,
-          canonical_history: runtimeMessages.slice(0, -1).map((entry) => ({
-            id: entry.id,
-            role: entry.role,
-            content: entry.parts
-              .filter((part) => part.type === 'text')
-              .map((part) => ('text' in part ? part.text : ''))
-              .join('\n'),
-            created_at: entry.metadata?.createdAt,
-            parts: entry.parts.filter(
-              (part) => part.type === 'text' || part.type === 'file',
-            ),
-          })),
-          trusted_user_context: {
-            user_id: session.user.id,
-            timezone: timeZone,
-            userLocation: userProfile?.rpLocation ?? null,
-            handshake: {
-              ...handshake,
-              lastInteractionAt:
-                handshake.lastInteractionAt?.toISOString() ?? null,
-            },
-            reentry,
-            entry_context: entryContext,
-            session_routing: sessionRoutingSeed,
-            day_packet: dayPacket,
-            medium,
-          },
-          recent_provenance: { summary: recentProvenance },
-          capability_grant: {
-            allow_read_tools: true,
-            allow_live_data: true,
-            allow_research: true,
-            granted_scopes: ['read_tools', 'live_data', 'research'],
-          },
-          transcript_reliability: transcriptReliability,
-        };
+        const runtimeTurnInput = buildCompanionRuntimeTurnInput({
+          turnId: message.id,
+          conversationId: id,
+          selectedModelAlias: selectedChatModel,
+          currentText: currentUserText,
+          currentParts: runtimeCurrent?.parts ?? sanitizedMessage.parts,
+          history: runtimeMessages.slice(0, -1) as never,
+          userId: session.user.id,
+          timeZone,
+          entryContext: runtimeEntryContext,
+          sessionRouting: sessionRoutingSeed,
+          medium,
+          transcriptReliability,
+        });
         const runtimeRequestStartedAt = performance.now();
         const runtimeTraceOrigin = performance.now();
         const resumableContext = getStreamContext();
@@ -1121,26 +857,8 @@ export async function POST(request: Request) {
             pendingSessionRouting = nextSessionState as Record<string, unknown>;
           }
           runtimeCompleted = runtimeResult;
-          sceneState = runtimeResult.scene_state as typeof sceneState;
-          epistemicPolicy =
-            runtimeResult.epistemic_classification as typeof epistemicPolicy;
-          turnMemory = runtimeMemoryPacket(runtimeResult.honcho_memory_packet);
-          cortexContext =
-            runtimeResult.cortex_context_packet as typeof cortexContext;
-          turnDecision = {
-            lane: 'reply_only',
-            modelRole:
-              runtimeResult.execution_metadata.model_role === 'judgment'
-                ? 'judgment'
-                : 'conversation',
-            modelId: runtimeResult.model_used,
-            fallbackModelId: runtimeResult.model_used,
-            reason: 'Executed by Companion Runtime.',
-            policy: epistemicPolicy,
-          };
         } else {
-          runtimeDeferred = true;
-          runtimeRelationalContext = runtimeResult.relational_context;
+          toolLane = runtimeResult.execution_lane;
           if (
             runtimeResult.next_session_state &&
             typeof runtimeResult.next_session_state === 'object' &&
@@ -1148,128 +866,26 @@ export async function POST(request: Request) {
           ) {
             pendingSessionRouting = runtimeResult.next_session_state;
           }
-          sceneState = runtimeResult.scene_state as typeof sceneState;
-          epistemicPolicy =
-            runtimeResult.epistemic_classification as typeof epistemicPolicy;
-          turnMemory = runtimeMemoryPacket(runtimeResult.honcho_memory_packet);
-          cortexContext =
-            runtimeResult.cortex_context_packet as typeof cortexContext;
-          turnDecision = {
-            lane: runtimeResult.execution_lane,
-            modelRole: runtimeResult.model_role,
-            modelId: runtimeResult.model_id,
-            fallbackModelId: runtimeResult.fallback_model_id,
-            reason: runtimeResult.reason,
-            policy: epistemicPolicy,
-          };
         }
-      } else {
-        sceneState = deriveSceneState({
-          messages: messagesFromDb.map((entry) => ({
-            role: entry.role,
-            createdAt: entry.createdAt,
-            text: Array.isArray(entry.parts)
-              ? entry.parts
-                  .filter((part: any) => part?.type === 'text')
-                  .map((part: any) => String(part.text ?? ''))
-                  .join('\n')
-              : '',
-          })),
-          currentTurn: currentUserText,
-          now: userCreatedAt,
-          timeZone,
-        });
-        const recentConversation = boundedEpistemicContext(uiMessages);
-        [epistemicPolicy, turnMemory, cortexContext] = await Promise.all([
-          assessEpistemicPolicy({
-            currentTurn: currentUserText,
-            recentContext: recentConversation,
-            signal: AbortSignal.any([
-              request.signal,
-              AbortSignal.timeout(
-                Number(process.env.EPISTEMIC_POLICY_TIMEOUT_MS ?? 8_000),
-              ),
-            ]),
-          }),
-          prepareTurnMemory({
-            userId: session.user.id,
-            chatId: id,
-            currentUserTurn: currentUserText,
-            recentConversation,
-            compilerSignal: AbortSignal.any([
-              request.signal,
-              AbortSignal.timeout(
-                Number(process.env.MEMORY_COMPILER_TIMEOUT_MS ?? 10_000),
-              ),
-            ]),
-          }),
-          fetchCortexContext({
-            userId: session.user.id,
-            chatId: id,
-            timeZone,
-            lastInteractionTime: handshake?.lastInteractionAt ?? null,
-            sceneState,
-            chronology,
-          }),
-        ]);
-        epistemicPolicy = applyTranscriptReliabilityGuard(
-          epistemicPolicy,
-          transcriptReliability,
-        );
-        recordMemoryTrace({
-          userId: session.user.id,
-          chatId: id,
-          userTurn: currentUserText,
-          ...turnMemory,
-        });
-        turnDecision = decideTurn(
-          {
-            userId: session.user.id,
-            chatId: id,
-            currentUserText,
-            selectedModelId: selectedChatModel,
-            hasImageParts,
-            ambient: {
-              userLocation: userProfile?.rpLocation ?? null,
-              timeZone,
-            },
-            recentProvenance,
-            memoryPacket: turnMemory.packet,
-            transcriptReliability,
-            handshake,
-            sceneState,
-            cortexContext,
-            reentry,
-            entryContext,
-          },
-          epistemicPolicy,
-        );
       }
 
-      const turnEvent = {
-        userId: session.user.id,
-        chatId: id,
-        currentUserText,
-        selectedModelId: selectedChatModel,
-        hasImageParts,
-        ambient: {
-          userLocation: userProfile?.rpLocation ?? null,
-          timeZone,
-        },
-        recentProvenance,
-        memoryPacket: turnMemory?.packet ?? null,
-        transcriptReliability,
-        handshake,
-        sceneState,
-        cortexContext,
-        reentry,
-        entryContext,
-      };
-      const researchTurn = turnDecision.lane === 'research';
-      const modelToUse = turnDecision.modelId;
+      // Tool lanes only: the Runtime's Jev routed the turn to a capability the
+      // product executes (signed-in Google reads, live weather, public
+      // research). Lane policy is fixed per lane; nothing here interprets the
+      // user's meaning or chooses a conversational move.
+      const turnDecision = toolLane
+        ? toolLaneDecision({
+            lane: toolLane,
+            selectedModelId: selectedChatModel,
+            hasImageParts,
+          })
+        : null;
+      const epistemicPolicy = turnDecision?.policy ?? toolLanePolicy('read_tools');
+      const researchTurn = turnDecision?.lane === 'research';
+      const modelToUse = turnDecision?.modelId ?? runtimeCompleted?.model_used ?? '';
 
       console.info(
-        `[chat] lane=${turnDecision.lane} role=${turnDecision.modelRole} interaction=${epistemicPolicy.interactionMode ?? 'unset'} classifier_ran=${epistemicPolicy.classifierRan} classifier_ok=${epistemicPolicy.classifierSucceeded} depth=${epistemicPolicy.researchDepth} freshness=${epistemicPolicy.freshnessNeed} authority=${epistemicPolicy.authorityNeed} sensitivity=${epistemicPolicy.sourceSensitivity} confidence=${epistemicPolicy.confidence.toFixed(2)} memory=${turnMemory.decision.needsMemory ? turnMemory.retrievalMode : 'no'} memory_ms=${turnMemory.decisionLatencyMs + (turnMemory.retrievalLatencyMs ?? 0)} model=${modelToUse} reentry=${reentry.class} reentry_turn=${reentry.turnIndex} route_reason=${JSON.stringify(reentry.routeReason)} override=${reentry.manualOverride}`,
+        `[chat] lane=${turnDecision?.lane ?? 'reply_only'} model=${modelToUse} runtime=${runtimeCompleted ? 'completed' : 'deferred'}`,
       );
       if (transcriptReliability) {
         console.info('[chat] audio transcript reliability', {
@@ -1295,12 +911,17 @@ export async function POST(request: Request) {
       }
 
       const presignedMessages = await presignFilePartUrls(messagesToSend);
-      const turnPacket = createTurnPacket({
-        event: turnEvent,
-        decision: turnDecision,
-        messages: presignedMessages,
-        timeZone,
-      });
+      const turnPacket = turnDecision
+        ? createToolLanePacket({
+            decision: turnDecision,
+            messages: presignedMessages,
+            ambient: {
+              userLocation: userProfile?.rpLocation ?? null,
+              timeZone,
+            },
+            transcriptReliability,
+          })
+        : null;
 
       // Run the agent to completion before streaming so the assistant message
       // is persisted before the response is returned. This keeps conversation
@@ -1319,7 +940,7 @@ export async function POST(request: Request) {
       let researchTrace: ResearchTrace = { activities: [], sources: [] };
       let existingRuntimeAssistant = false;
 
-      if (runtimeDeferred) {
+      if (toolLane) {
         const [existingAssistant] = await getMessageById({ id: assistantId });
         if (
           existingAssistant?.chatId === id &&
@@ -1359,24 +980,8 @@ export async function POST(request: Request) {
           console.info(
             `[chat] companion_runtime reply model=${runtimeCompleted.model_used} provider=${runtimeCompleted.provider_used} fallback=${runtimeCompleted.used_fallback} finish_reason=${runtimeCompleted.finish_reason} chars=${finalText.length} beats=${finalBeats.length}`,
           );
-        } else if (turnDecision.lane === 'reply_only') {
-          const reply = await executeDirectReply({
-            packet: turnPacket,
-            signal: agentSignal,
-          });
-          if (reply.usedFallback) {
-            console.warn(
-              `[chat] reply model fallback from=${turnDecision.modelId} to=${reply.modelId}`,
-            );
-          }
-          console.info(
-            `[chat] reply model=${reply.modelId} fallback=${reply.usedFallback} finish_reason=${reply.finishReason} chars=${reply.text.length}`,
-          );
-
-          finalText = reply.text;
-          if (reply.finishReason === 'length') {
-            console.warn('[chat] direct Sophie reply reached output limit');
-          }
+        } else if (!turnDecision || !turnPacket) {
+          throw new Error('Companion Runtime returned no completed turn or tool lane');
         } else if (turnDecision.lane === 'live_data') {
           const reply = await executeLiveDataReply({
             packet: turnPacket,
@@ -1416,10 +1021,6 @@ export async function POST(request: Request) {
               },
               researchSession,
               capabilityMode: researchTurn ? 'research' : 'read_tools',
-              memoryPacket: turnMemory.packet,
-              relationalContext: runtimeDeferred
-                ? runtimeRelationalContext
-                : null,
             }).invoke({ messages: inputMessages }, { signal: agentSignal });
 
           const invokeWithFallback = async (
@@ -1514,12 +1115,7 @@ export async function POST(request: Request) {
             finalText =
               "I couldn't read the underlying authority well enough to answer that as a primary-source-grounded claim. I don't want to substitute snippets or summaries and pretend they're the original.";
           } else if (researchTurn) {
-            const finalSpeakerModelId = runtimeRelationalContext
-              ? process.env.SOPHIE_FOREGROUND_MODEL?.trim() ||
-                'upstage/solar-pro4'
-              : epistemicPolicy.neutralResearchQuestion
-                ? judgmentModelId()
-                : selectedChatModel;
+            const finalSpeakerModelId = selectedChatModel;
             const handoff = buildResearchHandoff({
               researchDraft: candidateText,
               trace: researchTrace,
@@ -1546,7 +1142,6 @@ export async function POST(request: Request) {
                   maxOutputTokens: outputTokenBudget(
                     epistemicPolicy.researchDepth,
                   ),
-                  relationalContext: runtimeRelationalContext,
                 });
               const synthesisIsValid = (text: string) =>
                 text.trim().length > 0 &&
@@ -1679,34 +1274,15 @@ export async function POST(request: Request) {
         chatId: id,
       } as const;
       let shouldMirrorCompletedTurn = !existingRuntimeAssistant;
-      if (companionRuntimeReplyOnlyEnabled()) {
-        await db.transaction(async (tx) => {
-          const inserted = await tx
-            .insert(messageTable)
-            .values(assistantMessage)
-            .onConflictDoNothing()
-            .returning({ id: messageTable.id });
-          shouldMirrorCompletedTurn =
-            !existingRuntimeAssistant && inserted.length > 0;
-
-          if (runtimeCompleted) {
-            await enqueueCandidateDeliveryReceipts(
-              {
-                userId: session.user.id,
-                chatId: id,
-                assistantMessageId: assistantId,
-                decisionId: runtimeCompleted.decision_record.decision_id,
-                turnId: runtimeCompleted.turn_id,
-                occurredAt: assistantCreatedAt,
-                candidateRefs: runtimeCompleted.decision_record.candidate_refs,
-              },
-              { database: tx },
-            );
-          }
-        });
-      } else {
-        await saveMessages({ messages: [assistantMessage] });
-      }
+      await db.transaction(async (tx) => {
+        const inserted = await tx
+          .insert(messageTable)
+          .values(assistantMessage)
+          .onConflictDoNothing()
+          .returning({ id: messageTable.id });
+        shouldMirrorCompletedTurn =
+          !existingRuntimeAssistant && inserted.length > 0;
+      });
 
       if (pendingSessionRouting) {
         const sessionRouting = pendingSessionRouting;
@@ -1727,26 +1303,6 @@ export async function POST(request: Request) {
             });
           }
         });
-        const liveSituation = sessionRouting.liveSituation;
-        if (
-          liveSituation &&
-          typeof liveSituation === 'object' &&
-          !Array.isArray(liveSituation)
-        ) {
-          after(async () => {
-            try {
-              await updateUserLiveSituation({
-                userId: session.user.id,
-                liveSituation: liveSituation as Record<string, unknown>,
-              });
-            } catch (error) {
-              console.warn('[chat] user live-situation update failed open', {
-                chatId: id,
-                error: error instanceof Error ? error.message : 'Unknown error',
-              });
-            }
-          });
-        }
       }
 
       // Honcho is a derived, write-only memory mirror at this stage. Register
@@ -1754,10 +1310,7 @@ export async function POST(request: Request) {
       // and keep it entirely outside Sophie prompt assembly and generation.
       if (shouldMirrorCompletedTurn) {
         after(async () => {
-          const opportunity = initiativeOpportunityForRuntimeOutcome(
-            runtimeCompleted?.execution_metadata,
-            assistantCreatedAt,
-          );
+          const opportunity = activeIdleOpportunity(assistantCreatedAt);
           await scheduleInitiativeOpportunity({
             userId: session.user.id,
             chatId: id,
@@ -1843,26 +1396,6 @@ export async function POST(request: Request) {
             });
           }
           await mirrorCompletedTurn(completedTurn);
-          try {
-            const candidates = await extractSophieAttentionCandidates({
-              recentContext: boundedEpistemicContext(uiMessages),
-              userText: currentUserText,
-              assistantText: finalText,
-            });
-            await persistSophieAttention({
-              userId: session.user.id,
-              chatId: id,
-              sourceMessageId: message.id,
-              sourceAssistantMessageId: assistantId,
-              candidates,
-              now: assistantCreatedAt,
-            });
-          } catch (error) {
-            console.warn('[interaction] attention extraction failed open', {
-              chatId: id,
-              error: error instanceof Error ? error.message : 'Unknown error',
-            });
-          }
         });
       }
 

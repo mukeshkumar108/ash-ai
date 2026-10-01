@@ -13,53 +13,21 @@ import {
   checkInitiativeEligibility,
   decisionPolicyRejection,
   initiativeDedupeKey,
-  initiativeOpportunityForRuntimeOutcome,
+  activeIdleOpportunity,
   INITIATIVE_POLICY,
   mayUseDecision,
   unansweredFollowUpDelayMs,
   validateInitiativeText,
 } from '@/lib/ai/relationship/policy';
 
-test('executed Sophie-owned object creates a durable reconsideration opportunity', () => {
+test('every Runtime reply creates only a durable active-idle opportunity, with no product plan context', () => {
   const createdAt = new Date('2026-08-20T20:00:00.000Z');
-  const opportunity = initiativeOpportunityForRuntimeOutcome(
-    {
-      director_plan: {
-        intent: 'social',
-        objective: 'Follow the bats after dark.',
-        initiativeEligible: true,
-      },
-      executed_outcome: {
-        executedAct: 'ask',
-        objectActionExecuted: 'open',
-        ownedObject: {
-          kind: 'curiosity',
-          summary: 'whether the bats stayed after full darkness',
-        },
-      },
-    },
-    createdAt,
-  );
-  expect(opportunity.trigger).toBe('second_thought');
-  expect(opportunity.notBefore.getTime() - createdAt.getTime()).toBe(
-    INITIATIVE_POLICY.secondThoughtMs,
-  );
-  expect(opportunity.context).toMatchObject({
-    socialAgencyVersion: 'v3',
-    intent: 'social',
-    ownedObject: {
-      summary: 'whether the bats stayed after full darkness',
-    },
-  });
-});
-
-test('ordinary reply creates a durable active-idle opportunity', () => {
-  const createdAt = new Date('2026-08-20T20:00:00.000Z');
-  const opportunity = initiativeOpportunityForRuntimeOutcome(null, createdAt);
+  const opportunity = activeIdleOpportunity(createdAt);
   expect(opportunity.trigger).toBe('active_idle');
   expect(opportunity.notBefore.getTime() - createdAt.getTime()).toBe(
     INITIATIVE_POLICY.idleMs,
   );
+  expect(opportunity.context).toEqual({});
 });
 
 const decision = {

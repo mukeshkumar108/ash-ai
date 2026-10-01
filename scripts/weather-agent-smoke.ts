@@ -4,42 +4,18 @@ config({ path: '.env.local' });
 
 async function main() {
   const { executeLiveDataReply } = await import('@/lib/agent/turn-executor');
-  const { createTurnPacket, decideTurn } = await import(
-    '@/lib/agent/turn-runtime'
+  const { createToolLanePacket, toolLaneDecision } = await import(
+    '@/lib/agent/tool-lane'
   );
   const prompt =
     process.argv.slice(2).join(' ').trim() ||
     "Reckon I'll need a jacket for my sunset walk?";
-  const event = {
-    userId: 'weather-smoke-user',
-    chatId: 'weather-smoke-chat',
-    currentUserText: prompt,
+  const decision = toolLaneDecision({
+    lane: 'live_data',
     selectedModelId: 'deepseek/deepseek-v4-flash',
     hasImageParts: false,
-    ambient: {
-      userLocation: 'Burwell, Cambs',
-      timeZone: 'Europe/London',
-    },
-  };
-  const policy = {
-    researchDepth: 'none' as const,
-    freshnessNeed: 'required' as const,
-    authorityNeed: 'none' as const,
-    sourceSensitivity: 'low' as const,
-    stakes: 'low' as const,
-    questionMode: 'verification' as const,
-    capabilityRoute: 'live_data' as const,
-    interactionMode: 'practical' as const,
-    neutralResearchQuestion: null,
-    reason: 'Weather smoke test.',
-    confidence: 1,
-    classifierRan: false,
-    classifierSucceeded: true,
-    userDeclinedResearch: false,
-  };
-  const decision = decideTurn(event, policy);
-  const packet = createTurnPacket({
-    event,
+  });
+  const packet = createToolLanePacket({
     decision,
     messages: [
       {
@@ -48,7 +24,7 @@ async function main() {
         parts: [{ type: 'text', text: prompt }],
       },
     ],
-    timeZone: event.ambient.timeZone,
+    ambient: { userLocation: 'Burwell, Cambs', timeZone: 'Europe/London' },
   });
   const result = await executeLiveDataReply({
     packet,

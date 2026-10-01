@@ -90,30 +90,13 @@ async function run() {
   // 2) THE PRODUCTION SEAM: exactly what the live chat route runs after every
   //    assistant reply (route.ts:289-302). execution_metadata is the ordinary
   //    reply shape: director_plan present, no concrete owned object.
-  const { initiativeOpportunityForRuntimeOutcome } = await import(
+  const { activeIdleOpportunity } = await import(
     '../../lib/ai/relationship/policy'
   );
   const { scheduleInitiativeOpportunity } = await import(
     '../../lib/ai/relationship/store'
   );
-  const executionMetadata = {
-    director_plan: {
-      intent: 'social',
-      primaryAct: 'respond',
-      contribution: 'offering availability for the evening',
-      objective: 'answer and offer availability',
-      initiativeEligible: false,
-    },
-    executed_outcome: {
-      executedAct: 'respond',
-      objectActionExecuted: 'none',
-      ownedObject: null,
-    },
-  };
-  const opportunity = initiativeOpportunityForRuntimeOutcome(
-    executionMetadata,
-    assistantCreatedAt,
-  );
+  const opportunity = activeIdleOpportunity(assistantCreatedAt);
   ok(
     opportunity.trigger === 'active_idle',
     `opportunity trigger is active_idle (got ${opportunity.trigger})`,

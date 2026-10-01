@@ -58,63 +58,6 @@ type ReplyGenerator = (
   signal: AbortSignal,
 ) => Promise<{ text: string; finishReason: string }>;
 
-export async function executeDirectReply({
-  packet,
-  signal,
-  generate = (modelId, abortSignal) =>
-    generateText({
-      model: modelId.startsWith('openai/gpt-5.6-')
-        ? getPinnedOpenAIModel(modelId)
-        : getLanguageModel(modelId),
-      system: packet.systemPrompt,
-      messages: convertToModelMessages(packet.messages),
-      // A higher ceiling prevents cut-off answers; the prompt still asks for
-      // conversational brevity, so normal replies stop well before this cap.
-      maxOutputTokens: outputTokenBudget('light'),
-      abortSignal,
-    }),
-}: {
-  packet: TurnPacket;
-  signal: AbortSignal;
-  generate?: ReplyGenerator;
-}): Promise<DirectReplyResult> {
-  const fallbackModelId =
-    process.env.SOPHIE_REPLY_FALLBACK_MODEL?.trim() || 'chat-model';
-  const modelIds = [
-    packet.decision.modelId,
-    packet.decision.fallbackModelId,
-    fallbackModelId,
-  ].filter((modelId, index, all) => all.indexOf(modelId) === index);
-
-  let lastError: unknown;
-  for (const [index, modelId] of modelIds.entries()) {
-    try {
-      const result = await generate(modelId, signal);
-      const text = typeof result.text === 'string' ? result.text : '';
-      if (!text.trim()) {
-        throw new EmptyModelResponseError(modelId);
-      }
-      return {
-        text,
-        finishReason: result.finishReason,
-        modelId,
-        usedFallback: index > 0,
-      };
-    } catch (error) {
-      lastError = error;
-      if (
-        signal.aborted ||
-        (!(error instanceof EmptyModelResponseError) &&
-          !isRetryableModelError(error))
-      ) {
-        throw error;
-      }
-    }
-  }
-
-  throw lastError ?? new EmptyModelResponseError(packet.decision.modelId);
-}
-
 export async function executeLiveDataReply({
   packet,
   signal,
