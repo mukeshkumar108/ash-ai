@@ -101,7 +101,11 @@ function configuration() {
   };
 }
 
-async function cortexFetch(path: string, init?: RequestInit) {
+async function cortexFetch(
+  path: string,
+  init?: RequestInit,
+  timeoutMs?: number,
+) {
   const config = configuration();
   if (!config.enabled || !config.baseURL) return null;
   const headers = new Headers(init?.headers);
@@ -111,7 +115,7 @@ async function cortexFetch(path: string, init?: RequestInit) {
     ...init,
     headers,
     cache: 'no-store',
-    signal: AbortSignal.timeout(config.timeoutMs),
+    signal: AbortSignal.timeout(timeoutMs ?? config.timeoutMs),
   });
   if (!response.ok) throw new Error(`Cortex HTTP ${response.status}`);
   return (await response.json()) as Record<string, unknown>;
@@ -492,7 +496,7 @@ export async function postExecutiveReceipt(input: {
       result_ref: input.resultRef ?? null,
       detail: input.detail ?? null,
     }),
-  });
+  }, 8_000);        // a receipt is the record of a side effect that already happened: give it room
 }
 
 
