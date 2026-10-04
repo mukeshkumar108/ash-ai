@@ -73,6 +73,8 @@ const proactiveTickResultSchema = z.object({
   model_used: z.string().nullable().optional(),
   decision_id: z.string().nullable().optional(),
   occurrence_id: z.string().nullable().optional(),
+  // The executive intent this outbound message carries out (so the stored message can be linked to the move that caused it).
+  intent_id: z.string().nullable().optional(),
   handover: z.record(z.unknown()),
   trace: z.record(z.unknown()),
 });

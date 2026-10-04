@@ -2,7 +2,10 @@ import 'server-only';
 
 import { randomUUID } from 'node:crypto';
 import { mirrorAssistantInitiative } from '@/lib/honcho';
-import { fetchExecutiveSpeakCandidates } from '@/lib/synapse-cortex';
+import {
+  fetchExecutiveSpeakCandidates,
+  postExecutiveOutbound,
+} from '@/lib/synapse-cortex';
 import {
   completeCompanionRuntimeProactive,
   executeCompanionRuntimeProactiveTick,
@@ -515,6 +518,15 @@ export async function runServerInitiativeScan(
         continue;
       }
       await completion(true);
+      if (runtimeDecision.intent_id) {
+        await postExecutiveOutbound({
+          userId,
+          intentId: runtimeDecision.intent_id,
+          messageId: message.id,
+          text: runtimeDecision.outbound_text,
+          decisionId: runtimeDecision.decision_id,
+        });
+      }
       if (candidate.trigger === 'task_reminder' && candidate.context) {
         const reminderId = (candidate.context as Record<string, unknown>)
           .reminderId;

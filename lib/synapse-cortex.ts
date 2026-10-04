@@ -494,3 +494,35 @@ export async function postExecutiveReceipt(input: {
     }),
   });
 }
+
+
+/**
+ * Tell Cortex which persisted message carried out which executive intent (exact causal link: the message id the app just stored).
+ * Fail-open and non-blocking for delivery.
+ */
+export async function postExecutiveOutbound(input: {
+  userId: string;
+  intentId: string;
+  messageId: string;
+  text: string;
+  decisionId?: string | null;
+}) {
+  try {
+    const ids = honchoIds(input.userId, 'outbound');
+    await cortexFetch('/v1/executive/outbound', {
+      method: 'POST',
+      body: JSON.stringify({
+        workspace_id: ids.workspaceId,
+        owner: ids.userPeerId,
+        intent_id: input.intentId,
+        message_id: input.messageId,
+        text: input.text,
+        decision_id: input.decisionId ?? null,
+      }),
+    });
+  } catch (error) {
+    console.warn('[executive] outbound link failed open', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+}

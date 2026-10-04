@@ -1,6 +1,11 @@
 import 'server-only';
 
-import { createTask } from '@/lib/tasks/domain';
+import {
+  cancelTask,
+  createTask,
+  listTasksForUser,
+  rescheduleTask,
+} from '@/lib/tasks/domain';
 import {
   fetchPendingExecutiveActions,
   postExecutiveReceipt,
@@ -41,6 +46,57 @@ export async function runExecutiveActionSweep() {
           ...base,
           status: 'succeeded',
           resultRef: String(created.id),
+        });
+        succeeded += 1;
+      } else if (action.tool.tool === 'task.list') {
+        // A QUERY capability: the result is an observation returned in the receipt for the executive to reason over.
+        const args = action.tool.args ?? {};
+        const status = ['pending', 'completed', 'cancelled'].includes(String(args.status))
+          ? (String(args.status) as 'pending' | 'completed' | 'cancelled')
+          : 'pending';
+        const tasks = (await listTasksForUser(action.userId, { status })).slice(0, 20);
+        const observation = tasks.map((t) => ({
+          id: t.id,
+          title: t.title,
+          due_at: t.dueAt ? new Date(t.dueAt).toISOString() : null,
+          status: t.status,
+        }));
+        await postExecutiveReceipt({
+          ...base,
+          status: 'succeeded',
+          resultRef: `tasks:${tasks.length}`,
+          detail: JSON.stringify(observation).slice(0, 1_900),
+        });
+        succeeded += 1;
+      } else if (action.tool.tool === 'task.reschedule') {
+        // Mutates an EXISTING object by its id (ids come from the world state or a task.list observation).
+        const args = action.tool.args ?? {};
+        const taskId = String(args.task_id ?? args.taskId ?? '').trim();
+        const dueRaw = args.due_at ?? args.dueAt;
+        const dueAt = dueRaw ? new Date(String(dueRaw)) : null;
+        if (!taskId) throw new Error('task.reschedule needs task_id');
+        if (!dueAt || Number.isNaN(dueAt.getTime())) throw new Error('task.reschedule needs a valid due_at');
+        const outcome = await rescheduleTask(action.userId, taskId, { dueAt });
+        if (!outcome.ok) throw new Error(`reschedule refused: ${outcome.reason ?? 'unknown'}`);
+        await postExecutiveReceipt({
+          ...base,
+          status: 'succeeded',
+          resultRef: taskId,
+          detail: `rescheduled to ${dueAt.toISOString()}`,
+        });
+        succeeded += 1;
+      } else if (action.tool.tool === 'task.cancel') {
+        // Consequential (the product declares it irreversible): Cortex only releases this after the user's own confirmation.
+        const args = action.tool.args ?? {};
+        const taskId = String(args.task_id ?? args.taskId ?? '').trim();
+        if (!taskId) throw new Error('task.cancel needs task_id');
+        const outcome = await cancelTask(action.userId, taskId);
+        if (!outcome.ok) throw new Error(`cancel refused: ${outcome.reason ?? 'unknown'}`);
+        await postExecutiveReceipt({
+          ...base,
+          status: 'succeeded',
+          resultRef: taskId,
+          detail: 'cancelled',
         });
         succeeded += 1;
       } else {
