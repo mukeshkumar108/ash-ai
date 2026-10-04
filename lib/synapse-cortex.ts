@@ -391,3 +391,45 @@ export async function markCommitmentCandidate(input: {
     }),
   });
 }
+
+
+export type ExecutiveSpeakCandidate = {
+  userId: string;
+  intentId: string;
+  title: string;
+};
+
+/**
+ * Owners for whom Cortex's executive has something it wants to raise (cheap SQL on the Cortex side, no model).
+ * The app owns the conversation and the push channel, so its proactive scan treats these as one more candidate
+ * source; the initiative gate (quiet hours, budget, cadence) still decides when the Runtime tick runs.
+ * Fail-open: any error means "no executive candidates", never a broken scan.
+ */
+export async function fetchExecutiveSpeakCandidates(): Promise<
+  ExecutiveSpeakCandidate[]
+> {
+  try {
+    const ids = honchoIds('scan', 'scan');
+    const body = await cortexFetch('/v1/executive/speak-candidates', {
+      method: 'POST',
+      body: JSON.stringify({ workspace_id: ids.workspaceId }),
+    });
+    const rows = Array.isArray(body) ? body : [];
+    return rows.flatMap((row: any) => {
+      const owner = String(row?.owner ?? '');
+      if (!owner.startsWith('user_') || !row?.intent_id) return [];
+      return [
+        {
+          userId: owner.slice('user_'.length),
+          intentId: String(row.intent_id),
+          title: String(row.title ?? ''),
+        },
+      ];
+    });
+  } catch (error) {
+    console.warn('[relationship] executive candidates unavailable', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+    return [];
+  }
+}

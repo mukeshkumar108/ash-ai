@@ -2,6 +2,7 @@ import 'server-only';
 
 import { randomUUID } from 'node:crypto';
 import { mirrorAssistantInitiative } from '@/lib/honcho';
+import { fetchExecutiveSpeakCandidates } from '@/lib/synapse-cortex';
 import {
   completeCompanionRuntimeProactive,
   executeCompanionRuntimeProactiveTick,
@@ -32,6 +33,7 @@ import {
   persistRuntimeInitiativeMessage,
   recentAssistantTopics,
   serverInitiativeScanCandidates,
+  currentChatAnchorForUser,
   initiativeSituationSnapshot,
 } from './store';
 import { markTaskReminderFired } from '@/lib/tasks/domain';
@@ -411,10 +413,27 @@ export async function runServerInitiativeScan(
     now: evaluationNow,
     timeZone: process.env.ASH_TIME_ZONE?.trim() || 'Europe/London',
   });
-  const candidates = await serverInitiativeScanCandidates(
+  const scanned = await serverInitiativeScanCandidates(
     Number(process.env.RELATIONSHIP_SERVER_SCAN_LIMIT ?? 5),
     evaluationNow,
   );
+  // The executive (Cortex) is a candidate source too: when it has something it wants to raise, the existing claim -> Runtime compose -> persist ->
+  // complete path carries it out. The initiative gate on the Cortex side still decides whether it may appear now.
+  const executiveCandidates: Array<Record<string, any>> = [];
+  for (const wanted of await fetchExecutiveSpeakCandidates()) {
+    const anchor = await currentChatAnchorForUser(wanted.userId);
+    if (!anchor) continue;
+    executiveCandidates.push({
+      userId: wanted.userId,
+      chatId: anchor.chatId,
+      anchorMessageId: anchor.anchorMessageId,
+      trigger: 'executive_intent',
+      lastMessageAt: evaluationNow,
+      context: { intentId: wanted.intentId, title: wanted.title },
+      priority: 0,
+    });
+  }
+  const candidates: Array<Record<string, any>> = [...scanned, ...executiveCandidates];
   let acted = 0;
   for (const candidate of candidates) {
     if (candidate.trigger === 'active_idle') {

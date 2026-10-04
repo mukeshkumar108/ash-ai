@@ -328,6 +328,30 @@ export async function recentAssistantTopics(chatId: string) {
     .filter(Boolean);
 }
 
+/**
+ * Delivery coordinate for an owner-scoped intent that has no chat of its own: the user's most recently active chat and its latest message
+ * (the same resolution task reminders use). Null when the user has no chat with messages.
+ */
+export async function currentChatAnchorForUser(userId: string) {
+  const [row] = await sql()`
+    SELECT c.id AS "chatId", latest_m.id AS "anchorMessageId"
+    FROM "Chat" c
+    JOIN LATERAL (
+      SELECT m.id FROM "Message_v2" m WHERE m."chatId" = c.id
+      ORDER BY m."createdAt" DESC, m.id DESC LIMIT 1
+    ) latest_m ON true
+    WHERE c."userId" = ${userId}
+    ORDER BY COALESCE(
+      (SELECT MAX(m2."createdAt") FROM "Message_v2" m2 WHERE m2."chatId" = c.id),
+      c."createdAt"
+    ) DESC
+    LIMIT 1
+  `;
+  return row
+    ? { chatId: String(row.chatId), anchorMessageId: String(row.anchorMessageId) }
+    : null;
+}
+
 export async function serverInitiativeScanCandidates(
   limit = 20,
   evaluationNow: Date = new Date(),
