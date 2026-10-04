@@ -433,3 +433,64 @@ export async function fetchExecutiveSpeakCandidates(): Promise<
     return [];
   }
 }
+
+
+export type ExecutivePendingAction = {
+  workItemId: string;
+  userId: string;
+  title: string;
+  tool: { tool?: string; args?: Record<string, unknown> };
+};
+
+/** Action intents the executive has cleared for execution (policy-gated on the Cortex side). Fail-open to "nothing to do". */
+export async function fetchPendingExecutiveActions(): Promise<
+  ExecutivePendingAction[]
+> {
+  try {
+    const ids = honchoIds('scan', 'scan');
+    const body = await cortexFetch('/v1/executive/pending-actions-all', {
+      method: 'POST',
+      body: JSON.stringify({ workspace_id: ids.workspaceId }),
+    });
+    const rows = Array.isArray(body) ? body : [];
+    return rows.flatMap((row: any) => {
+      const owner = String(row?.owner ?? '');
+      if (!owner.startsWith('user_') || !row?.work_item_id) return [];
+      return [
+        {
+          workItemId: String(row.work_item_id),
+          userId: owner.slice('user_'.length),
+          title: String(row.title ?? ''),
+          tool: (row.tool ?? {}) as ExecutivePendingAction['tool'],
+        },
+      ];
+    });
+  } catch (error) {
+    console.warn('[executive] pending actions unavailable', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+    return [];
+  }
+}
+
+/** Report what actually happened to an action (a receipt, never a claim). `started` claims it so it cannot run twice. */
+export async function postExecutiveReceipt(input: {
+  userId: string;
+  workItemId: string;
+  status: 'started' | 'succeeded' | 'failed';
+  resultRef?: string | null;
+  detail?: string | null;
+}) {
+  const ids = honchoIds(input.userId, 'receipt');
+  return cortexFetch('/v1/executive/receipt', {
+    method: 'POST',
+    body: JSON.stringify({
+      workspace_id: ids.workspaceId,
+      owner: ids.userPeerId,
+      work_item_id: input.workItemId,
+      status: input.status,
+      result_ref: input.resultRef ?? null,
+      detail: input.detail ?? null,
+    }),
+  });
+}

@@ -17,6 +17,10 @@
     {
       "path": "/api/cron/continuity-brief",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/executive-actions",
+      "schedule": "* * * * *"
     }
   ]
 }
