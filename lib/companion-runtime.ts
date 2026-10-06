@@ -180,6 +180,8 @@ export function buildCompanionRuntimeTurnInput(input: {
   currentParts: unknown[];
   history: TurnHistoryEntry[];
   userId: string;
+  // The person's own name, so the world can name them (interpreter identity, live-scene sensing) instead of calling them "the human".
+  userDisplayName?: string | null;
   timeZone: string;
   entryContext: Record<string, unknown>;
   sessionRouting: Record<string, unknown>;
@@ -209,6 +211,9 @@ export function buildCompanionRuntimeTurnInput(input: {
     })),
     trusted_user_context: {
       user_id: input.userId,
+      ...(input.userDisplayName?.trim()
+        ? { user_display_name: input.userDisplayName.trim().slice(0, 100) }
+        : {}),
       timezone: input.timeZone,
       entry_context: input.entryContext,
       session_routing: input.sessionRouting,

@@ -465,6 +465,7 @@ export async function POST(request: Request) {
           currentParts: runtimeCurrent?.parts ?? sanitizedMessage.parts,
           history: runtimeMessages.slice(0, -1) as never,
           userId: session.user.id,
+          userDisplayName: userProfile?.displayName ?? null,
           timeZone,
           entryContext: runtimeEntryContext,
           sessionRouting: sessionRoutingSeed,
