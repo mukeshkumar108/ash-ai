@@ -12,8 +12,15 @@ import {
 } from './models.test';
 import { isTestEnvironment } from '../constants';
 
+// Every request this app makes carries its own name so provider activity can be told apart from the Runtime's, Cortex's and RPD2's calls on shared accounts.
+const attributionHeaders = {
+  'HTTP-Referer': 'https://sophie.app',
+  'X-Title': `sophie-bff:${process.env.VERCEL_ENV ?? 'local'}`,
+};
+
 const openrouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY,
+  headers: attributionHeaders,
 });
 
 export const PINNED_OPENAI_PROVIDER_ROUTING = {
@@ -76,6 +83,7 @@ const nanoGPT =
     ? createOpenRouter({
         baseURL: 'https://nano-gpt.com/api/v1',
         apiKey: process.env.NANO_API_KEY,
+        headers: attributionHeaders,
       } as any)
     : null;
 
