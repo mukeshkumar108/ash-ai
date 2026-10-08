@@ -29,54 +29,7 @@ export const PINNED_OPENAI_PROVIDER_ROUTING = {
   require_parameters: true,
 } as const;
 
-// Venice API — OpenAI-compatible, Chat Completions endpoint
-// Wraps fetch to:
-// 1. Inject venice_parameters to suppress Venice's default system prompts
-// 2. Patch streaming chunks to add "role":"assistant" (Venice omits it, SDK requires it)
-const venice = process.env.VENICE_API_KEY
-  ? createOpenRouter({
-      baseURL: 'https://api.venice.ai/api/v1',
-      apiKey: process.env.VENICE_API_KEY,
-      fetch: async (url: RequestInfo, init?: RequestInit) => {
-        if (init?.body && typeof init.body === 'string') {
-          try {
-            const body = JSON.parse(init.body as string);
-            if (!body.venice_parameters) {
-              body.venice_parameters = { include_venice_system_prompt: false };
-            }
-            init.body = JSON.stringify(body);
-          } catch {}
-        }
-        const response = await fetch(url, init);
-        if (!response.ok || !response.body) return response;
-        if (
-          !response.headers.get('content-type')?.includes('text/event-stream')
-        )
-          return response;
-        const body = response.clone().body;
-        if (!body) return response;
-        const decoder = new TextDecoder();
-        let firstDeltaPatched = false;
-        const transform = new TransformStream({
-          transform(chunk, controller) {
-            const text = decoder.decode(chunk, { stream: true });
-            if (!firstDeltaPatched && text.includes('"delta":{')) {
-              const patched = text.replace(
-                /"delta":\{/g,
-                '"delta":{"role":"assistant",',
-              );
-              firstDeltaPatched = true;
-              controller.enqueue(new TextEncoder().encode(patched));
-            } else {
-              controller.enqueue(chunk);
-            }
-          },
-        });
-        return new Response(body.pipeThrough(transform), response);
-      },
-    } as any)
-  : null;
-
+// Providers are NanoGPT or OpenRouter only: both are visible to us (account activity and the Runtime's call ledger). No third provider is reachable by configuration.
 // NanoGPT API — OpenAI-compatible
 const nanoGPT =
   process.env.NANO_API_KEY && process.env.NANOGPT_ENABLED === 'true'
@@ -189,10 +142,6 @@ export function getLanguageModel(modelId: string) {
   // Route to NanoGPT if configured and model is a NanoGPT model
   if (nanoGPT && NANOGPT_MODEL_IDS.has(modelId)) {
     return nanoGPT(modelId) as any;
-  }
-  // Fallback: if venice is configured and this isn't an internal alias, route to venice
-  if (venice && !INTERNAL_ALIASES.has(modelId)) {
-    return venice(modelId) as any;
   }
   // Fallback to OpenRouter for remaining internal aliases and background models
   if (modelId.includes('/') || modelId.includes(':')) {

@@ -115,6 +115,26 @@ export async function runRelationshipInitiative(
   } & InitiativeRuntimeOptions,
 ) {
   const evaluationNow = input.evaluationNow ?? new Date();
+  if (
+    process.env.RELATIONSHIP_LEGACY_EVALUATOR !== 'true' &&
+    !input.evaluate &&
+    !input.compose
+  ) {
+    // Deciding to speak first belongs to the substrate (Cortex decides, the Runtime's foreground composes); this app only delivers. The model-based evaluator and
+    // composer below (a different model, a different prompt, a different voice) remain behind RELATIONSHIP_LEGACY_EVALUATOR=true for one release, then go.
+    const acted = await deliverRuntimeProactive(
+      {
+        userId: input.userId,
+        chatId: input.chatId,
+        anchorMessageId: input.anchorMessageId,
+        trigger: input.trigger,
+      },
+      evaluationNow,
+    );
+    return acted
+      ? { acted: true as const, reason: 'delivered_via_runtime' }
+      : { acted: false as const, reason: 'runtime_declined' };
+  }
   const claim = await claimInitiative({ ...input, evaluationNow });
   input.onTrace?.({ stage: 'claim', value: claim });
   input.onTrace?.({
@@ -402,6 +422,145 @@ export async function runRelationshipInitiative(
   }
 }
 
+/**
+ * One proactive candidate, end to end: the Runtime (Cortex decides, the shared foreground speaks) produces the message; this app only claims, persists and delivers it.
+ * The same function serves the server scan and the client-triggered initiative route, so there is exactly one voice and one decision-maker for speaking first.
+ */
+export async function deliverRuntimeProactive(
+  candidate: Record<string, any>,
+  evaluationNow: Date,
+): Promise<boolean> {
+  if (candidate.trigger === 'active_idle') {
+    // Owned by the deterministic follow-up lifecycle above. Skip the model
+    // path entirely: active_idle must never reach an LLM provider.
+    return false;
+  }
+  const timeZone = process.env.ASH_TIME_ZONE?.trim() || 'Europe/London';
+  const userId = String(candidate.userId);
+  const chatId = String(candidate.chatId);
+  const anchorMessageId = String(candidate.anchorMessageId);
+  const history = await conversationHistoryForRuntime(chatId);
+  let runtimeDecision: CompanionRuntimeProactiveResult | null = null;
+  try {
+    runtimeDecision = await executeCompanionRuntimeProactiveTick({
+      request_id: randomUUID(),
+      user_id: userId,
+      conversation_id: chatId,
+      anchor_message_id: anchorMessageId,
+      trigger: String(candidate.trigger),
+      now: evaluationNow.toISOString(),
+      timezone: timeZone,
+      recent_history: history,
+    });
+  } catch (error) {
+    console.warn('[relationship] proactive runtime failed closed', {
+      chatId,
+      trigger: candidate.trigger,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+    return false;
+  }
+  if (
+    !runtimeDecision ||
+    !runtimeDecision.should_appear ||
+    !runtimeDecision.outbound_text ||
+    !runtimeDecision.decision_id
+  )
+    return false;
+  const decisionId = runtimeDecision.decision_id;
+  const completion = async (delivered: boolean, reason?: string) => {
+    await completeCompanionRuntimeProactive({
+      user_id: userId,
+      conversation_id: chatId,
+      decision_id: decisionId,
+      occurrence_id: runtimeDecision.occurrence_id,
+      delivered,
+      now: evaluationNow.toISOString(),
+      reason,
+    });
+  };
+  const claim = await claimRuntimeInitiative({
+    userId,
+    chatId,
+    anchorMessageId,
+    trigger: String(candidate.trigger),
+    decisionId,
+    evaluationNow,
+  });
+  if (!claim.ok) {
+    await completion(false, claim.reason);
+    return false;
+  }
+  try {
+    const message = await persistRuntimeInitiativeMessage({
+      eventId: claim.eventId,
+      userId,
+      chatId,
+      anchorMessageId,
+      decisionId,
+      reason: runtimeDecision.reason,
+      trace: runtimeDecision.trace,
+      messageId: randomUUID(),
+      text: runtimeDecision.outbound_text,
+      evaluationNow,
+    });
+    if (!message) {
+      await completion(false, 'conversation_changed_before_send');
+      return false;
+    }
+    await completion(true);
+    if (runtimeDecision.intent_id) {
+      await postExecutiveOutbound({
+        userId,
+        intentId: runtimeDecision.intent_id,
+        messageId: message.id,
+        text: runtimeDecision.outbound_text,
+        decisionId: runtimeDecision.decision_id,
+      });
+    }
+    if (candidate.trigger === 'task_reminder' && candidate.context) {
+      const reminderId = (candidate.context as Record<string, unknown>)
+        .reminderId;
+      if (typeof reminderId === 'string')
+        await markTaskReminderFired(reminderId, evaluationNow);
+    } else if (
+      candidate.trigger === 'calendar_followup' &&
+      candidate.context
+    ) {
+      const eventId = (candidate.context as Record<string, unknown>).eventId;
+      if (typeof eventId === 'string')
+        await consumeCalendarFollowup(userId, eventId, evaluationNow);
+    }
+    void mirrorAssistantInitiative({
+      userId,
+      chatId,
+      message: {
+        id: message.id,
+        text: runtimeDecision.outbound_text,
+        createdAt: message.metadata.createdAt,
+      },
+    });
+    return true;
+  } catch (error) {
+    await failInitiative(
+      claim.eventId,
+      error instanceof Error ? error.message : 'Unknown delivery error',
+    );
+    try {
+      await completion(false, 'delivery_failed');
+    } catch (completionError) {
+      console.warn('[relationship] proactive completion failed', {
+        decisionId: runtimeDecision.decision_id,
+        error:
+          completionError instanceof Error
+            ? completionError.message
+            : 'Unknown error',
+      });
+    }
+  }
+  return false;
+}
+
 export async function runServerInitiativeScan(
   options: InitiativeRuntimeOptions = {},
 ) {
@@ -439,134 +598,7 @@ export async function runServerInitiativeScan(
   const candidates: Array<Record<string, any>> = [...scanned, ...executiveCandidates];
   let acted = 0;
   for (const candidate of candidates) {
-    if (candidate.trigger === 'active_idle') {
-      // Owned by the deterministic follow-up lifecycle above. Skip the model
-      // path entirely: active_idle must never reach an LLM provider.
-      continue;
-    }
-    const timeZone = process.env.ASH_TIME_ZONE?.trim() || 'Europe/London';
-    const userId = String(candidate.userId);
-    const chatId = String(candidate.chatId);
-    const anchorMessageId = String(candidate.anchorMessageId);
-    const history = await conversationHistoryForRuntime(chatId);
-    let runtimeDecision: CompanionRuntimeProactiveResult | null = null;
-    try {
-      runtimeDecision = await executeCompanionRuntimeProactiveTick({
-        request_id: randomUUID(),
-        user_id: userId,
-        conversation_id: chatId,
-        anchor_message_id: anchorMessageId,
-        trigger: String(candidate.trigger),
-        now: evaluationNow.toISOString(),
-        timezone: timeZone,
-        recent_history: history,
-      });
-    } catch (error) {
-      console.warn('[relationship] proactive runtime failed closed', {
-        chatId,
-        trigger: candidate.trigger,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
-      continue;
-    }
-    if (
-      !runtimeDecision ||
-      !runtimeDecision.should_appear ||
-      !runtimeDecision.outbound_text ||
-      !runtimeDecision.decision_id
-    )
-      continue;
-    const decisionId = runtimeDecision.decision_id;
-    const completion = async (delivered: boolean, reason?: string) => {
-      await completeCompanionRuntimeProactive({
-        user_id: userId,
-        conversation_id: chatId,
-        decision_id: decisionId,
-        occurrence_id: runtimeDecision.occurrence_id,
-        delivered,
-        now: evaluationNow.toISOString(),
-        reason,
-      });
-    };
-    const claim = await claimRuntimeInitiative({
-      userId,
-      chatId,
-      anchorMessageId,
-      trigger: String(candidate.trigger),
-      decisionId,
-      evaluationNow,
-    });
-    if (!claim.ok) {
-      await completion(false, claim.reason);
-      continue;
-    }
-    try {
-      const message = await persistRuntimeInitiativeMessage({
-        eventId: claim.eventId,
-        userId,
-        chatId,
-        anchorMessageId,
-        decisionId,
-        reason: runtimeDecision.reason,
-        trace: runtimeDecision.trace,
-        messageId: randomUUID(),
-        text: runtimeDecision.outbound_text,
-        evaluationNow,
-      });
-      if (!message) {
-        await completion(false, 'conversation_changed_before_send');
-        continue;
-      }
-      await completion(true);
-      if (runtimeDecision.intent_id) {
-        await postExecutiveOutbound({
-          userId,
-          intentId: runtimeDecision.intent_id,
-          messageId: message.id,
-          text: runtimeDecision.outbound_text,
-          decisionId: runtimeDecision.decision_id,
-        });
-      }
-      if (candidate.trigger === 'task_reminder' && candidate.context) {
-        const reminderId = (candidate.context as Record<string, unknown>)
-          .reminderId;
-        if (typeof reminderId === 'string')
-          await markTaskReminderFired(reminderId, evaluationNow);
-      } else if (
-        candidate.trigger === 'calendar_followup' &&
-        candidate.context
-      ) {
-        const eventId = (candidate.context as Record<string, unknown>).eventId;
-        if (typeof eventId === 'string')
-          await consumeCalendarFollowup(userId, eventId, evaluationNow);
-      }
-      void mirrorAssistantInitiative({
-        userId,
-        chatId,
-        message: {
-          id: message.id,
-          text: runtimeDecision.outbound_text,
-          createdAt: message.metadata.createdAt,
-        },
-      });
-      acted += 1;
-    } catch (error) {
-      await failInitiative(
-        claim.eventId,
-        error instanceof Error ? error.message : 'Unknown delivery error',
-      );
-      try {
-        await completion(false, 'delivery_failed');
-      } catch (completionError) {
-        console.warn('[relationship] proactive completion failed', {
-          decisionId: runtimeDecision.decision_id,
-          error:
-            completionError instanceof Error
-              ? completionError.message
-              : 'Unknown error',
-        });
-      }
-    }
+    if (await deliverRuntimeProactive(candidate, evaluationNow)) acted += 1;
   }
   return {
     enabled: true,
