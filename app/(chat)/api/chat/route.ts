@@ -1192,12 +1192,22 @@ export async function POST(request: Request) {
           // materialized_actions. A sweep can never see the turn before the
           // fast path committed.
           try {
+            // Jev already judged this turn (one paid call, any language): gate the
+            // fast-path interpreter model on its explicit `action_needed` flag.
+            // Absent/gated Jev runs the model (fail open); explicit false skips it.
+            const runtimeJev = (runtimeResult?.execution_metadata ?? {}) as Record<string, unknown>;
+            const jevFlags = (runtimeJev.jev ?? null) as Record<string, unknown> | null;
+            const actionNeeded =
+              typeof jevFlags?.action_needed === 'boolean'
+                ? (jevFlags.action_needed as boolean)
+                : null;
             const semanticCommit = await commitTurnSemantics({
               userId: session.user.id,
               chatId: id,
               messageId: message.id,
               userText: currentUserText,
               assistantText: finalText,
+              actionNeeded,
               localTime: new Intl.DateTimeFormat('en-GB', {
                 dateStyle: 'full',
                 timeStyle: 'short',

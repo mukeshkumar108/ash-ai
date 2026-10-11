@@ -1,7 +1,6 @@
 import 'server-only';
 
 import { listTasksForUser } from '@/lib/tasks/domain';
-import { turnLooksActionable } from './actionable';
 import {
   commitInterpreterActions,
   runCommitmentInterpreter,
@@ -37,16 +36,20 @@ export async function commitTurnSemantics(input: {
   signal?: AbortSignal;
   generate?: () => Promise<unknown>;
   __resolvedRoster?: { taskId: string; title: string; dueAt: Date | null }[];
+  /** Jev's `action_needed` flag for this turn (already-paid model judgement, any
+   * language). Explicit false skips the interpreter model call; null/undefined
+   * (Jev failed, gated, or unavailable) runs it — fail open, never silent skip. */
+  actionNeeded?: boolean | null;
   referenceTime?: Date;
 }): Promise<TurnSemanticsCommitResult> {
   const empty = { committed: [], clarifications: [], rejected: [] };
 
   if (!input.messageId) return empty;
 
-  // Deterministic pre-filter (INTERIM, see actionable.ts): turns with no task signal
-  // skip the model call entirely. The model refuses such turns anyway, so outcomes are
-  // unchanged and only spend (model call + roster read) is removed. Biased to run; deletion pointer in actionable.ts.
-  if (!turnLooksActionable(input.userText, input.assistantText)) return empty;
+  // No keyword matching: Jev (one already-paid judgement per turn, multilingual by
+  // construction) decides whether this turn can carry an explicit task op. The model
+  // refuses non-explicit turns anyway, so skipping on explicit false only removes spend.
+  if (input.actionNeeded === false) return empty;
   const roster =
     input.__resolvedRoster ??
     (await listTasksForUser(input.userId, { status: 'pending' })).map(
