@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { listTasksForUser } from '@/lib/tasks/domain';
+import { turnLooksActionable } from './actionable';
 import {
   commitInterpreterActions,
   runCommitmentInterpreter,
@@ -41,6 +42,11 @@ export async function commitTurnSemantics(input: {
   const empty = { committed: [], clarifications: [], rejected: [] };
 
   if (!input.messageId) return empty;
+
+  // Deterministic pre-filter (INTERIM, see actionable.ts): turns with no task signal
+  // skip the model call entirely. The model refuses such turns anyway, so outcomes are
+  // unchanged and only spend (model call + roster read) is removed. Biased to run; deletion pointer in actionable.ts.
+  if (!turnLooksActionable(input.userText, input.assistantText)) return empty;
   const roster =
     input.__resolvedRoster ??
     (await listTasksForUser(input.userId, { status: 'pending' })).map(
