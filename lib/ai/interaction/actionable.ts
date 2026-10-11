@@ -15,7 +15,7 @@
 
 const TASK_SIGNALS = [
   /remind/i,
-  /remember/i,
+  /remember to\b/i,
   /\btask\b/i,
   /\btodo\b/i,
   /to-?do/i,
