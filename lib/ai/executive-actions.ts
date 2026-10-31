@@ -6,6 +6,7 @@ import {
   listTasksForUser,
   rescheduleTask,
 } from '@/lib/tasks/domain';
+import { GOOGLE_TOOLS, runGoogleCapability } from '@/lib/ai/google-capabilities';
 import {
   fetchPendingExecutiveActions,
   postExecutiveReceipt,
@@ -97,6 +98,21 @@ export async function runExecutiveActionSweep() {
           status: 'succeeded',
           resultRef: taskId,
           detail: 'cancelled',
+        });
+        succeeded += 1;
+      } else if (GOOGLE_TOOLS.has(String(action.tool.tool))) {
+        // Gmail / Calendar through the app's own workspace-connect client. Success is reported only after Google has accepted the call.
+        const outcome = await runGoogleCapability(
+          action.userId,
+          String(action.tool.tool),
+          (action.tool.args ?? {}) as Record<string, unknown>,
+          String(action.workItemId ?? ''),
+        );
+        await postExecutiveReceipt({
+          ...base,
+          status: 'succeeded',
+          resultRef: outcome.resultRef,
+          ...(outcome.detail ? { detail: outcome.detail } : {}),
         });
         succeeded += 1;
       } else {
