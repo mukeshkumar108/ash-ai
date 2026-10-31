@@ -1,6 +1,7 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { SubmitButton } from '@/components/submit-button';
@@ -236,6 +237,22 @@ export default function ProfilePage() {
                 {saving ? 'Saving...' : 'Save Changes'}
               </SubmitButton>
             </form>
+          </div>
+
+          {/* Connected accounts */}
+          <div className="rounded-lg border bg-card p-6 shadow-sm">
+            <h2 className="text-xl font-semibold mb-1">Connected accounts</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              Connect or reconnect Google so Sophie can read your Gmail and
+              Calendar, and save drafts. Nothing is sent or changed without
+              your say-so.
+            </p>
+            <Link
+              href="/settings/integrations"
+              className="inline-flex items-center rounded-md border border-input px-4 py-2 text-sm font-medium hover:bg-muted"
+            >
+              Manage Google connection
+            </Link>
           </div>
 
           {/* Usage Stats */}
