@@ -1195,7 +1195,7 @@ export async function POST(request: Request) {
             // Jev already judged this turn (one paid call, any language): gate the
             // fast-path interpreter model on its explicit `action_needed` flag.
             // Absent/gated Jev runs the model (fail open); explicit false skips it.
-            const runtimeJev = (runtimeResult?.execution_metadata ?? {}) as Record<string, unknown>;
+            const runtimeJev = (runtimeCompleted?.execution_metadata ?? {}) as Record<string, unknown>;
             const jevFlags = (runtimeJev.jev ?? null) as Record<string, unknown> | null;
             const actionNeeded =
               typeof jevFlags?.action_needed === 'boolean'
