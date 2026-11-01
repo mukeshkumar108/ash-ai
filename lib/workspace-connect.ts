@@ -14,6 +14,7 @@ import type {
   GmailMessageSummary,
   GmailThreadDetail,
   GmailThreadMessage,
+  GoogleCapability,
   GoogleConnectionStatusResult,
 } from '@/lib/integrations';
 import { validateOpaqueId } from '@/lib/integrations';
@@ -257,11 +258,34 @@ export async function getGoogleConnectionStatus(
       )
     : null;
 
+  const capabilities = Array.isArray(record.capabilities)
+    ? record.capabilities.flatMap((raw): GoogleCapability[] => {
+        const c = raw as Record<string, unknown>;
+        return c && typeof c.id === 'string' && typeof c.label === 'string'
+          ? [
+              {
+                id: c.id,
+                label: c.label,
+                description:
+                  typeof c.description === 'string' ? c.description : '',
+                enabled: c.enabled === true,
+                sharedWith: Array.isArray(c.shared_with)
+                  ? c.shared_with.filter(
+                      (x): x is string => typeof x === 'string',
+                    )
+                  : [],
+              },
+            ]
+          : [];
+      })
+    : [];
+
   return {
     connected,
     google_email:
       typeof record.google_email === 'string' ? record.google_email : null,
     granted_scopes: grantedScopes,
+    capabilities,
     status:
       typeof record.status === 'string'
         ? record.status
@@ -271,8 +295,14 @@ export async function getGoogleConnectionStatus(
   };
 }
 
-export function createGoogleConnectUrl(authenticatedUserId: string): string {
+export function createGoogleConnectUrl(
+  authenticatedUserId: string,
+  capabilities?: string[],
+): string {
   assertAuthenticatedUserId(authenticatedUserId);
+  if (capabilities?.some((c) => !/^[a-z_]{1,40}$/.test(c))) {
+    throw new WorkspaceConnectError('invalid', 'unsupported capability name');
+  }
   const config = getConfig();
   const token = createIdentityToken(
     config,
@@ -283,7 +313,36 @@ export function createGoogleConnectUrl(authenticatedUserId: string): string {
     },
   );
 
-  return `${config.baseUrl}/google/connect?token=${encodeURIComponent(token)}`;
+  const asked = capabilities?.length
+    ? `&capabilities=${encodeURIComponent(capabilities.join(','))}`
+    : '';
+  return `${config.baseUrl}/google/connect?token=${encodeURIComponent(token)}${asked}`;
+}
+
+export async function turnOffGoogleCapability(
+  authenticatedUserId: string,
+  capability: string,
+): Promise<void> {
+  assertAuthenticatedUserId(authenticatedUserId);
+  if (!/^[a-z_]{1,40}$/.test(capability)) {
+    throw new WorkspaceConnectError('invalid', 'unsupported capability name');
+  }
+  const config = getConfig();
+  const token = createApiAccessToken(config, authenticatedUserId);
+  const response = await workspaceConnectFetch(
+    config,
+    `${config.baseUrl}/google/capabilities/${capability}`,
+    { method: 'DELETE', headers: { authorization: `Bearer ${token}` } },
+  );
+  if (response.status === 404) {
+    throw new WorkspaceConnectError('not_connected', 'nothing to turn off');
+  }
+  if (!response.ok) {
+    throw new WorkspaceConnectError(
+      'unavailable',
+      `workspace-connect capability change failed with HTTP ${response.status}`,
+    );
+  }
 }
 
 export async function disconnectGoogle(

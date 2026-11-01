@@ -5,15 +5,22 @@ import {
   createGoogleConnectUrl,
   disconnectGoogle,
   getGoogleConnectionStatus,
+  turnOffGoogleCapability,
   WorkspaceConnectError,
 } from '@/lib/workspace-connect';
-import { buildIntegrationsStatusResponse } from '@/lib/integrations';
+import {
+  buildIntegrationsStatusResponse,
+  FIRST_GOOGLE_CAPABILITY,
+  isOfferedGoogleCapability,
+} from '@/lib/integrations';
+
+const ASKED_COOKIE = 'google_asked';
 
 export const dynamic = 'force-dynamic';
 
 const NO_STORE_HEADERS = { 'cache-control': 'no-store' };
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -22,10 +29,31 @@ export async function GET() {
 
   try {
     const result = await getGoogleConnectionStatus(session.user.id);
+    const body = buildIntegrationsStatusResponse(result);
 
-    return NextResponse.json(buildIntegrationsStatusResponse(result), {
-      headers: NO_STORE_HEADERS,
-    });
+    // What the person was just sent to Google for, so a permission they declined there can be said plainly. Read once, then forgotten.
+    const asked = (request.headers.get('cookie') ?? '')
+      .split(';')
+      .map((c) => c.trim())
+      .find((c) => c.startsWith(`${ASKED_COOKIE}=`))
+      ?.slice(ASKED_COOKIE.length + 1);
+    const response = NextResponse.json(
+      asked
+        ? {
+            ...body,
+            declined: decodeURIComponent(asked)
+              .split(',')
+              .filter(
+                (id) =>
+                  isOfferedGoogleCapability(id) &&
+                  !body.capabilities.find((c) => c.id === id)?.enabled,
+              ),
+          }
+        : body,
+      { headers: NO_STORE_HEADERS },
+    );
+    if (asked) response.cookies.delete(ASKED_COOKIE);
+    return response;
   } catch (error) {
     if (error instanceof WorkspaceConnectError) {
       return NextResponse.json(
@@ -58,7 +86,7 @@ export async function GET() {
   }
 }
 
-export async function POST() {
+export async function POST(request: Request) {
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -66,8 +94,22 @@ export async function POST() {
   }
 
   try {
-    const connectUrl = createGoogleConnectUrl(session.user.id);
-    return NextResponse.redirect(connectUrl, 303);
+    // Only the capabilities the person chose, and only ones this product offers; Calendar when nothing was named (the lightest first connection).
+    const form = await request.formData().catch(() => null);
+    const chosen = (form?.getAll('capabilities') ?? [])
+      .map(String)
+      .filter(isOfferedGoogleCapability);
+    const capabilities = chosen.length ? chosen : [FIRST_GOOGLE_CAPABILITY];
+    const connectUrl = createGoogleConnectUrl(session.user.id, capabilities);
+    const response = NextResponse.redirect(connectUrl, 303);
+    response.cookies.set(ASKED_COOKIE, capabilities.join(','), {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: true,
+      maxAge: 900,
+      path: '/api/integrations/google',
+    });
+    return response;
   } catch (error) {
     if (error instanceof WorkspaceConnectError) {
       return NextResponse.json(
@@ -81,7 +123,7 @@ export async function POST() {
   }
 }
 
-export async function DELETE() {
+export async function DELETE(request: Request) {
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -89,6 +131,15 @@ export async function DELETE() {
   }
 
   try {
+    // ?capability=x turns one thing off and leaves the rest; with none named, Google is disconnected entirely.
+    const capability = new URL(request.url).searchParams.get('capability');
+    if (capability) {
+      if (!isOfferedGoogleCapability(capability)) {
+        return NextResponse.json({ error: 'unknown_capability' }, { status: 400 });
+      }
+      await turnOffGoogleCapability(session.user.id, capability);
+      return NextResponse.json({ success: true });
+    }
     await disconnectGoogle(session.user.id);
     return NextResponse.json({ success: true });
   } catch (error) {

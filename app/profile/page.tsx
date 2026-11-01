@@ -243,15 +243,15 @@ export default function ProfilePage() {
           <div className="rounded-lg border bg-card p-6 shadow-sm">
             <h2 className="text-xl font-semibold mb-1">Connected accounts</h2>
             <p className="text-sm text-muted-foreground mb-4">
-              Connect or reconnect Google so Sophie can read your Gmail and
-              Calendar, and save drafts. Nothing is sent or changed without
-              your say-so.
+              Sophie works without any of this. Add Calendar, Gmail or Google
+              files when you want them, one at a time. Nothing is sent or
+              changed without your say-so.
             </p>
             <Link
               href="/settings/integrations"
               className="inline-flex items-center rounded-md border border-input px-4 py-2 text-sm font-medium hover:bg-muted"
             >
-              Manage Google connection
+              Choose what to connect
             </Link>
           </div>
 

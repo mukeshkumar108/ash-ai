@@ -3,11 +3,38 @@ export interface GoogleCapabilities {
   calendarAuthorized: boolean;
 }
 
+export interface GoogleCapability {
+  id: string;
+  label: string;
+  description: string;
+  enabled: boolean;
+  sharedWith: string[];
+}
+
+/**
+ * What Sophie offers to switch on, in this order. Each is asked of Google only when the person turns it on, and none is needed for Sophie or the daily briefing to be useful.
+ * Another product lists its own; the capabilities themselves live in Workspace Connect.
+ */
+export const OFFERED_GOOGLE_CAPABILITIES = [
+  'calendar',
+  'gmail_read',
+  'gmail_drafts',
+  'drive_files',
+  'calendar_write',
+] as const;
+
+export const FIRST_GOOGLE_CAPABILITY = 'calendar';
+
+export function isOfferedGoogleCapability(id: string): boolean {
+  return (OFFERED_GOOGLE_CAPABILITIES as readonly string[]).includes(id);
+}
+
 export interface GoogleConnectionStatusResult {
   connected: boolean;
   google_email: string | null;
   granted_scopes: string[] | null;
   status: string;
+  capabilities?: GoogleCapability[];
 }
 
 export interface IntegrationsGoogleStatusResponse {
@@ -17,6 +44,9 @@ export interface IntegrationsGoogleStatusResponse {
   gmailAuthorized: boolean;
   calendarAuthorized: boolean;
   status: string;
+  capabilities: GoogleCapability[];
+  /** capabilities the person was just sent to Google for and did not allow */
+  declined?: string[];
 }
 
 export interface GmailMessageSummary {
@@ -206,6 +236,9 @@ export function buildIntegrationsStatusResponse(
     gmailAuthorized,
     calendarAuthorized,
     status: result.status,
+    capabilities: (result.capabilities ?? []).filter((c) =>
+      isOfferedGoogleCapability(c.id),
+    ),
   };
 }
 

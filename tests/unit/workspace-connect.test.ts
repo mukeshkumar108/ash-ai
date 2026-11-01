@@ -412,6 +412,7 @@ test('connected status surfaces the Google email for the UI', async () => {
       gmailAuthorized: true,
       calendarAuthorized: true,
       status: 'active',
+      capabilities: [],
     });
   } finally {
     restore();
@@ -438,6 +439,7 @@ test('disconnected status renders a not_connected response', async () => {
       gmailAuthorized: false,
       calendarAuthorized: false,
       status: 'not_connected',
+      capabilities: [],
     });
   } finally {
     restore();
@@ -475,4 +477,44 @@ test.describe('deriveGoogleCapabilities', () => {
       calendarAuthorized: false,
     });
   });
+});
+
+test('createGoogleConnectUrl asks only for the capabilities named', () => {
+  const url = createGoogleConnectUrl('stable-user-123', ['calendar']);
+  expect(new URL(url).searchParams.get('capabilities')).toBe('calendar');
+  expect(
+    new URL(createGoogleConnectUrl('stable-user-123')).searchParams.get(
+      'capabilities',
+    ),
+  ).toBeNull();
+  expect(() =>
+    createGoogleConnectUrl('stable-user-123', ['calendar,gmail_read&x=1']),
+  ).toThrow();
+});
+
+test('status carries which capabilities are on and who they are shared with', async () => {
+  const { restore } = mockFetch(() =>
+    jsonResponse({
+      connected: true,
+      google_email: 'user@example.com',
+      granted_scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
+      status: 'active',
+      capabilities: [
+        { id: 'calendar', label: 'Calendar', description: 'd', enabled: true, shared_with: ['bloom'] },
+        { id: 'gmail_read', label: 'Gmail reading', description: 'd', enabled: false, shared_with: [] },
+        { id: 'something_new', label: 'Not offered', description: 'd', enabled: true, shared_with: [] },
+      ],
+    }),
+  );
+  try {
+    const out = buildIntegrationsStatusResponse(
+      await getGoogleConnectionStatus('stable-user-123'),
+    );
+    expect(out.capabilities.map((c) => [c.id, c.enabled, c.sharedWith])).toEqual([
+      ['calendar', true, ['bloom']],
+      ['gmail_read', false, []],
+    ]);
+  } finally {
+    restore();
+  }
 });

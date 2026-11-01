@@ -102,6 +102,11 @@ export function BriefingScreen({ briefing }: { briefing: BriefingResult | null }
           </CardContent>
         </Card>
       ))}
+      {brief.not_connected?.length ? (
+        <p className="text-sm text-muted-foreground">
+          This is your day from what Sophie already knows and your tasks. <a className="underline" href="/settings/integrations">Add {brief.not_connected.map((id) => SOURCE_NAME[id] ?? id).join(' or ')}</a> if you want it here too. Optional.
+        </p>
+      ) : null}
       {brief.unavailable.length ? <p className="text-sm text-muted-foreground">Could not be read just now: {brief.unavailable.map((id) => SOURCE_NAME[id] ?? id).join(', ')}.</p> : null}
 
       <Card>

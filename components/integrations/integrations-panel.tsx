@@ -14,17 +14,20 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { toast } from '@/components/toast';
-import type { IntegrationsGoogleStatusResponse } from '@/lib/integrations';
+import type {
+  GoogleCapability,
+  IntegrationsGoogleStatusResponse,
+} from '@/lib/integrations';
 
 type ViewState =
   | { view: 'loading' }
   | { view: 'unavailable' }
-  | { view: 'disconnected' }
   | {
-      view: 'connected';
-      googleEmail: string;
-      gmailAuthorized: boolean;
-      calendarAuthorized: boolean;
+      view: 'ready';
+      googleEmail: string | null;
+      connected: boolean;
+      capabilities: GoogleCapability[];
+      declined: string[];
     };
 
 export function IntegrationsPanel({
@@ -36,7 +39,7 @@ export function IntegrationsPanel({
   const router = useRouter();
 
   const [view, setView] = useState<ViewState>({ view: 'loading' });
-  const [disconnecting, setDisconnecting] = useState(false);
+  const [busy, setBusy] = useState<string | null>(null);
   const handledCallbackRef = useRef(false);
 
   const loadStatus = useCallback(async () => {
@@ -53,17 +56,13 @@ export function IntegrationsPanel({
         return;
       }
 
-      if (data.connected && data.googleEmail) {
-        setView({
-          view: 'connected',
-          googleEmail: data.googleEmail,
-          gmailAuthorized: data.gmailAuthorized,
-          calendarAuthorized: data.calendarAuthorized,
-        });
-        return;
-      }
-
-      setView({ view: 'disconnected' });
+      setView({
+        view: 'ready',
+        googleEmail: data.googleEmail,
+        connected: data.connected && Boolean(data.googleEmail),
+        capabilities: data.capabilities ?? [],
+        declined: data.declined ?? [],
+      });
     } catch (error) {
       console.error('[integrations] failed to load Google status:', error);
       setView({ view: 'unavailable' });
@@ -90,8 +89,29 @@ export function IntegrationsPanel({
     router.replace('/settings/integrations');
   }, [callbackReturned, router]);
 
+  const turnOff = async (capability: GoogleCapability) => {
+    setBusy(capability.id);
+    try {
+      const response = await fetch(
+        `/api/integrations/google?capability=${encodeURIComponent(capability.id)}`,
+        { method: 'DELETE' },
+      );
+      if (response.ok) {
+        toast({ type: 'success', description: `${capability.label} turned off` });
+        await loadStatus();
+        return;
+      }
+      toast({ type: 'error', description: `Could not turn off ${capability.label}` });
+    } catch (error) {
+      console.error('[integrations] failed to turn off a capability:', error);
+      toast({ type: 'error', description: `Could not turn off ${capability.label}` });
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const handleDisconnect = async () => {
-    setDisconnecting(true);
+    setBusy('all');
 
     try {
       const response = await fetch('/api/integrations/google', {
@@ -104,22 +124,12 @@ export function IntegrationsPanel({
         return;
       }
 
-      const body = await response.json().catch(() => null);
-
-      if (body?.error === 'workspace_connect_unavailable') {
-        toast({
-          type: 'error',
-          description:
-            'Google could not be disconnected. Please try again later.',
-        });
-      } else {
-        toast({ type: 'error', description: 'Failed to disconnect Google' });
-      }
+      toast({ type: 'error', description: 'Failed to disconnect Google' });
     } catch (error) {
       console.error('[integrations] failed to disconnect Google:', error);
       toast({ type: 'error', description: 'Failed to disconnect Google' });
     } finally {
-      setDisconnecting(false);
+      setBusy(null);
     }
   };
 
@@ -141,7 +151,9 @@ export function IntegrationsPanel({
       <Card>
         <CardHeader>
           <CardTitle>Google</CardTitle>
-          <CardDescription>Connect Gmail and Google Calendar.</CardDescription>
+          <CardDescription>
+            Sophie works without it. Add what you want, when you want it.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <p className="mb-4 text-sm text-muted-foreground">
@@ -156,52 +168,77 @@ export function IntegrationsPanel({
     );
   }
 
-  if (view.view === 'disconnected') {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Google</CardTitle>
-          <CardDescription>Connect Gmail and Google Calendar.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form action="/api/integrations/google" method="POST">
-            <Button type="submit">Connect Google</Button>
-          </form>
-        </CardContent>
-      </Card>
-    );
-  }
+  const anyOn = view.capabilities.some((c) => c.enabled);
+  const names = new Map(view.capabilities.map((c) => [c.id, c.label]));
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Google</CardTitle>
-        <CardDescription>Connected as {view.googleEmail}</CardDescription>
+        <CardDescription>
+          {view.connected
+            ? `Connected as ${view.googleEmail}`
+            : 'Sophie works without it. Add only what you want, when you want it.'}
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <ul className="mb-4 space-y-1 text-sm text-muted-foreground">
-          <li>
-            Gmail: {view.gmailAuthorized ? 'Authorised' : 'Not authorised'}
-          </li>
-          <li>
-            Calendar:{' '}
-            {view.calendarAuthorized ? 'Authorised' : 'Not authorised'}
-          </li>
+        {view.declined.length > 0 ? (
+          <p className="mb-4 text-sm text-muted-foreground">
+            Google did not allow {view.declined.map((id) => names.get(id) ?? id).join(', ')}.
+            Nothing was added for it. You can try again whenever you like.
+          </p>
+        ) : null}
+        <ul className="mb-4 divide-y">
+          {view.capabilities.map((c) => (
+            <li key={c.id} className="flex items-center justify-between gap-4 py-3">
+              <div>
+                <p className="text-sm font-medium">{c.label}</p>
+                <p className="text-sm text-muted-foreground">{c.description}</p>
+                {c.enabled && c.sharedWith.length > 0 ? (
+                  <p className="text-xs text-muted-foreground">
+                    Also shared with {c.sharedWith.join(', ')}
+                  </p>
+                ) : null}
+              </div>
+              {c.enabled ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={busy !== null}
+                  onClick={() => turnOff(c)}
+                >
+                  {busy === c.id ? 'Turning off...' : 'Turn off'}
+                </Button>
+              ) : (
+                <form action="/api/integrations/google" method="POST">
+                  <input type="hidden" name="capabilities" value={c.id} />
+                  <Button type="submit" size="sm" disabled={busy !== null}>
+                    Turn on
+                  </Button>
+                </form>
+              )}
+            </li>
+          ))}
         </ul>
         <div className="flex flex-wrap gap-2">
-          <Button asChild variant="outline">
-            <Link href="/settings/integrations/google">
-              View Gmail &amp; Calendar
-            </Link>
-          </Button>
-          <Button
-            type="button"
-            variant="destructive"
-            onClick={handleDisconnect}
-            disabled={disconnecting}
-          >
-            {disconnecting ? 'Disconnecting...' : 'Disconnect Google'}
-          </Button>
+          {anyOn ? (
+            <Button asChild variant="outline">
+              <Link href="/settings/integrations/google">
+                View Gmail &amp; Calendar
+              </Link>
+            </Button>
+          ) : null}
+          {view.connected ? (
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleDisconnect}
+              disabled={busy !== null}
+            >
+              {busy === 'all' ? 'Disconnecting...' : 'Disconnect Google'}
+            </Button>
+          ) : null}
         </div>
       </CardContent>
     </Card>

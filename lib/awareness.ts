@@ -11,6 +11,7 @@ export type BriefingResult = {
     sections: BriefingSection[];
     freshness: Record<string, string>;
     unavailable: string[];
+    not_connected?: string[];
   };
   sources: BriefingSource[];
   remember_from_mail: boolean;
