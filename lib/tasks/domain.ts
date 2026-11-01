@@ -2,6 +2,7 @@ import 'server-only';
 
 import { and, asc, eq, inArray } from 'drizzle-orm';
 
+import { announceTasksChanged } from '@/lib/awareness-events';
 import { db } from '@/lib/db/queries';
 import {
   task as taskTable,
@@ -179,7 +180,7 @@ async function pushTaskToCortex(input: {
   return result.pushed;
 }
 
-export async function createTask(
+async function createTaskCore(
   input: CreateTaskInput,
 ): Promise<TaskWithReminders> {
   const reminders = normalizeReminderWindows(input.reminders);
@@ -351,7 +352,7 @@ export type MutateOutcome = {
   evaluation?: ReturnType<typeof evaluateCommitment<TaskReminder>>;
 };
 
-export async function completeTask(
+async function completeTaskCore(
   userId: string,
   taskId: string,
   options: {
@@ -429,7 +430,7 @@ export async function completeTask(
   return { ok: true, task: task ?? undefined };
 }
 
-export async function cancelTask(
+async function cancelTaskCore(
   userId: string,
   taskId: string,
   options: {
@@ -508,7 +509,7 @@ export async function cancelTask(
 }
 
 /** Move the due date and shift every scheduled reminder by the same offset. */
-export async function snoozeTask(
+async function snoozeTaskCore(
   userId: string,
   taskId: string,
   input: {
@@ -617,7 +618,7 @@ export async function snoozeTask(
 }
 
 /** Reschedule the due date and/or replace the explicit reminder windows. */
-export async function rescheduleTask(
+async function rescheduleTaskCore(
   userId: string,
   taskId: string,
   input: {
@@ -717,7 +718,7 @@ export async function rescheduleTask(
 }
 
 /** Edit canonical title/notes (Things drawer). */
-export async function editTask(
+async function editTaskCore(
   userId: string,
   taskId: string,
   input: {
@@ -884,4 +885,36 @@ export async function sweepDirtyTaskProjections(
     }
   }
   return { processed: dirty.length, pushed };
+}
+
+// A change to the task list tells the companion's prepared day (fire and forget; never affects the change itself).
+export async function createTask(...args: Parameters<typeof createTaskCore>): ReturnType<typeof createTaskCore> {
+  const result = await createTaskCore(...args);
+  void announceTasksChanged(typeof args[0] === 'string' ? args[0] : (args[0] as { userId?: string }).userId);
+  return result;
+}
+export async function completeTask(...args: Parameters<typeof completeTaskCore>): ReturnType<typeof completeTaskCore> {
+  const result = await completeTaskCore(...args);
+  void announceTasksChanged(typeof args[0] === 'string' ? args[0] : (args[0] as { userId?: string }).userId);
+  return result;
+}
+export async function cancelTask(...args: Parameters<typeof cancelTaskCore>): ReturnType<typeof cancelTaskCore> {
+  const result = await cancelTaskCore(...args);
+  void announceTasksChanged(typeof args[0] === 'string' ? args[0] : (args[0] as { userId?: string }).userId);
+  return result;
+}
+export async function snoozeTask(...args: Parameters<typeof snoozeTaskCore>): ReturnType<typeof snoozeTaskCore> {
+  const result = await snoozeTaskCore(...args);
+  void announceTasksChanged(typeof args[0] === 'string' ? args[0] : (args[0] as { userId?: string }).userId);
+  return result;
+}
+export async function rescheduleTask(...args: Parameters<typeof rescheduleTaskCore>): ReturnType<typeof rescheduleTaskCore> {
+  const result = await rescheduleTaskCore(...args);
+  void announceTasksChanged(typeof args[0] === 'string' ? args[0] : (args[0] as { userId?: string }).userId);
+  return result;
+}
+export async function editTask(...args: Parameters<typeof editTaskCore>): ReturnType<typeof editTaskCore> {
+  const result = await editTaskCore(...args);
+  void announceTasksChanged(typeof args[0] === 'string' ? args[0] : (args[0] as { userId?: string }).userId);
+  return result;
 }

@@ -11,13 +11,14 @@ const SOURCES = new Set(['mail', 'calendar', 'things', 'memory', 'weather']);
 export async function POST(request: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const body = (await request.json().catch(() => ({}))) as { source?: string; use?: boolean; remember_from_mail?: boolean; place?: string };
-  const change: { source?: string; use?: boolean; remember_from_mail?: boolean; place?: string } = {};
+  const body = (await request.json().catch(() => ({}))) as { source?: string; use?: boolean; remember_from_mail?: boolean; place?: string; morning?: boolean };
+  const change: { source?: string; use?: boolean; remember_from_mail?: boolean; place?: string; morning?: boolean } = {};
   if (typeof body.source === 'string' && SOURCES.has(body.source) && typeof body.use === 'boolean') {
     change.source = body.source;
     change.use = body.use;
   }
   if (typeof body.remember_from_mail === 'boolean') change.remember_from_mail = body.remember_from_mail;
+  if (typeof body.morning === 'boolean') change.morning = body.morning;
   if (typeof body.place === 'string') change.place = body.place.slice(0, 80);
   if (!Object.keys(change).length) return NextResponse.json({ error: 'invalid' }, { status: 400 });
   try {

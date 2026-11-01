@@ -15,6 +15,9 @@ export type BriefingResult = {
   sources: BriefingSource[];
   remember_from_mail: boolean;
   place?: string;
+  morning?: boolean;
+  updated_at?: string;
+  slot?: string;
 };
 
 function runtime() {
@@ -44,7 +47,7 @@ export async function fetchBriefing(userId: string, timeZone: string, fresh = fa
 
 export async function changeBriefingSettings(
   userId: string,
-  change: { source?: string; use?: boolean; remember_from_mail?: boolean; place?: string },
+  change: { source?: string; use?: boolean; remember_from_mail?: boolean; place?: string; morning?: boolean },
 ) {
   return call(`/v1/users/${encodeURIComponent(userId)}/awareness/settings`, {
     method: 'POST',

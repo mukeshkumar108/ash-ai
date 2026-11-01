@@ -27,6 +27,7 @@ function stamp(iso: string, timeZone: string) {
 export function BriefingScreen({ briefing }: { briefing: BriefingResult | null }) {
   const [sources, setSources] = useState<BriefingSource[]>(briefing?.sources ?? []);
   const [remember, setRemember] = useState(briefing?.remember_from_mail ?? false);
+  const [morning, setMorning] = useState(briefing?.morning ?? true);
   const [place, setPlace] = useState(briefing?.place ?? '');
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
@@ -40,6 +41,7 @@ export function BriefingScreen({ briefing }: { briefing: BriefingResult | null }
       setSources(next.sources);
       setRemember(next.remember_from_mail);
       setPlace(next.place ?? '');
+      setMorning(next.morning ?? true);
       setNote((next.said ?? []).join(' '));
     } catch {
       setNote('That did not go through. Try again.');
@@ -69,7 +71,7 @@ export function BriefingScreen({ briefing }: { briefing: BriefingResult | null }
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">Your day</h1>
-          <p className="text-sm text-muted-foreground">Prepared {stamp(brief.generated_at, brief.time_zone)}</p>
+          <p className="text-sm text-muted-foreground">Prepared {stamp(brief.generated_at, brief.time_zone)}{briefing.updated_at && briefing.updated_at !== brief.generated_at ? `, updated ${stamp(briefing.updated_at, brief.time_zone)}` : ''}</p>
         </div>
         <div className="flex gap-2">
           <Button asChild variant="outline" size="sm">
@@ -117,6 +119,10 @@ export function BriefingScreen({ briefing }: { briefing: BriefingResult | null }
               <input type="checkbox" checked={remember} disabled={busy} onChange={(event) => change({ remember_from_mail: event.target.checked })} />
             </label>
           ) : null}
+          <label className="flex items-center justify-between text-sm">
+            <span>Have my day ready each morning</span>
+            <input type="checkbox" checked={morning} disabled={busy} onChange={(event) => change({ morning: event.target.checked })} />
+          </label>
           {sources.some((s) => s.id === 'weather' && s.used) ? (
             <form className="flex items-center gap-2 text-sm" onSubmit={(event) => { event.preventDefault(); void change({ place }); }}>
               <input className="min-w-0 flex-1 rounded border bg-transparent px-2 py-1" placeholder="Where are you? (for the weather)" value={place} maxLength={80} onChange={(event) => setPlace(event.target.value)} />
