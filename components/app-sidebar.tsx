@@ -7,6 +7,7 @@ import {
   Clapperboard,
   ImageIcon,
   ListChecks,
+  Sun,
   MessagesSquare,
   Phone,
 } from 'lucide-react';
@@ -66,6 +67,14 @@ export function AppSidebar() {
               <Link href="/voice" onClick={() => setOpenMobile(false)}>
                 <Phone />
                 <span>Voice</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Your day">
+              <Link href="/briefing" onClick={() => setOpenMobile(false)}>
+                <Sun />
+                <span>Your day</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
