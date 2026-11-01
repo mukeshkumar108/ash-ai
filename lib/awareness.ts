@@ -1,6 +1,6 @@
 import 'server-only';
 
-export type BriefingItem = { text: string; source: string; at: string; ref: string };
+export type BriefingItem = { text: string; source: string; at: string; ref: string; via?: string };
 export type BriefingSection = { id: string; title: string; items: BriefingItem[] };
 export type BriefingSource = { id: string; label: string; used: boolean };
 export type BriefingResult = {
@@ -14,6 +14,7 @@ export type BriefingResult = {
   };
   sources: BriefingSource[];
   remember_from_mail: boolean;
+  place?: string;
 };
 
 function runtime() {
@@ -43,7 +44,7 @@ export async function fetchBriefing(userId: string, timeZone: string, fresh = fa
 
 export async function changeBriefingSettings(
   userId: string,
-  change: { source?: string; use?: boolean; remember_from_mail?: boolean },
+  change: { source?: string; use?: boolean; remember_from_mail?: boolean; place?: string },
 ) {
   return call(`/v1/users/${encodeURIComponent(userId)}/awareness/settings`, {
     method: 'POST',

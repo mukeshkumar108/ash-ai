@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { MessageCircle, RefreshCw } from 'lucide-react';
+import { MessageCircle, Mic, RefreshCw } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,6 +27,7 @@ function stamp(iso: string, timeZone: string) {
 export function BriefingScreen({ briefing }: { briefing: BriefingResult | null }) {
   const [sources, setSources] = useState<BriefingSource[]>(briefing?.sources ?? []);
   const [remember, setRemember] = useState(briefing?.remember_from_mail ?? false);
+  const [place, setPlace] = useState(briefing?.place ?? '');
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -38,6 +39,7 @@ export function BriefingScreen({ briefing }: { briefing: BriefingResult | null }
       const next = await response.json();
       setSources(next.sources);
       setRemember(next.remember_from_mail);
+      setPlace(next.place ?? '');
       setNote((next.said ?? []).join(' '));
     } catch {
       setNote('That did not go through. Try again.');
@@ -57,6 +59,11 @@ export function BriefingScreen({ briefing }: { briefing: BriefingResult | null }
   }
 
   const { brief } = briefing;
+  // Turning a source off takes its lines off the page at once, without waiting for the next preparation.
+  const off = new Set(sources.filter((source) => !source.used).map((source) => source.id));
+  const shown = brief.sections
+    .map((section) => ({ ...section, items: section.items.filter((item) => !off.has(item.source) && !(item.via && off.has(item.via))) }))
+    .filter((section) => section.items.length > 0);
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-5 p-4 md:p-8">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -71,11 +78,14 @@ export function BriefingScreen({ briefing }: { briefing: BriefingResult | null }
           <Button asChild size="sm">
             <Link href={`/?query=${encodeURIComponent('Talk me through my day')}`}><MessageCircle className="mr-1 size-4" />Talk me through it</Link>
           </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/voice" title="Start a call, then ask her to talk you through your day"><Mic className="mr-1 size-4" />By voice</Link>
+          </Button>
         </div>
       </div>
 
-      {brief.sections.length === 0 ? <p className="text-muted-foreground">Nothing needs you today.</p> : null}
-      {brief.sections.map((section) => (
+      {shown.length === 0 ? <p className="text-muted-foreground">Nothing needs you today.</p> : null}
+      {shown.map((section) => (
         <Card key={section.id}>
           <CardHeader className="pb-2"><CardTitle className="text-base">{section.title}</CardTitle></CardHeader>
           <CardContent>
@@ -90,7 +100,7 @@ export function BriefingScreen({ briefing }: { briefing: BriefingResult | null }
           </CardContent>
         </Card>
       ))}
-      {brief.unavailable.length ? <p className="text-sm text-muted-foreground">Could not be read just now: {brief.unavailable.join(', ')}.</p> : null}
+      {brief.unavailable.length ? <p className="text-sm text-muted-foreground">Could not be read just now: {brief.unavailable.map((id) => SOURCE_NAME[id] ?? id).join(', ')}.</p> : null}
 
       <Card>
         <CardHeader className="pb-2"><CardTitle className="text-base">What it uses</CardTitle></CardHeader>
@@ -106,6 +116,12 @@ export function BriefingScreen({ briefing }: { briefing: BriefingResult | null }
               <span>Let news in my email about my projects be remembered, marked as unconfirmed</span>
               <input type="checkbox" checked={remember} disabled={busy} onChange={(event) => change({ remember_from_mail: event.target.checked })} />
             </label>
+          ) : null}
+          {sources.some((s) => s.id === 'weather' && s.used) ? (
+            <form className="flex items-center gap-2 text-sm" onSubmit={(event) => { event.preventDefault(); void change({ place }); }}>
+              <input className="min-w-0 flex-1 rounded border bg-transparent px-2 py-1" placeholder="Where are you? (for the weather)" value={place} maxLength={80} onChange={(event) => setPlace(event.target.value)} />
+              <Button type="submit" size="sm" variant="outline" disabled={busy}>Save</Button>
+            </form>
           ) : null}
           {note ? <p className="text-xs text-muted-foreground">{note}</p> : null}
           <p className="text-xs text-muted-foreground">Turning something off stops it being used straight away. Nothing is sent or changed in any of them.</p>
