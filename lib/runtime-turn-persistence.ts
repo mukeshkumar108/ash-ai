@@ -4,7 +4,6 @@ import { after } from 'next/server';
 import type { z } from 'zod';
 
 import { commitTurnSemantics } from '@/lib/ai/interaction/commit-turn';
-import { activeIdleOpportunity } from '@/lib/ai/relationship/policy';
 import { scheduleInitiativeOpportunity } from '@/lib/ai/relationship/store';
 import { db, updateChatSessionRouting } from '@/lib/db/queries';
 import { message as messageTable } from '@/lib/db/schema';
@@ -134,15 +133,6 @@ export async function persistRuntimeReply(input: {
 
   if (inserted.length === 0) return;
   after(async () => {
-    const opportunity = activeIdleOpportunity(assistantCreatedAt);
-    await scheduleInitiativeOpportunity({
-      userId,
-      chatId,
-      anchorMessageId: assistantId,
-      trigger: opportunity.trigger,
-      notBefore: opportunity.notBefore,
-      context: opportunity.context,
-    }).catch(() => undefined);
     try {
       await commitTurnSemantics({
         userId,

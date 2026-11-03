@@ -24,19 +24,6 @@ export const INITIATIVE_POLICY = {
   ),
 } as const;
 
-/**
- * After a Runtime reply, schedule one idle check. The Runtime/Cortex proactive
- * tick alone decides whether anything is appropriate to say; the product
- * carries no plan, objective or owned-object context into that decision.
- */
-export function activeIdleOpportunity(createdAt: Date) {
-  return {
-    trigger: 'active_idle' as const,
-    notBefore: new Date(createdAt.getTime() + INITIATIVE_POLICY.idleMs),
-    context: {},
-  };
-}
-
 export function mayUseDecision(input: {
   decision: InitiativeDecision;
   trigger: InitiativeTrigger;

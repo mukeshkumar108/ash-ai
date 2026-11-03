@@ -96,7 +96,6 @@ import {
   streamCompanionRuntimeTurn,
   type CompanionRuntimeResult,
 } from '@/lib/companion-runtime';
-import { activeIdleOpportunity } from '@/lib/ai/relationship/policy';
 import {
   cancelPendingBeatDeliveries,
   visibleMessagePartsAt,
@@ -1152,23 +1151,6 @@ export async function POST(request: Request) {
       // and keep it entirely outside Sophie prompt assembly and generation.
       if (shouldMirrorCompletedTurn) {
         after(async () => {
-          const opportunity = activeIdleOpportunity(assistantCreatedAt);
-          await scheduleInitiativeOpportunity({
-            userId: session.user.id,
-            chatId: id,
-            anchorMessageId: assistantId,
-            trigger: opportunity.trigger,
-            notBefore: opportunity.notBefore,
-            context: opportunity.context,
-          }).catch((error) => {
-            console.warn(
-              '[relationship] failed to schedule durable opportunity',
-              {
-                chatId: id,
-                error: error instanceof Error ? error.message : 'Unknown error',
-              },
-            );
-          });
           const completedTurn: Parameters<typeof mirrorCompletedTurn>[0] = {
             userId: session.user.id,
             chatId: id,

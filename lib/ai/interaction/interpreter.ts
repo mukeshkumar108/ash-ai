@@ -405,8 +405,14 @@ export async function commitInterpreterActions(input: {
   recentContext?: string;
   referenceTime?: Date;
 }): Promise<InterpreterCommitted> {
-  const { createTask, completeTask, cancelTask, snoozeTask, rescheduleTask } =
-    await import('@/lib/tasks/domain');
+  const {
+    createTask,
+    completeTask,
+    cancelTask,
+    snoozeTask,
+    rescheduleTask,
+    findPendingReminderNear,
+  } = await import('@/lib/tasks/domain');
   const { listTurnActionsForMessage } = await import(
     '@/lib/tasks/turn-actions'
   );
@@ -531,6 +537,12 @@ export async function commitInterpreterActions(input: {
         label: window.label,
       }));
       try {
+        // The same moment may already carry a reminder (the companion set it in the conversation, with the tool, before this ran): one moment, one reminder.
+        const firstWindow = windows.find((w) => !Number.isNaN(w.startAt.getTime()));
+        if (firstWindow && (await findPendingReminderNear(input.userId, firstWindow.startAt))) {
+          rejected.push({ action, reason: 'already_applied' });
+          continue;
+        }
         const created = await createTask({
           userId: input.userId,
           chatId: input.chatId,

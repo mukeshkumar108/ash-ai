@@ -12,7 +12,6 @@ import {
   type CompanionRuntimeProactiveResult,
 } from '@/lib/companion-runtime';
 
-import { sweepActiveConversationFollowups } from './followup';
 import { composeInitiative } from './composer';
 import { retrieveRelationshipEvidence } from './evidence';
 import { evaluateInitiative } from './evaluator';
@@ -431,8 +430,8 @@ export async function deliverRuntimeProactive(
   evaluationNow: Date,
 ): Promise<boolean> {
   if (candidate.trigger === 'active_idle') {
-    // Owned by the deterministic follow-up lifecycle above. Skip the model
-    // path entirely: active_idle must never reach an LLM provider.
+    // Silence after a reply is not a reason to speak. No such opportunity is
+    // scheduled any more; any left in the table are ignored.
     return false;
   }
   const timeZone = process.env.ASH_TIME_ZONE?.trim() || 'Europe/London';
@@ -568,13 +567,6 @@ export async function runServerInitiativeScan(
     return { enabled: false, scanned: 0, acted: 0 };
   }
   const evaluationNow = options.evaluationNow ?? new Date();
-  // Deterministic active-conversation follow-up lifecycle: zero model calls.
-  // Runs first so a fresh eligible conversation window is armed/driven by the
-  // cheap phrase-bank path, never by the expensive model-backed loop below.
-  const deterministic = await sweepActiveConversationFollowups({
-    now: evaluationNow,
-    timeZone: process.env.ASH_TIME_ZONE?.trim() || 'Europe/London',
-  });
   const scanned = await serverInitiativeScanCandidates(
     Number(process.env.RELATIONSHIP_SERVER_SCAN_LIMIT ?? 5),
     evaluationNow,
@@ -604,6 +596,5 @@ export async function runServerInitiativeScan(
     enabled: true,
     scanned: candidates.length,
     acted,
-    deterministic,
   };
 }

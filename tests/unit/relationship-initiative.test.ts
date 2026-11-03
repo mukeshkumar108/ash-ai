@@ -13,21 +13,24 @@ import {
   checkInitiativeEligibility,
   decisionPolicyRejection,
   initiativeDedupeKey,
-  activeIdleOpportunity,
   INITIATIVE_POLICY,
   mayUseDecision,
   unansweredFollowUpDelayMs,
   validateInitiativeText,
 } from '@/lib/ai/relationship/policy';
 
-test('every Runtime reply creates only a durable active-idle opportunity, with no product plan context', () => {
-  const createdAt = new Date('2026-08-20T20:00:00.000Z');
-  const opportunity = activeIdleOpportunity(createdAt);
-  expect(opportunity.trigger).toBe('active_idle');
-  expect(opportunity.notBefore.getTime() - createdAt.getTime()).toBe(
-    INITIATIVE_POLICY.idleMs,
-  );
-  expect(opportunity.context).toEqual({});
+test('a reply schedules no idle check: silence after a message is never a reason to speak', async () => {
+  const { readFileSync } = await import('node:fs');
+  const policy = await import('@/lib/ai/relationship/policy');
+  expect('activeIdleOpportunity' in policy).toBe(false);
+  for (const file of [
+    'app/(chat)/api/chat/route.ts',
+    'lib/runtime-turn-persistence.ts',
+    'lib/ai/relationship/outreach.ts',
+  ]) {
+    const source = readFileSync(file, 'utf8');
+    expect(source).not.toMatch(/activeIdleOpportunity|sweepActiveConversationFollowups/);
+  }
 });
 
 const decision = {

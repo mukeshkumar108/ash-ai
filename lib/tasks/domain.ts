@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { and, asc, eq, inArray } from 'drizzle-orm';
+import { and, asc, eq, gte, inArray, lte } from 'drizzle-orm';
 
 import { announceTasksChanged } from '@/lib/awareness-events';
 import { db } from '@/lib/db/queries';
@@ -885,6 +885,36 @@ export async function sweepDirtyTaskProjections(
     }
   }
   return { processed: dirty.length, pushed };
+}
+
+/**
+ * A pending task that already has a scheduled reminder at (about) this instant. The same promise reaches the canonical list by more than one route (the
+ * companion setting it in the conversation, the post-turn interpreter reading the person's words); two reminders for one moment are one reminder, whatever
+ * words either route used for it. Time is the language-independent key.
+ */
+export const REMINDER_SLOT_TOLERANCE_MS = 5 * 60_000;
+export async function findPendingReminderNear(
+  userId: string,
+  at: Date,
+  toleranceMs: number = REMINDER_SLOT_TOLERANCE_MS,
+): Promise<TaskWithReminders | null> {
+  if (Number.isNaN(at.getTime())) return null;
+  const hits = await db
+    .select({ taskId: taskReminderTable.taskId })
+    .from(taskReminderTable)
+    .innerJoin(taskTable, eq(taskTable.id, taskReminderTable.taskId))
+    .where(
+      and(
+        eq(taskReminderTable.userId, userId),
+        eq(taskReminderTable.status, 'scheduled'),
+        eq(taskTable.status, 'pending'),
+        gte(taskReminderTable.startAt, new Date(at.getTime() - toleranceMs)),
+        lte(taskReminderTable.startAt, new Date(at.getTime() + toleranceMs)),
+      ),
+    )
+    .limit(1);
+  if (hits.length === 0) return null;
+  return getTaskWithReminders(userId, hits[0].taskId);
 }
 
 // A change to the task list tells the companion's prepared day (fire and forget; never affects the change itself).
