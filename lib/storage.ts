@@ -6,8 +6,7 @@ import { AwsClient } from 'aws4fetch';
  * Private object storage seam. Every upload/download in the app goes through
  * here so the backend is a deployment choice, not a code change.
  *
- *   STORAGE_DRIVER=vercel-blob   (default; needs BLOB_READ_WRITE_TOKEN)
- *   STORAGE_DRIVER=s3            S3-compatible (Cloudflare R2, MinIO, AWS S3):
+ * S3-compatible storage only (Cloudflare R2, MinIO, AWS S3):
  *     S3_ENDPOINT           e.g. https://<account>.r2.cloudflarestorage.com
  *     S3_BUCKET             bucket name
  *     S3_ACCESS_KEY_ID
@@ -27,10 +26,6 @@ export type StoredObject = {
 
 export type ReadObject = { stream: ReadableStream<Uint8Array>; contentType: string | null };
 
-function driver(): 'vercel-blob' | 's3' {
-  return process.env.STORAGE_DRIVER?.trim() === 's3' ? 's3' : 'vercel-blob';
-}
-
 function s3Config() {
   const endpoint = process.env.S3_ENDPOINT?.trim().replace(/\/+$/, '');
   const bucket = process.env.S3_BUCKET?.trim();
@@ -38,7 +33,7 @@ function s3Config() {
   const secretAccessKey = process.env.S3_SECRET_ACCESS_KEY?.trim();
   if (!endpoint || !bucket || !accessKeyId || !secretAccessKey) {
     throw new Error(
-      'STORAGE_DRIVER=s3 needs S3_ENDPOINT, S3_BUCKET, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY',
+      'Object storage needs S3_ENDPOINT, S3_BUCKET, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY',
     );
   }
   const client = new AwsClient({
@@ -87,81 +82,39 @@ export async function putObject(
   options: { contentType?: string },
 ): Promise<StoredObject> {
   const contentType = options.contentType || 'application/octet-stream';
-  if (driver() === 's3') {
-    const { bucket, client } = s3Config();
-    const key = withSuffix(pathname);
-    const res = await client.fetch(s3ObjectUrl(key), {
-      method: 'PUT',
-      headers: { 'content-type': contentType },
-      body: body as BodyInit,
-    });
-    if (!res.ok) throw new Error(`S3 put failed: ${res.status}`);
-    return { url: `s3://${bucket}/${key}`, pathname: key, contentType };
-  }
-  const { put } = await import('@vercel/blob');
-  const blob = await put(pathname, body as Buffer, {
-    access: 'private',
-    token: process.env.BLOB_READ_WRITE_TOKEN,
-    addRandomSuffix: true,
-    contentType,
+  const { bucket, client } = s3Config();
+  const key = withSuffix(pathname);
+  const res = await client.fetch(s3ObjectUrl(key), {
+    method: 'PUT',
+    headers: { 'content-type': contentType },
+    body: body as BodyInit,
   });
-  return { url: blob.url, pathname: blob.pathname, contentType: blob.contentType };
+  if (!res.ok) throw new Error(`S3 put failed: ${res.status}`);
+  return { url: `s3://${bucket}/${key}`, pathname: key, contentType };
 }
 
 export async function getObject(pathname: string): Promise<ReadObject | null> {
-  if (driver() === 's3') {
-    const { client } = s3Config();
-    const res = await client.fetch(s3ObjectUrl(pathname), { method: 'GET' });
-    if (res.status !== 200 || !res.body) return null;
-    return { stream: res.body, contentType: res.headers.get('content-type') };
-  }
-  const { get } = await import('@vercel/blob');
-  const result = await get(pathname, {
-    access: 'private',
-    token: process.env.BLOB_READ_WRITE_TOKEN,
-  });
-  if (result?.statusCode !== 200 || !result.stream) return null;
-  return { stream: result.stream, contentType: result.blob.contentType ?? null };
+  const { client } = s3Config();
+  const res = await client.fetch(s3ObjectUrl(pathname), { method: 'GET' });
+  if (res.status !== 200 || !res.body) return null;
+  return { stream: res.body, contentType: res.headers.get('content-type') };
 }
 
 export async function deleteObject(pathname: string): Promise<void> {
-  if (driver() === 's3') {
-    const { client } = s3Config();
-    const res = await client.fetch(s3ObjectUrl(pathname), { method: 'DELETE' });
-    if (!res.ok && res.status !== 404) throw new Error(`S3 delete failed: ${res.status}`);
-    return;
-  }
-  const { del } = await import('@vercel/blob');
-  await del(pathname, { token: process.env.BLOB_READ_WRITE_TOKEN });
+  const { client } = s3Config();
+  const res = await client.fetch(s3ObjectUrl(pathname), { method: 'DELETE' });
+  if (!res.ok && res.status !== 404) throw new Error(`S3 delete failed: ${res.status}`);
 }
 
 /** Short-lived GET URL a third party (e.g. a model provider) can fetch. */
 export async function presignGetUrl(pathname: string, ttlMs: number): Promise<string> {
-  if (driver() === 's3') {
-    const { client } = s3Config();
-    const url = new URL(s3ObjectUrl(pathname));
-    url.searchParams.set('X-Amz-Expires', String(Math.max(1, Math.round(ttlMs / 1000))));
-    const signed = await client.sign(new Request(url, { method: 'GET' }), {
-      aws: { signQuery: true },
-    });
-    return signed.url;
-  }
-  const { issueSignedToken, presignUrl } = await import('@vercel/blob');
-  const validUntil = Date.now() + ttlMs;
-  const signedToken = await issueSignedToken({
-    pathname,
-    operations: ['get'],
-    validUntil,
-    token: process.env.BLOB_READ_WRITE_TOKEN,
+  const { client } = s3Config();
+  const url = new URL(s3ObjectUrl(pathname));
+  url.searchParams.set('X-Amz-Expires', String(Math.max(1, Math.round(ttlMs / 1000))));
+  const signed = await client.sign(new Request(url, { method: 'GET' }), {
+    aws: { signQuery: true },
   });
-  const { presignedUrl } = await presignUrl(
-    {
-      clientSigningToken: signedToken.clientSigningToken,
-      delegationToken: signedToken.delegationToken,
-    },
-    { operation: 'get', pathname, access: 'private', validUntil },
-  );
-  return presignedUrl;
+  return signed.url;
 }
 
 /** Read a private object as a base64 data URI (providers cannot fetch private URLs). */
