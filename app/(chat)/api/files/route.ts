@@ -1,7 +1,7 @@
-import { del, get } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 
 import { auth } from '@/app/(auth)/auth';
+import { deleteObject, getObject } from '@/lib/storage';
 
 export const runtime = 'nodejs';
 
@@ -20,19 +20,16 @@ export async function GET(request: Request) {
   }
 
   try {
-    const result = await get(pathname, {
-      access: 'private',
-      token: process.env.BLOB_READ_WRITE_TOKEN,
-    });
+    const result = await getObject(pathname);
 
-    if (result?.statusCode !== 200 || !result.stream) {
+    if (!result) {
       return new NextResponse('Not found', { status: 404 });
     }
 
     return new NextResponse(result.stream, {
       headers: {
         'Cache-Control': 'private, no-cache',
-        'Content-Type': result.blob.contentType ?? 'application/octet-stream',
+        'Content-Type': result.contentType ?? 'application/octet-stream',
         'X-Content-Type-Options': 'nosniff',
       },
     });
@@ -60,7 +57,7 @@ export async function DELETE(request: Request) {
   }
 
   try {
-    await del(pathname, { token: process.env.BLOB_READ_WRITE_TOKEN });
+    await deleteObject(pathname);
     return NextResponse.json({ ok: true });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to delete file' }, { status: 500 });

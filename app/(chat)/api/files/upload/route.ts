@@ -1,4 +1,4 @@
-import { put } from '@vercel/blob';
+import { putObject } from '@/lib/storage';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
@@ -74,10 +74,7 @@ export async function POST(request: Request) {
     const fileBuffer = await file.arrayBuffer();
 
     try {
-      const data = await put(`${filename}`, fileBuffer, {
-        access: 'private',
-        token: process.env.BLOB_READ_WRITE_TOKEN,
-        addRandomSuffix: true,
+      const data = await putObject(`${filename}`, fileBuffer, {
         contentType: file.type,
       });
 

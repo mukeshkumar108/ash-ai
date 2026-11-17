@@ -1,4 +1,4 @@
-import { put } from '@vercel/blob';
+import { putObject } from '@/lib/storage';
 import { NextResponse } from 'next/server';
 
 import { auth } from '@/app/(auth)/auth';
@@ -211,12 +211,7 @@ export async function POST(request: Request) {
       const contentType =
         download.headers.get('content-type')?.split(';')[0] || 'video/mp4';
 
-      const blob = await put(`video-gen/${Date.now()}.mp4`, buffer, {
-        access: 'private',
-        token: process.env.BLOB_READ_WRITE_TOKEN,
-        addRandomSuffix: true,
-        contentType,
-      });
+      const blob = await putObject(`video-gen/${Date.now()}.mp4`, buffer, { contentType });
 
       results.push({
         url: blob.url,

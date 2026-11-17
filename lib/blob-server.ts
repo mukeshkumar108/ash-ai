@@ -1,37 +1,13 @@
 import 'server-only';
 
-import { issueSignedToken, presignUrl } from '@vercel/blob';
+import { presignGetUrl } from './storage';
 
 import { isPrivateBlobUrl, getBlobPathname } from './blob';
 
 const BLOB_SIGN_URL_MS = 30 * 60 * 1000;
 
-async function presignBlobUrl(pathname: string) {
-  const validUntil = Date.now() + BLOB_SIGN_URL_MS;
-  const token = process.env.BLOB_READ_WRITE_TOKEN;
-
-  const signedToken = await issueSignedToken({
-    pathname,
-    operations: ['get'],
-    validUntil,
-    token,
-  });
-
-  const { presignedUrl } = await presignUrl(
-    {
-      clientSigningToken: signedToken.clientSigningToken,
-      delegationToken: signedToken.delegationToken,
-    },
-    {
-      operation: 'get',
-      pathname,
-      access: 'private',
-      validUntil,
-    },
-  );
-
-  return presignedUrl;
-}
+const presignBlobUrl = (pathname: string) =>
+  presignGetUrl(pathname, BLOB_SIGN_URL_MS);
 
 export async function presignFilePartUrls<T extends { parts: unknown[] }>(
   messages: T[],

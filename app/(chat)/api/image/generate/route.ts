@@ -1,4 +1,4 @@
-import { put } from '@vercel/blob';
+import { putObject } from '@/lib/storage';
 import { NextResponse } from 'next/server';
 
 import { auth } from '@/app/(auth)/auth';
@@ -276,12 +276,7 @@ export async function POST(request: Request) {
       const contentType =
         download.headers.get('content-type')?.split(';')[0] || 'image/png';
 
-      const blob = await put(`image-gen/${Date.now()}.img`, buffer, {
-        access: 'private',
-        token: process.env.BLOB_READ_WRITE_TOKEN,
-        addRandomSuffix: true,
-        contentType,
-      });
+      const blob = await putObject(`image-gen/${Date.now()}.img`, buffer, { contentType });
 
       results.push({
         url: blob.url,

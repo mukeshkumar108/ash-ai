@@ -1,4 +1,4 @@
-import { get, put } from '@vercel/blob';
+import { putObject, readObjectDataUri } from '@/lib/storage';
 import { NextResponse } from 'next/server';
 
 import { auth } from '@/app/(auth)/auth';
@@ -51,34 +51,7 @@ type RemixRequestBody = {
   quality?: string;
 };
 
-async function blobDataUriFor(pathname: string): Promise<string | null> {
-  try {
-    const result = await get(pathname, {
-      access: 'private',
-      token: process.env.BLOB_READ_WRITE_TOKEN,
-    });
-    if (result?.statusCode !== 200 || !result.stream) return null;
-    const chunks: Uint8Array[] = [];
-    const reader = result.stream.getReader();
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      if (value) chunks.push(value);
-    }
-    const bytes = new Uint8Array(
-      chunks.reduce((total, chunk) => total + chunk.length, 0),
-    );
-    let offset = 0;
-    for (const chunk of chunks) {
-      bytes.set(chunk, offset);
-      offset += chunk.length;
-    }
-    const mediaType = result.blob.contentType || 'image/png';
-    return `data:${mediaType};base64,${Buffer.from(bytes).toString('base64')}`;
-  } catch {
-    return null;
-  }
-}
+const blobDataUriFor = readObjectDataUri;
 
 function isBaselineOf(parent: Generation, pathname: string): boolean {
   const images = (parent.images ?? []) as Array<{
@@ -357,12 +330,7 @@ export async function POST(request: Request) {
       const contentType =
         download.headers.get('content-type')?.split(';')[0] || 'image/png';
 
-      const blob = await put(`image-gen/${Date.now()}.img`, buffer, {
-        access: 'private',
-        token: process.env.BLOB_READ_WRITE_TOKEN,
-        addRandomSuffix: true,
-        contentType,
-      });
+      const blob = await putObject(`image-gen/${Date.now()}.img`, buffer, { contentType });
 
       results.push({
         url: blob.url,
