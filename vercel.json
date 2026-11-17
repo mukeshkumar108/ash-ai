@@ -1,26 +1,4 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "nextjs",
-  "crons": [
-    {
-      "path": "/api/cron/relationship-initiative",
-      "schedule": "* * * * *"
-    },
-    {
-      "path": "/api/cron/cortex-delivery",
-      "schedule": "* * * * *"
-    },
-    {
-      "path": "/api/cron/object-sync",
-      "schedule": "* * * * *"
-    },
-    {
-      "path": "/api/cron/continuity-brief",
-      "schedule": "0 * * * *"
-    },
-    {
-      "path": "/api/cron/executive-actions",
-      "schedule": "* * * * *"
-    }
-  ]
+  "framework": "nextjs"
 }
