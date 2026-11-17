@@ -1,6 +1,8 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  // Self-hosted (Docker) builds set NEXT_OUTPUT=standalone; Vercel builds are unaffected.
+  ...(process.env.NEXT_OUTPUT === 'standalone' ? { output: 'standalone' as const } : {}),
   // Keep production builds separate from the dev (Turbopack) output so they
   // never clobber each other's `.next` directory.
   distDir:

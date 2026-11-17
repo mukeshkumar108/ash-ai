@@ -1,0 +1,10 @@
+node_modules
+.next
+.next-build
+.git
+.vercel
+.env*
+_backup.env.local
+test-results
+playwright-report
+docs
